@@ -3,6 +3,7 @@ import {
   Image,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -78,9 +79,24 @@ const HomeScreen = () => {
         />
       </View>
       <View style={styles.container}>
-        <View style={styles.batchCard}></View>
-        <Text style={styles.listTitle}>Students In Batch</Text>
-        {/* Student List */}
+        <View style={styles.batchCard}>
+          <Text style={styles.batchCardTitle}>Batch 1</Text>
+          <Text style={styles.batchCardSubtitle}>strength</Text>
+        </View>
+        <View style={styles.header}>
+          <View style={styles.searchBar}>
+            <Icon name="search" size={20} color="#999" />
+            <TextInput
+              placeholder="Search Student"
+              style={styles.searchInput}
+            />
+          </View>
+          <TouchableOpacity style={styles.addStudentButton}>
+            <Text style={styles.addStudentButtonText}>Add Student</Text>
+          </TouchableOpacity>
+        </View>
+        {/* <Text style={styles.listTitle}>Students In Batch</Text> */}
+
         <FlatList
           data={students}
           renderItem={renderStudentCard}
@@ -137,20 +153,66 @@ const styles = StyleSheet.create({
   },
   batchCard: {
     width: '100%',
-    height: 200,
+    height: 130,
     backgroundColor: '#ffff',
     borderRadius: 10,
     padding: 10,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 12,
+    elevation: 8,
+    marginBottom: 20,
+  },
+  batchCardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  batchCardSubtitle: {
+    fontSize: 14,
+    color: '#666',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFF',
+    borderColor: '#000',
+    borderWidth: 0.3,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    flex: 1,
+  },
+  searchInput: {
+    // flex: 1,
+    marginLeft: 8,
+    fontSize: 16,
+    color: '#333',
+  },
+  addStudentButton: {
+    backgroundColor: '#4CAF50',
+    padding: 10,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 8,
+    marginLeft: 10,
+  },
+  addStudentButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   listTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000',
-    marginTop: 20,
     marginBottom: 10,
   },
   list: {
