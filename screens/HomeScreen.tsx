@@ -8,7 +8,21 @@ import {
   View,
 } from 'react-native';
 import React from 'react';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
+const batchDetails = {
+  subject: 'Algebra',
+  paymentFrequency: 'Monthly',
+  course: 'Mathematics',
+  teacherId: '660e8400-e29b-41d4-a716-446655440001',
+  description:
+    'An introductory course to Algebra covering basic concepts and problem-solving techniques.',
+  id: '212e46a9-9a1d-4906-a27e-5ef03e989955',
+  paymentAmount: 150,
+  name: 'Math 1012',
+  paymentDayOfMonth: 15,
+};
 
 const students = [
   {
@@ -41,20 +55,50 @@ const students = [
     name: 'Shyam Suhas',
     profilePic: 'https://avatar.iran.liara.run/public/6',
   },
+  {
+    id: '7',
+    name: 'John Doe',
+    profilePic: 'https://avatar.iran.liara.run/public/7',
+  },
+  {
+    id: '8',
+    name: 'Jane Smith',
+    profilePic: 'https://avatar.iran.liara.run/public/8',
+  },
+  {
+    id: '9',
+    name: 'Alice Johnson',
+    profilePic: 'https://avatar.iran.liara.run/public/9',
+  },
+  {
+    id: '10',
+    name: 'Bob Brown',
+    profilePic: 'https://avatar.iran.liara.run/public/10',
+  },
+  {
+    id: '11',
+    name: 'Charlie Davis',
+    profilePic: 'https://avatar.iran.liara.run/public/11',
+  },
+  {
+    id: '12',
+    name: 'Diana Evans',
+    profilePic: 'https://avatar.iran.liara.run/public/12',
+  },
 ];
 
 const renderStudentCard = ({item}) => (
   <TouchableOpacity style={styles.listCard}>
     <Image source={{uri: item.profilePic}} style={styles.profilePic} />
     <Text style={styles.studentName}>{item.name}</Text>
-    <View style={styles.actions}>
+    {/* <View style={styles.actions}>
       <TouchableOpacity style={styles.actionButton}>
-        <Icon name="message" size={20} color="#4CAF50" />
+        <MaterialIcons name="message" size={20} color="#4CAF50" />
       </TouchableOpacity>
       <TouchableOpacity style={styles.actionButton}>
-        <Icon name="visibility" size={20} color="#2196F3" />
+        <MaterialIcons name="visibility" size={20} color="#2196F3" />
       </TouchableOpacity>
-    </View>
+    </View> */}
   </TouchableOpacity>
 );
 
@@ -71,21 +115,18 @@ const HomeScreen = () => {
           />
         </View>
         <Text style={styles.appBarTitle}>Smart Teacher</Text>
-        <Icon
-          style={styles.notificationIcon}
-          name="rocket"
-          size={30}
-          color="#900"
-        />
+        <View style={styles.notificationIcon}>
+          <Ionicons name="notifications-outline" size={30} color="#000" />
+        </View>
       </View>
       <View style={styles.container}>
         <View style={styles.batchCard}>
-          <Text style={styles.batchCardTitle}>Batch 1</Text>
-          <Text style={styles.batchCardSubtitle}>strength</Text>
+          <Text style={styles.batchCardTitle}>{batchDetails.name}</Text>
+          <Text style={styles.batchCardSubtitle}>{batchDetails.subject}</Text>
         </View>
         <View style={styles.header}>
           <View style={styles.searchBar}>
-            <Icon name="search" size={20} color="#999" />
+            <Ionicons name="search" size={20} color="#999" />
             <TextInput
               placeholder="Search Student"
               style={styles.searchInput}
@@ -143,6 +184,8 @@ const styles = StyleSheet.create({
   notificationIcon: {
     width: 50,
     height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   container: {
     // justifyContent: 'center',
@@ -156,7 +199,7 @@ const styles = StyleSheet.create({
     height: 130,
     backgroundColor: '#ffff',
     borderRadius: 10,
-    padding: 10,
+    padding: 12,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -164,12 +207,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   batchCardTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#000',
   },
   batchCardSubtitle: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#666',
   },
   header: {
