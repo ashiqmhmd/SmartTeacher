@@ -1,4 +1,5 @@
 import {
+  Alert,
   FlatList,
   Image,
   StyleSheet,
@@ -10,8 +11,8 @@ import {
 import React from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"; 
-import LinearGradient from "react-native-linear-gradient";
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import LinearGradient from 'react-native-linear-gradient';
 
 const batchDetails = {
   subject: 'Algebra',
@@ -89,9 +90,9 @@ const students = [
   },
 ];
 
-const renderStudentCard = ({ item }) => (
+const renderStudentCard = ({item}) => (
   <TouchableOpacity style={styles.listCard}>
-    <Image source={{ uri: item.profilePic }} style={styles.profilePic} />
+    <Image source={{uri: item.profilePic}} style={styles.profilePic} />
     <Text style={styles.studentName}>{item.name}</Text>
     {/* <View style={styles.actions}>
       <TouchableOpacity style={styles.actionButton}>
@@ -123,28 +124,27 @@ const HomeScreen = () => {
       </View>
       <View style={styles.container}>
         <View style={styles.batchCard}>
-          {/* <Text style={styles.batchCardTitle}>{batchDetails.name}</Text> */}
-          {/* <Text style={styles.batchCardSubtitle}>{batchDetails.subject}</Text> */}
-          <LinearGradient 
-        colors={["#ffffff", "#e5ebfc"]} // Light gradient
-        start={{ x: 0, y: 0 }} 
-        end={{ x: 1, y: 1 }} 
-        style={styles.card}
-      >
-        {/* Hexagon Shape with Eyes */}
-        <View style={styles.hexagonWrapper}>
           <LinearGradient
-            colors={["#ffffff", "#f7f8fc"]} // Same as card to blend in
-            style={styles.hexagon}
-          >
-          <MaterialCommunityIcons name="eye" size={24} color="#5B3A29" />
+            colors={['#ffffff', '#e5ebfc']} // Light gradient
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 1}}
+            style={styles.card}>
+            <View style={styles.hexagonWrapper}>
+              <LinearGradient
+                colors={['#ffffff', '#f7f8fc']} // Same as card to blend in
+                style={styles.hexagon}>
+                <MaterialIcons
+                  name="change-circle"
+                  size={24}
+                  color="rgb(105, 103, 103)"
+                  style={styles.hexagonIcon}
+                />
+              </LinearGradient>
+            </View>
+            <Text style={styles.batchCardTitle}>{batchDetails.name}</Text>
+            <Text style={styles.batchCardSubtitle}>{batchDetails.subject}</Text>
+            <Text style={styles.batchCardCount}>31</Text>
           </LinearGradient>
-        </View>
-
-        {/* Text Content */}
-        <Text style={styles.title}>Viewed</Text>
-        <Text style={styles.number}>311</Text>
-      </LinearGradient>
         </View>
         <View style={styles.header}>
           <View style={styles.searchBar}>
@@ -154,7 +154,12 @@ const HomeScreen = () => {
               style={styles.searchInput}
             />
           </View>
-          <TouchableOpacity style={styles.addStudentButton}>
+          <TouchableOpacity
+            style={styles.addStudentButton}
+            accessibilityLabel="Add new student"
+            onPress={() =>
+              Alert.alert('Add Student', 'Functionality to be implemented')
+            }>
             <Text style={styles.addStudentButtonText}>Add Student</Text>
           </TouchableOpacity>
         </View>
@@ -214,10 +219,10 @@ const styles = StyleSheet.create({
     // alignItems: 'center',
     // backgroundColor: 'green',
     flex: 1,
-    paddingHorizontal: 20,
+    // paddingHorizontal: 20,
   },
   batchCard: {
-    width: '100%',
+    width: '90%',
     height: 130,
     backgroundColor: '#ffff',
     borderRadius: 10,
@@ -227,21 +232,29 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 8,
     marginBottom: 20,
+    marginHorizontal: '5%',
   },
   batchCardTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#000',
+    color: 'black',
+    fontSize: 16,
+    fontWeight: '600',
   },
   batchCardSubtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#666',
+  },
+  batchCardCount: {
+    color: 'black',
+    fontSize: 26,
+    fontWeight: 'bold',
+    marginTop: 5,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
+    marginHorizontal: '5%',
   },
   searchBar: {
     flexDirection: 'row',
@@ -283,6 +296,7 @@ const styles = StyleSheet.create({
   list: {
     padding: 3,
     // width: '100%',
+    marginHorizontal: '5%',
   },
   listCard: {
     width: '100%',
@@ -293,7 +307,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 8,
@@ -317,53 +331,41 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   card: {
-    // width: 150, 
-    height: "100%", 
+    // width: 150,
+    height: '100%',
     borderRadius: 12,
     padding: 15,
-    justifyContent: "center",
-    position: "relative",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
+    justifyContent: 'center',
+    position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 5,
-  },
-  title: {
-    color: "black",
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  number: {
-    color: "black",
-    fontSize: 26,
-    fontWeight: "bold",
-    marginTop: 5,
+    overflow: 'hidden',
   },
   hexagonWrapper: {
-    position: "absolute",
-    top: -5,
-    right: -5,
+    position: 'absolute',
+    top: 0,
+    right: 0,
     width: 50,
     height: 50,
   },
   hexagon: {
-    width: 50,
-    height: 50,
-    borderRadius: 12, // Matches the card's border
-    transform: [{ rotate: "60deg" }], // Angled like the design
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    transform: [{rotate: '45deg'}, {translateX: -10}, {translateY: -10}],
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.01,
+    shadowRadius: 8,
+    elevation: 20,
   },
-  eyeImage: {
-    width: 25,
-    height: 12,
-    resizeMode: "contain",
-    transform: [{ rotate: "-15deg" }], // Aligns properly
+  hexagonIcon: {
+    paddingTop: 5,
+    transform: [{rotate: '-45deg'}],
   },
 });
