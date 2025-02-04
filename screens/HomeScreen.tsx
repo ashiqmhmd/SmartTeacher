@@ -10,6 +10,8 @@ import {
 import React from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"; 
+import LinearGradient from "react-native-linear-gradient";
 
 const batchDetails = {
   subject: 'Algebra',
@@ -87,9 +89,9 @@ const students = [
   },
 ];
 
-const renderStudentCard = ({item}) => (
+const renderStudentCard = ({ item }) => (
   <TouchableOpacity style={styles.listCard}>
-    <Image source={{uri: item.profilePic}} style={styles.profilePic} />
+    <Image source={{ uri: item.profilePic }} style={styles.profilePic} />
     <Text style={styles.studentName}>{item.name}</Text>
     {/* <View style={styles.actions}>
       <TouchableOpacity style={styles.actionButton}>
@@ -121,8 +123,28 @@ const HomeScreen = () => {
       </View>
       <View style={styles.container}>
         <View style={styles.batchCard}>
-          <Text style={styles.batchCardTitle}>{batchDetails.name}</Text>
-          <Text style={styles.batchCardSubtitle}>{batchDetails.subject}</Text>
+          {/* <Text style={styles.batchCardTitle}>{batchDetails.name}</Text> */}
+          {/* <Text style={styles.batchCardSubtitle}>{batchDetails.subject}</Text> */}
+          <LinearGradient 
+        colors={["#ffffff", "#e5ebfc"]} // Light gradient
+        start={{ x: 0, y: 0 }} 
+        end={{ x: 1, y: 1 }} 
+        style={styles.card}
+      >
+        {/* Hexagon Shape with Eyes */}
+        <View style={styles.hexagonWrapper}>
+          <LinearGradient
+            colors={["#ffffff", "#f7f8fc"]} // Same as card to blend in
+            style={styles.hexagon}
+          >
+          <MaterialCommunityIcons name="eye" size={24} color="#5B3A29" />
+          </LinearGradient>
+        </View>
+
+        {/* Text Content */}
+        <Text style={styles.title}>Viewed</Text>
+        <Text style={styles.number}>311</Text>
+      </LinearGradient>
         </View>
         <View style={styles.header}>
           <View style={styles.searchBar}>
@@ -199,7 +221,7 @@ const styles = StyleSheet.create({
     height: 130,
     backgroundColor: '#ffff',
     borderRadius: 10,
-    padding: 12,
+    // padding: 12,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -271,7 +293,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 8,
@@ -293,5 +315,55 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     marginLeft: 12,
+  },
+  card: {
+    // width: 150, 
+    height: "100%", 
+    borderRadius: 12,
+    padding: 15,
+    justifyContent: "center",
+    position: "relative",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  title: {
+    color: "black",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  number: {
+    color: "black",
+    fontSize: 26,
+    fontWeight: "bold",
+    marginTop: 5,
+  },
+  hexagonWrapper: {
+    position: "absolute",
+    top: -5,
+    right: -5,
+    width: 50,
+    height: 50,
+  },
+  hexagon: {
+    width: 50,
+    height: 50,
+    borderRadius: 12, // Matches the card's border
+    transform: [{ rotate: "60deg" }], // Angled like the design
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  eyeImage: {
+    width: 25,
+    height: 12,
+    resizeMode: "contain",
+    transform: [{ rotate: "-15deg" }], // Aligns properly
   },
 });
