@@ -119,24 +119,24 @@ const HomeScreen = () => {
         </View>
         <Text style={styles.appBarTitle}>Smart Teacher</Text>
         <View style={styles.notificationIcon}>
-          <Ionicons name="notifications-outline" size={30} color="#000" />
+          <Ionicons name="notifications-outline" size={30} color="rgb(0,0,0)" />
         </View>
       </View>
       <View style={styles.container}>
         <View style={styles.batchCard}>
           <LinearGradient
-            colors={['#ffffff', '#e5ebfc']} // Light gradient
+            colors={['rgb(255,255,255)', 'rgb(229,235,252)']} // Light gradient
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
             style={styles.card}>
             <View style={styles.hexagonWrapper}>
               <LinearGradient
-                colors={['#ffffff', '#f7f8fc']} // Same as card to blend in
+                colors={['rgb(255,255,255)', 'rgb(247,248,252)']} // Same as card to blend in
                 style={styles.hexagon}>
                 <MaterialIcons
                   name="change-circle"
                   size={24}
-                  color="rgb(105, 103, 103)"
+                  color="rgb(105,103,103)"
                   style={styles.hexagonIcon}
                 />
               </LinearGradient>
@@ -148,7 +148,7 @@ const HomeScreen = () => {
         </View>
         <View style={styles.header}>
           <View style={styles.searchBar}>
-            <Ionicons name="search" size={20} color="#999" />
+            <Ionicons name="search" size={20} color="rgb(153,153,153)" />
             <TextInput
               placeholder="Search Student"
               style={styles.searchInput}
@@ -181,11 +181,9 @@ export default HomeScreen;
 const styles = StyleSheet.create({
   homeScreen: {
     flex: 1,
-    backgroundColor: '#ffff',
+    backgroundColor: 'rgb(255,255,255)',
   },
   appBar: {
-    // elevation: 1,
-    // backgroundColor: 'green',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -196,7 +194,7 @@ const styles = StyleSheet.create({
   appBarTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#000',
+    color: 'rgb(0,0,0)',
   },
   avatar: {
     width: 50,
@@ -215,19 +213,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   container: {
-    // justifyContent: 'center',
-    // alignItems: 'center',
-    // backgroundColor: 'green',
     flex: 1,
-    // paddingHorizontal: 20,
   },
   batchCard: {
     width: '90%',
     height: 130,
-    backgroundColor: '#ffff',
+    backgroundColor: 'rgb(255,255,255)',
     borderRadius: 10,
     // padding: 12,
-    shadowColor: '#000',
+    shadowColor: 'rgb(0,0,0)',
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 8,
@@ -241,7 +235,7 @@ const styles = StyleSheet.create({
   },
   batchCardSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: 'rgb(102,102,102)',
   },
   batchCardCount: {
     color: 'black',
@@ -259,21 +253,20 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFF',
-    borderColor: '#000',
+    backgroundColor: 'rgb(255,255,255)',
+    borderColor: 'rgb(0,0,0)',
     borderWidth: 0.3,
     borderRadius: 8,
     paddingHorizontal: 12,
     flex: 1,
   },
   searchInput: {
-    // flex: 1,
     marginLeft: 8,
     fontSize: 16,
-    color: '#333',
+    color: 'rgb(51,51,51)',
   },
   addStudentButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: 'rgb(76,175,80)',
     padding: 10,
     borderRadius: 10,
     shadowColor: '#000',
@@ -283,30 +276,29 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   addStudentButtonText: {
-    color: '#fff',
+    color: 'rgb(255,255,255)',
     fontSize: 16,
     fontWeight: 'bold',
   },
   listTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000',
+    color: 'rgb(0,0,0)',
     marginBottom: 10,
   },
   list: {
     padding: 3,
-    // width: '100%',
     marginHorizontal: '5%',
   },
   listCard: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: 'rgb(255,255,255)',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: 'rgb(0,0,0)',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -337,7 +329,7 @@ const styles = StyleSheet.create({
     padding: 15,
     justifyContent: 'center',
     position: 'relative',
-    shadowColor: '#000',
+    shadowColor: 'rgb(0,0,0)',
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.2,
     shadowRadius: 6,
@@ -358,9 +350,9 @@ const styles = StyleSheet.create({
     transform: [{rotate: '45deg'}, {translateX: -10}, {translateY: -10}],
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: 'rgb(155, 178, 245)',
     shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.01,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 20,
   },
