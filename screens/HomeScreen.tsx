@@ -145,6 +145,13 @@ const HomeScreen = ({navigation}) => {
             <Text style={styles.batchCardTitle}>{batchDetails.name}</Text>
             <Text style={styles.batchCardSubtitle}>{batchDetails.subject}</Text>
             <Text style={styles.batchCardCount}>31</Text>
+            <View style={styles.createBatch}>
+              <TouchableOpacity style={styles.createBatchButton}>
+                <Text style={styles.createBatchButtonText}>
+                  Create New Batch
+                </Text>
+              </TouchableOpacity>
+            </View>
           </LinearGradient>
         </View>
         <View style={styles.header}>
@@ -245,6 +252,61 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 5,
   },
+  card: {
+    // width: 150,
+    height: '100%',
+    borderRadius: 12,
+    padding: 15,
+    justifyContent: 'center',
+    position: 'relative',
+    shadowColor: 'rgb(0,0,0)',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
+    overflow: 'hidden',
+  },
+  hexagonWrapper: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 50,
+    height: 50,
+  },
+  hexagon: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    transform: [{rotate: '45deg'}, {translateX: -10}, {translateY: -10}],
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: 'rgb(155, 178, 245)',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 20,
+  },
+  hexagonIcon: {
+    paddingTop: 5,
+    transform: [{rotate: '-45deg'}],
+  },
+  createBatch: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    color: 'white',
+  },
+  createBatchButton: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderColor: 'rgb(141, 165, 233)',
+  },
+  createBatchButtonText: {
+    fontSize: 12,
+    color: 'rgb(118, 149, 233)',
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -323,43 +385,5 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     marginLeft: 12,
-  },
-  card: {
-    // width: 150,
-    height: '100%',
-    borderRadius: 12,
-    padding: 15,
-    justifyContent: 'center',
-    position: 'relative',
-    shadowColor: 'rgb(0,0,0)',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 5,
-    overflow: 'hidden',
-  },
-  hexagonWrapper: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 50,
-    height: 50,
-  },
-  hexagon: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
-    transform: [{rotate: '45deg'}, {translateX: -10}, {translateY: -10}],
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: 'rgb(155, 178, 245)',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 20,
-  },
-  hexagonIcon: {
-    paddingTop: 5,
-    transform: [{rotate: '-45deg'}],
   },
 });
