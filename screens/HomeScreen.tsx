@@ -13,6 +13,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
+import BottomNavigation from '../components/BottomNavBar';
 
 const batchDetails = {
   subject: 'Algebra',
@@ -105,7 +106,7 @@ const renderStudentCard = ({item}) => (
   </TouchableOpacity>
 );
 
-const HomeScreen = () => {
+const HomeScreen = ({navigation}) => {
   return (
     <View style={styles.homeScreen}>
       <View style={styles.appBar}>
@@ -172,6 +173,7 @@ const HomeScreen = () => {
           contentContainerStyle={styles.list}
         />
       </View>
+      <BottomNavigation navigation={navigation} />
     </View>
   );
 };
@@ -220,8 +222,8 @@ const styles = StyleSheet.create({
     height: 130,
     backgroundColor: 'rgb(255,255,255)',
     borderRadius: 10,
-    // padding: 12,
-    shadowColor: 'rgb(0,0,0)',
+    shadowColor: 'rgb(105, 144, 252)',
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 8,
@@ -266,7 +268,7 @@ const styles = StyleSheet.create({
     color: 'rgb(51,51,51)',
   },
   addStudentButton: {
-    backgroundColor: 'rgb(76,175,80)',
+    backgroundColor: 'rgb(53, 104, 244)',
     padding: 10,
     borderRadius: 10,
     shadowColor: '#000',
@@ -298,9 +300,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: 'rgb(0,0,0)',
+    shadowColor: 'rgb(105, 144, 252)',
     shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
   },
