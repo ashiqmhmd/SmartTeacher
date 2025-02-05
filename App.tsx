@@ -119,10 +119,10 @@
 
 import * as React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
-import HomeScreen from './screens/HomeScreen'; // Adjust the path as needed
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import HomeScreen from './src/screens/HomeScreen'; // Adjust the path as needed
+import {createStackNavigator} from '@react-navigation/stack';
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 
 const App = () => {
   return (
