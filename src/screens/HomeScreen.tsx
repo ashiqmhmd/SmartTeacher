@@ -14,87 +14,18 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import BottomNavigation from '../components/BottomNavBar';
-
-const batchDetails = {
-  subject: 'Algebra',
-  paymentFrequency: 'Monthly',
-  course: 'Mathematics',
-  teacherId: '660e8400-e29b-41d4-a716-446655440001',
-  description:
-    'An introductory course to Algebra covering basic concepts and problem-solving techniques.',
-  id: '212e46a9-9a1d-4906-a27e-5ef03e989955',
-  paymentAmount: 150,
-  name: 'Math 1012',
-  paymentDayOfMonth: 15,
-};
-
-const students = [
-  {
-    id: '1',
-    name: 'Angel M Thomas',
-    profilePic: 'https://avatar.iran.liara.run/public/1',
-  },
-  {
-    id: '2',
-    name: 'Maria Manuel',
-    profilePic: 'https://avatar.iran.liara.run/public/2',
-  },
-  {
-    id: '3',
-    name: 'Rahul Ravi',
-    profilePic: 'https://avatar.iran.liara.run/public/3',
-  },
-  {
-    id: '4',
-    name: 'Ria Thomas',
-    profilePic: 'https://avatar.iran.liara.run/public/4',
-  },
-  {
-    id: '5',
-    name: 'Rohan Ram',
-    profilePic: 'https://avatar.iran.liara.run/public/5',
-  },
-  {
-    id: '6',
-    name: 'Shyam Suhas',
-    profilePic: 'https://avatar.iran.liara.run/public/6',
-  },
-  {
-    id: '7',
-    name: 'John Doe',
-    profilePic: 'https://avatar.iran.liara.run/public/7',
-  },
-  {
-    id: '8',
-    name: 'Jane Smith',
-    profilePic: 'https://avatar.iran.liara.run/public/8',
-  },
-  {
-    id: '9',
-    name: 'Alice Johnson',
-    profilePic: 'https://avatar.iran.liara.run/public/9',
-  },
-  {
-    id: '10',
-    name: 'Bob Brown',
-    profilePic: 'https://avatar.iran.liara.run/public/10',
-  },
-  {
-    id: '11',
-    name: 'Charlie Davis',
-    profilePic: 'https://avatar.iran.liara.run/public/11',
-  },
-  {
-    id: '12',
-    name: 'Diana Evans',
-    profilePic: 'https://avatar.iran.liara.run/public/12',
-  },
-];
+import {batchDetails, students} from '../dumyDb';
 
 const renderStudentCard = ({item}) => (
   <TouchableOpacity style={styles.listCard}>
-    <Image source={{uri: item.profilePic}} style={styles.profilePic} />
-    <Text style={styles.studentName}>{item.name}</Text>
+    <Image source={{uri: item.profilePicUrl}} style={styles.profilePic} />
+    <View style={{flexDirection: 'column'}}>
+      <Text style={styles.studentName}>
+        {item.firstName} {item.lastName}
+      </Text>
+      <Text style={styles.parentDtl}>Parent: {item.parent1Name}</Text>
+      <Text style={styles.parentDtl}>Phone No: {item.parent1Phone}</Text>
+    </View>
     {/* <View style={styles.actions}>
       <TouchableOpacity style={styles.actionButton}>
         <MaterialIcons name="message" size={20} color="#4CAF50" />
@@ -287,7 +218,8 @@ const styles = StyleSheet.create({
     elevation: 20,
   },
   hexagonIcon: {
-    paddingTop: 5,
+    paddingTop: 10,
+    paddingRight: 5,
     transform: [{rotate: '-45deg'}],
   },
   createBatch: {
@@ -379,6 +311,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#333',
+  },
+  parentDtl: {
+    fontSize: 12,
+    color: 'rgb(162, 160, 160)',
   },
   actions: {
     flexDirection: 'row',
