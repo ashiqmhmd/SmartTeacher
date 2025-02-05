@@ -45,7 +45,7 @@ const HomeScreen = ({navigation}) => {
           <Image
             style={styles.avatarImg}
             source={{
-              uri: 'https://sm.ign.com/ign_pk/cover/a/avatar-gen/avatar-generations_rpge.jpg',
+              uri: 'https://cdn-icons-png.flaticon.com/512/5310/5310895.png',
             }}
           />
         </View>
@@ -146,6 +146,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
+    backgroundColor: 'rgb(216, 224, 247)',
   },
   notificationIcon: {
     width: 50,
