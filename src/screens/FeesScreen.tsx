@@ -4,11 +4,10 @@ import BottomNavigation from '../components/BottomNavBar';
 
 const FeesScreen = ({navigation}) => {
   return (
-    <View>
+    <View style={styles.feesScreen}>
       <Text>FeesScreen</Text>
-      <Text>FeesScreen</Text>
-      <Text>FeesScrdsvxveen</Text>
-      {/* <BottomNavigation navigation={navigation} /> */}
+
+      <BottomNavigation navigation={navigation} />
     </View>
   );
 };
@@ -16,5 +15,5 @@ const FeesScreen = ({navigation}) => {
 export default FeesScreen;
 
 const styles = StyleSheet.create({
-  //   feesScreen: {flex: 1},
+  feesScreen: {flex: 1},
 });
