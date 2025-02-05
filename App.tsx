@@ -123,7 +123,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import {createStackNavigator} from '@react-navigation/stack';
 import LoginScreen from './src/screens/LoginScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
-import FeesScreen from './src/screens/feesScreen';
+import FeesScreen from './src/screens/FeesScreen';
 import AssignmentScreen from './src/screens/AssignmentScreen';
 import NotesScreen from './src/screens/NotesScreen';
 import ChatsScreen from './src/screens/ChatsScreen';
