@@ -167,3 +167,37 @@ export const students = [
     id: 'ea894b5e-8c13-48c4-902b-8294b88b69f8',
   },
 ];
+
+export const batches = [
+  {
+  id:1,
+  name:"math 1012",
+  course:"Algebra",
+  student_count:31
+},
+{
+  id:2,
+  name:"Phy 1014",
+  course:"ainstee",
+  student_count:22
+},
+{
+  id:1,
+  name:"Chem 1016",
+  course:"Algebra",
+  student_count:320
+},
+{
+  id:1,
+  name:"Music 1018",
+  course:"Arjith",
+  student_count:28
+},
+{
+  id:1,
+  name:"Dance 1010",
+  course:"Moh",
+  student_count:38
+},
+
+]

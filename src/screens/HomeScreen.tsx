@@ -8,18 +8,21 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import BottomNavigation from '../components/BottomNavBar';
-import {batchDetails, students} from '../dumyDb';
+import { batchDetails, batches, students } from '../dumyDb';
+import RBSheet from 'react-native-raw-bottom-sheet';
 
-const renderStudentCard = ({item}) => (
+
+
+const renderStudentCard = ({ item }) => (
   <TouchableOpacity style={styles.listCard}>
-    <Image source={{uri: item.profilePicUrl}} style={styles.profilePic} />
-    <View style={{flexDirection: 'column'}}>
+    <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
+    <View style={{ flexDirection: 'column' }}>
       <Text style={styles.studentName}>
         {item.firstName} {item.lastName}
       </Text>
@@ -37,7 +40,14 @@ const renderStudentCard = ({item}) => (
   </TouchableOpacity>
 );
 
-const HomeScreen = ({navigation}) => {
+const HomeScreen = ({ navigation }) => {
+  const refRBSheet = useRef();
+
+  // // Function to Open Bottom Sheet
+  // const handleOpenBottomSheet = useCallback(() => {
+  //   bottomSheetRef.current?.expand();
+  // }, []);
+
   return (
     <View style={styles.homeScreen}>
       <View style={styles.appBar}>
@@ -58,61 +68,89 @@ const HomeScreen = ({navigation}) => {
         <View style={styles.batchCard}>
           <LinearGradient
             colors={['rgb(255,255,255)', 'rgb(229,235,252)']} // Light gradient
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 1}}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={styles.card}>
-            <View style={styles.hexagonWrapper}>
+      
+            <TouchableOpacity onPress={() => refRBSheet.current.open()} style={styles.hexagonWrapper}>
               <LinearGradient
                 colors={['rgb(255,255,255)', 'rgb(247,248,252)']} // Same as card to blend in
                 style={styles.hexagon}>
+
                 <MaterialIcons
                   name="change-circle"
                   size={24}
                   color="rgb(105,103,103)"
                   style={styles.hexagonIcon}
                 />
-              </LinearGradient>
-            </View>
-            <Text style={styles.batchCardTitle}>{batchDetails.name}</Text>
-            <Text style={styles.batchCardSubtitle}>{batchDetails.subject}</Text>
-            <Text style={styles.batchCardCount}>31</Text>
-            <View style={styles.createBatch}>
-              <TouchableOpacity style={styles.createBatchButton}>
-                <Text style={styles.createBatchButtonText}>
-                  Create New Batch
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </LinearGradient>
-        </View>
-        <View style={styles.header}>
-          <View style={styles.searchBar}>
-            <Ionicons name="search" size={20} color="rgb(153,153,153)" />
-            <TextInput
-              placeholder="Search Student"
-              style={styles.searchInput}
-            />
-          </View>
-          <TouchableOpacity
-            style={styles.addStudentButton}
-            accessibilityLabel="Add new student"
-            onPress={() =>
-              Alert.alert('Add Student', 'Functionality to be implemented')
-            }>
-            <Text style={styles.addStudentButtonText}>Add Student</Text>
-          </TouchableOpacity>
-        </View>
-        {/* <Text style={styles.listTitle}>Students In Batch</Text> */}
 
-        <FlatList
-          data={students}
-          renderItem={renderStudentCard}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.list}
-        />
+              </LinearGradient>
+            </TouchableOpacity>
+          <Text style={styles.batchCardTitle}>{batchDetails.name}</Text>
+          <Text style={styles.batchCardSubtitle}>{batchDetails.subject}</Text>
+          <Text style={styles.batchCardCount}>31</Text>
+          <View style={styles.createBatch}>
+            <TouchableOpacity style={styles.createBatchButton}>
+              <Text style={styles.createBatchButtonText}>
+                Create New Batch
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
       </View>
-      {/* <BottomNavigation navigation={navigation} /> */}
+      <View style={styles.header}>
+        <View style={styles.searchBar}>
+          <Ionicons name="search" size={20} color="rgb(153,153,153)" />
+          <TextInput
+            placeholder="Search Student"
+            style={styles.searchInput}
+          />
+        </View>
+        <TouchableOpacity
+          style={styles.addStudentButton}
+          accessibilityLabel="Add new student"
+          onPress={() =>
+            Alert.alert('Add Student', 'Functionality to be implemented')
+          }>
+          <Text style={styles.addStudentButtonText}>Add Student</Text>
+        </TouchableOpacity>
+      </View>
+      {/* <Text style={styles.listTitle}>Students In Batch</Text> */}
+
+      <FlatList
+        data={students}
+        renderItem={renderStudentCard}
+        keyExtractor={item => item.id}
+        contentContainerStyle={styles.list}
+      />
     </View>
+    <RBSheet
+        ref={refRBSheet}
+        useNativeDriver={true}
+        customStyles={{
+          wrapper: {
+            backgroundColor: 'transparent',
+          },
+          draggableIcon: {
+            backgroundColor: '#000',
+          },
+        }}
+        customModalProps={{
+          animationType: 'slide',
+          statusBarTranslucent: true,
+        }}
+        customAvoidingViewProps={{
+          enabled: false,
+        }}>
+     {
+      batches.map((index,name) => (
+        <Text>{index.name}</Text>
+      ))
+     }
+      </RBSheet>
+    </View >
+
+
   );
 };
 
@@ -163,7 +201,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(255,255,255)',
     borderRadius: 10,
     shadowColor: 'rgb(105, 144, 252)',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 8,
@@ -193,7 +231,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
     shadowColor: 'rgb(0,0,0)',
-    shadowOffset: {width: 0, height: 4},
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 5,
@@ -210,11 +248,11 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 12,
-    transform: [{rotate: '45deg'}, {translateX: -10}, {translateY: -10}],
+    transform: [{ rotate: '45deg' }, { translateX: -10 }, { translateY: -10 }],
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: 'rgb(155, 178, 245)',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 20,
@@ -222,7 +260,7 @@ const styles = StyleSheet.create({
   hexagonIcon: {
     paddingTop: 10,
     paddingRight: 5,
-    transform: [{rotate: '-45deg'}],
+    transform: [{ rotate: '-45deg' }],
   },
   createBatch: {
     position: 'absolute',
@@ -297,7 +335,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     shadowColor: 'rgb(105, 144, 252)',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
@@ -323,5 +361,14 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     marginLeft: 12,
+  },
+  sheetContent: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sheetText: {
+    fontSize: 20,
+    fontWeight: "bold",
   },
 });
