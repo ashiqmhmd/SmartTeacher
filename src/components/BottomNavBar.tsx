@@ -1,9 +1,11 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useState} from 'react';
 import {View, TouchableOpacity, StyleSheet} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const BottomNavigation = ({navigation}) => {
   const [activeTab, setActiveTab] = useState(0);
+  const route = useRoute();
 
   const tabs = [
     {
@@ -14,27 +16,26 @@ const BottomNavigation = ({navigation}) => {
     {
       name: 'Fee',
       icon: 'receipt-outline',
-      route: 'Home',
+      route: 'Fees',
     },
     {
       name: 'Assignment',
       icon: 'clipboard-outline',
-      route: 'Home',
+      route: 'Assignment',
     },
     {
       name: 'Notes',
       icon: 'book-outline',
-      route: 'Home',
+      route: 'Notes',
     },
     {
       name: 'Chats',
       icon: 'chatbubbles-outline',
-      route: 'Home',
+      route: 'Chats',
     },
   ];
 
-  const handleTabPress = (index, route) => {
-    setActiveTab(index);
+  const handleTabPress = route => {
     navigation.navigate(route);
   };
 
@@ -44,12 +45,12 @@ const BottomNavigation = ({navigation}) => {
         {tabs.map((tab, index) => (
           <TouchableOpacity
             key={tab.name}
-            style={[styles.tab, activeTab === index && styles.activeTab]}
-            onPress={() => handleTabPress(index, tab.route)}>
+            style={[styles.tab, route.name === tab.route && styles.activeTab]}
+            onPress={() => handleTabPress(tab.route)}>
             <Ionicons
               name={tab.icon}
               size={24}
-              color={activeTab === index ? 'rgb(53, 104, 244)' : '#666'}
+              color={route.name === tab.route ? 'rgb(53, 104, 244)' : '#666'}
             />
             {/* <Text style={styles.tabText}>{tab.name}</Text> */}
           </TouchableOpacity>
