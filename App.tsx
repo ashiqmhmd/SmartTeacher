@@ -119,7 +119,7 @@
 
 import * as React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
-import HomeScreen from './src/screens/HomeScreen'; // Adjust the path as needed
+import HomeScreen from './src/screens/HomeScreen';
 import {createStackNavigator} from '@react-navigation/stack';
 
 const Stack = createStackNavigator();
@@ -131,8 +131,6 @@ const App = () => {
         initialRouteName="Home"
         screenOptions={{headerShown: false}}>
         <Stack.Screen name="Home" component={HomeScreen} />
-
-        {/* Add more screens here */}
       </Stack.Navigator>
     </NavigationContainer>
   );
