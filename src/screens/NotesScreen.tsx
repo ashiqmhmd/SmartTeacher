@@ -4,7 +4,7 @@ import BottomNavigation from '../components/BottomNavBar';
 
 const NotesScreen = ({navigation}) => {
   return (
-    <View>
+    <View style={styles.notesScreen}>
       <Text>NotesScreen</Text>
       <BottomNavigation navigation={navigation} />
     </View>
@@ -13,4 +13,6 @@ const NotesScreen = ({navigation}) => {
 
 export default NotesScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  notesScreen: {flex: 1},
+});
