@@ -6,7 +6,6 @@ const ChatsScreen = ({navigation}) => {
   return (
     <View style={styles.chatsScreen}>
       <Text>ChatsScreen</Text>
-      <Text>ChatsScreen</Text>
       <BottomNavigation navigation={navigation} />
     </View>
   );
