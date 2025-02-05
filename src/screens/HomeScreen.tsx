@@ -132,9 +132,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   appBarTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: 'rgb(0,0,0)',
+    fontSize: 22,
+    fontWeight: '900',
+    fontStyle: 'italic',
+    color: 'rgb(15, 31, 75)',
   },
   avatar: {
     width: 50,
