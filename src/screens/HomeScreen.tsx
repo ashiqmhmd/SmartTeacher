@@ -111,7 +111,7 @@ const HomeScreen = ({navigation}) => {
           contentContainerStyle={styles.list}
         />
       </View>
-      <BottomNavigation navigation={navigation} />
+      {/* <BottomNavigation navigation={navigation} /> */}
     </View>
   );
 };

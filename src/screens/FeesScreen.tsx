@@ -6,7 +6,7 @@ const FeesScreen = ({navigation}) => {
   return (
     <View style={styles.feesScreen}>
       <Text>FeesScreen</Text>
-      <BottomNavigation navigation={navigation} />
+      {/* <BottomNavigation navigation={navigation} /> */}
     </View>
   );
 };

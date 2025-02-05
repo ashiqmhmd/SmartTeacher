@@ -1,74 +1,127 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useState} from 'react';
-import {View, TouchableOpacity, StyleSheet} from 'react-native';
+import { Image, Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import HomeScreen from '../screens/HomeScreen';
+import FeesScreen from '../screens/FeesScreen';
+import AssignmentScreen from '../screens/AssignmentScreen';
+import ChatsScreen from '../screens/ChatsScreen';
+import NotesScreen from '../screens/NotesScreen';
+export type BottomTabParamsList = {
+  Home: undefined,
+  Fee: undefined,
+  Assignment: undefined
+  Chats: undefined,
+  Notes: undefined,
+}
 
-const BottomNavigation = ({navigation}) => {
-  const [activeTab, setActiveTab] = useState(0);
-  const route = useRoute();
+const BottomTabNavigator = () => {
 
-  const tabs = [
-    {
-      name: 'Home',
-      icon: 'home-outline',
-      route: 'Home',
-    },
-    {
-      name: 'Fee',
-      icon: 'receipt-outline',
-      route: 'Fees',
-    },
-    {
-      name: 'Assignment',
-      icon: 'clipboard-outline',
-      route: 'Assignment',
-    },
-    {
-      name: 'Notes',
-      icon: 'book-outline',
-      route: 'Notes',
-    },
-    {
-      name: 'Chats',
-      icon: 'chatbubbles-outline',
-      route: 'Chats',
-    },
-  ];
+  const Tab = createBottomTabNavigator();
 
-  const handleTabPress = route => {
-    navigation.navigate(route);
-  };
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.navigationBar}>
-        {tabs.map((tab, index) => (
-          <TouchableOpacity
-            key={tab.name}
-            style={[styles.tab, route.name === tab.route && styles.activeTab]}
-            onPress={() => handleTabPress(tab.route)}>
-            <Ionicons
-              name={tab.icon}
-              size={24}
-              color={route.name === tab.route ? 'rgb(53, 104, 244)' : '#666'}
-            />
-            {/* <Text style={styles.tabText}>{tab.name}</Text> */}
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
+  const TabBarBackground = (focused) => (
+    <View
+      style={{
+        backgroundColor: focused ? "rgba(0, 0, 255, 0.2)" : "transparent", // Light blue when active
+        padding: 50, // Space around the icon
+        borderRadius: 50, // Circular shape
+      }}
+    ></View>
   );
-};
+  return (
+    <Tab.Navigator
+      screenOptions={({ route, }) => ({
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarButton: (props) => (
+          <TouchableOpacity
+            activeOpacity={0.7} // Controls the press effect visibility
+            {...props}
+          />
+        ),
+        tabBarIcon: ({ focused, color, size }) => {
+          TabBarBackground(focused)
+          if (route.name === "Home") {
+            return <Ionicons
+              name={"home-outline"}
+              size={24}
+              color={focused ? 'rgb(53, 104, 244)' : '#666'}
+            />
+          }
+          else if (route.name == "Fee") {
+            return <Ionicons
+              name={"receipt-outline"}
+              size={24}
+              color={focused ? 'rgb(53, 104, 244)' : '#666'}
+            />
+          }
+          else if (route.name == "Assignment") {
+            return <Ionicons
+              name={"clipboard-outline"}
+              size={24}
+              color={focused ? 'rgb(53, 104, 244)' : '#666'}
+            />
+          }
+          else if (route.name == "Chats") {
+            return <Ionicons
+              name={"book-outline"}
+              size={24}
+              color={focused ? 'rgb(53, 104, 244)' : '#666'}
+            />
+          }
+
+          else if (route.name == "Notes") {
+            return <Ionicons
+              name={"chatbubbles-outline"}
+              size={24}
+              color={focused ? 'rgb(53, 104, 244)' : '#666'}
+            />
+          }
+
+        },
+        tabBarStyle: {
+          position: "absolute",
+          width: "90%", // Adjust as needed
+          height: 60,
+          bottom: 20,
+          transform: [{ translateX: 20 }], // Adjusts it perfectly centered
+          borderRadius: 50, // Rounded corners for a floating effect
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: 'rgb(241, 240, 250)',
+          elevation: 20, // Android shadow
+          shadowColor: '#000', // iOS shadow
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 1,
+          shadowRadius: 12,
+        },
+
+
+        tabBarActiveTintColor: "rgb(53, 104, 244)",
+        tabBarIconStyle: { marginTop: 10 },
+      })}
+    >
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Fee" component={FeesScreen} />
+      <Tab.Screen name="Assignment" component={AssignmentScreen} />
+      <Tab.Screen name="Chats" component={ChatsScreen} />
+      <Tab.Screen name="Notes" component={NotesScreen} />
+
+    </Tab.Navigator>
+  )
+}
+
+
 
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 20,
     width: '100%',
+    height: "70%",
     alignItems: 'center',
   },
   navigationBar: {
     width: '90%',
+    height: "100%",
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
@@ -76,20 +129,8 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     paddingVertical: 15,
     shadowColor: '#000',
-    // shadowOffset: {width: 0, height: 4},
-    // shadowOpacity: 1,
-    // shadowRadius: 12,
     elevation: 20,
   },
-  tab: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 10,
-    borderRadius: 20,
-  },
-  activeTab: {
-    backgroundColor: 'rgba(53, 104, 244, 0.2)',
-  },
-});
+})
 
-export default BottomNavigation;
+export default BottomTabNavigator;

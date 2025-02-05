@@ -7,7 +7,7 @@ const AssignmentScreen = ({navigation}) => {
     <View style={styles.assignmentScreen}>
       <Text>AssignmentScreen</Text>
       <Text>csdvsv</Text>
-      <BottomNavigation navigation={navigation} />
+      {/* <BottomNavigation navigation={navigation} /> */}
     </View>
   );
 };

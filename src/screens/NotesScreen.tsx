@@ -6,7 +6,7 @@ const NotesScreen = ({navigation}) => {
   return (
     <View style={styles.notesScreen}>
       <Text>NotesScreen</Text>
-      <BottomNavigation navigation={navigation} />
+      {/* <BottomNavigation navigation={navigation} /> */}
     </View>
   );
 };
