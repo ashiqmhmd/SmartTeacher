@@ -129,6 +129,7 @@ import NotesScreen from './src/screens/NotesScreen';
 import ChatsScreen from './src/screens/ChatsScreen';
 import BottomTabNavigator from './src/components/BottomNavBar';
 import StudentRegistrationForm from './src/components/Student_Create';
+import Batch_creation from './src/components/Batch_Creation';
 
 const Stack = createNativeStackNavigator();
 
@@ -146,6 +147,7 @@ const App = () => {
         <Stack.Screen name="Notes" component={NotesScreen} />
         <Stack.Screen name="Chats" component={ChatsScreen} />
         <Stack.Screen name="Student_Create" component={StudentRegistrationForm} />
+        <Stack.Screen name="Batch_Create" component={Batch_creation} />
         <Stack.Screen name="Tabs" component={BottomTabNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
