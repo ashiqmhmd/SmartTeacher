@@ -120,7 +120,7 @@
 import * as React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import HomeScreen from './src/screens/HomeScreen';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import LoginScreen from './src/screens/LoginScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import FeesScreen from './src/screens/FeesScreen';
@@ -133,7 +133,7 @@ const Stack = createNativeStackNavigator();
 
 const App = () => {
   return (
-    <NavigationContainer style={{ backgroundColor: "transparent" }}>
+    <NavigationContainer style={{backgroundColor: 'transparent'}}>
       <Stack.Navigator
         initialRouteName="Tabs"
         screenOptions={{headerShown: false}}>
@@ -144,7 +144,7 @@ const App = () => {
         <Stack.Screen name="Assignment" component={AssignmentScreen} />
         <Stack.Screen name="Notes" component={NotesScreen} />
         <Stack.Screen name="Chats" component={ChatsScreen} />
-        <Stack.Screen name = "Tabs" component={BottomTabNavigator}/>
+        <Stack.Screen name="Tabs" component={BottomTabNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
   );
