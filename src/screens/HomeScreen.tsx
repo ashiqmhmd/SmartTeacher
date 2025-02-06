@@ -188,7 +188,7 @@ const HomeScreen = ({navigation}) => {
             style={styles.addStudentButton}
             accessibilityLabel="Add new student"
             onPress={() =>
-              Alert.alert('Add Student', 'Functionality to be implemented')
+             navigation.navigate("Student_Create")
             }>
             <Text style={styles.addStudentButtonText}>Add Student</Text>
           </TouchableOpacity>

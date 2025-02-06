@@ -8,25 +8,25 @@ import {
   SafeAreaView, 
   KeyboardAvoidingView,
   Platform,
-  ScrollView
+  ScrollView,
+  Image
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
 
-const TrendyLoginScreen = () => {
+const TrendyLoginScreen = ({navigation}) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   return(
 
 <LinearGradient 
-colors={['#00b4db', '#0083b0']} 
+colors={['#4158D0', '#FFF']} 
 style={styles.container}
 >
-
-  <Feather name="refresh-cw" size={20} color="white" />
-
-
+<View style={{justifyContent:"center",alignItems:"center",top:60}}>
+  <Image style={{width:110,height:100}} source={require("../resources/logo.png")}/>
+</View>
 <KeyboardAvoidingView 
   behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
   style={styles.keyboardContainer}
@@ -76,13 +76,13 @@ style={styles.container}
               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.loginButton}>
+            <TouchableOpacity onPress={() =>navigation.navigate("Tabs") } style={styles.loginButton}>
               <Text style={styles.loginButtonText}>Login</Text>
             </TouchableOpacity>
 
             <View style={styles.signupContainer}>
               <Text style={styles.signupText}>Don't have an account? </Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
                 <Text style={styles.signupLinkText}>Sign Up</Text>
               </TouchableOpacity>
             </View>
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   glassContainer: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: '#fffafa',
     borderRadius: 20,
     padding: 30,
     borderWidth: 1,
@@ -121,23 +121,26 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: 'white',
+    color: '#4158D0',
     textAlign: 'center',
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 18,
-    color: 'rgba(255,255,255,0.7)',
+    color: '#4158D0',
     textAlign: 'center',
     marginBottom: 30,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: '#f8f9fa',
     borderRadius: 10,
     marginBottom: 20,
     paddingHorizontal: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    
   },
   inputIcon: {
     marginRight: 10,
@@ -155,18 +158,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   forgotPasswordText: {
-    color: 'white',
+    color: '#4158D0',
     textDecorationLine: 'underline',
   },
   loginButton: {
-    backgroundColor: 'white',
+    backgroundColor: '#4158D0',
     borderRadius: 10,
     padding: 15,
     alignItems: 'center',
     marginBottom: 20,
   },
   loginButtonText: {
-    color: '#6a11cb',
+    color: 'white',
     fontWeight: 'bold',
     fontSize: 16,
   },
@@ -176,10 +179,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   signupText: {
-    color: 'rgba(255,255,255,0.7)',
+    color: '#4158D0',
   },
   signupLinkText: {
-    color: 'white',
+    color: '#4158D0',
     fontWeight: 'bold',
   },
   colorChangeButton: {

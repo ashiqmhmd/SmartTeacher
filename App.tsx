@@ -128,6 +128,7 @@ import AssignmentScreen from './src/screens/AssignmentScreen';
 import NotesScreen from './src/screens/NotesScreen';
 import ChatsScreen from './src/screens/ChatsScreen';
 import BottomTabNavigator from './src/components/BottomNavBar';
+import StudentRegistrationForm from './src/components/Student_Create';
 
 const Stack = createNativeStackNavigator();
 
@@ -135,7 +136,7 @@ const App = () => {
   return (
     <NavigationContainer style={{backgroundColor: 'transparent'}}>
       <Stack.Navigator
-        initialRouteName="Tabs"
+        initialRouteName="Login"
         screenOptions={{headerShown: false}}>
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
@@ -144,6 +145,7 @@ const App = () => {
         <Stack.Screen name="Assignment" component={AssignmentScreen} />
         <Stack.Screen name="Notes" component={NotesScreen} />
         <Stack.Screen name="Chats" component={ChatsScreen} />
+        <Stack.Screen name="Student_Create" component={StudentRegistrationForm} />
         <Stack.Screen name="Tabs" component={BottomTabNavigator} />
       </Stack.Navigator>
     </NavigationContainer>

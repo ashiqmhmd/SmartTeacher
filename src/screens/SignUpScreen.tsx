@@ -7,7 +7,8 @@ import {
   StyleSheet, 
   KeyboardAvoidingView,
   Platform,
-  ScrollView
+  ScrollView,
+  Image
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
@@ -29,27 +30,14 @@ const TrendySignupScreen = () => {
   const [pincode, setPincode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [gender, setGender] = useState(null);
-  const [backgroundColors, setBackgroundColors] = useState(ColorVariants.PURPLE_BLUE);
-  const cycleBackgroundColors = () => {
-    const colorKeys = Object.keys(ColorVariants);
-    const currentIndex = Object.values(ColorVariants).findIndex(
-      colors => JSON.stringify(colors) === JSON.stringify(backgroundColors)
-    );
-    const nextIndex = (currentIndex + 1) % colorKeys.length;
-    setBackgroundColors(ColorVariants[colorKeys[nextIndex]]);
-  };
 
   return (
     <LinearGradient 
-      colors={backgroundColors} 
+      colors={['#4158D0', '#FFF']} 
       style={styles.container}
     >
-      <TouchableOpacity 
-        style={styles.colorChangeButton} 
-        onPress={cycleBackgroundColors}
-      >
-        <Feather name="refresh-cw" size={20} color="white" />
-      </TouchableOpacity>
+     
+   
 
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -59,7 +47,11 @@ const TrendySignupScreen = () => {
           contentContainerStyle={styles.scrollContainer}
           keyboardShouldPersistTaps="handled"
         >
+           <View style={{justifyContent:"center",alignItems:"center",}}>
+        <Image style={{width:110,height:100}} source={require("../resources/logo.png")}/>
+      </View>
           <View style={styles.glassContainer}>
+            
             <Text style={styles.title}>Create Account</Text>
             <Text style={styles.subtitle}>Join Smart Teacher</Text>
 
@@ -197,7 +189,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   glassContainer: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: '#fffafa',
     borderRadius: 20,
     padding: 30,
     borderWidth: 1,
@@ -211,13 +203,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: 'white',
+    color: '#4158D0',
     textAlign: 'center',
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 18,
-    color: 'rgba(255,255,255,0.7)',
+    color: '#4158D0',
     textAlign: 'center',
     marginBottom: 30,
   },
@@ -228,10 +220,12 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: '#f8f9fa',
     borderRadius: 10,
     marginBottom: 20,
     paddingHorizontal: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
   halfInput: {
     width: '48%',
@@ -249,9 +243,10 @@ const styles = StyleSheet.create({
   },
   genderContainer: {
     marginBottom: 20,
+
   },
   genderLabel: {
-    color: 'white',
+    color: '#4158D0',
     marginBottom: 10,
   },
   genderOptions: {
@@ -259,28 +254,28 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   genderButton: {
-    flex: 1,
+    height:50,
+    justifyContent:"center",
     padding: 12,
     borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    marginHorizontal: 5,
+    backgroundColor: 'gray',
+    marginHorizontal: 3,
     alignItems: 'center',
   },
   selectedGender: {
-    backgroundColor: 'white',
-  },
+    backgroundColor: '#4158D0' },
   genderButtonText: {
     color: 'white',
   },
   signupButton: {
-    backgroundColor: 'white',
+    backgroundColor: '#4158D0',
     borderRadius: 10,
     padding: 15,
     alignItems: 'center',
     marginBottom: 20,
   },
   signupButtonText: {
-    color: '#6a11cb',
+    color: 'white',
     fontWeight: 'bold',
     fontSize: 16,
   },

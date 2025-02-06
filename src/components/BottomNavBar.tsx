@@ -106,7 +106,7 @@ const BottomTabNavigator = () => {
       <Tab.Screen name="Fee" component={FeesScreen} />
       <Tab.Screen name="Assignment" component={AssignmentScreen} />
       <Tab.Screen name="Notes" component={NotesScreen} />
-      <Tab.Screen name="Chats" component={SignUpScreen} />
+      <Tab.Screen name="Chats" component={ChatsScreen} />
     </Tab.Navigator>
   );
 };
