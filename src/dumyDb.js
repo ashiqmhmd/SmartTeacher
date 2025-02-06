@@ -168,36 +168,62 @@ export const students = [
   },
 ];
 
+export const batchess = [
+  {
+    id: 1,
+    name: 'math 1012',
+    course: 'Algebra',
+    student_count: 31,
+  },
+  {
+    id: 2,
+    name: 'Phy 1014',
+    course: 'ainstee',
+    student_count: 22,
+  },
+  {
+    id: 3,
+    name: 'Chem 1016',
+    course: 'Algebra',
+    student_count: 320,
+  },
+  {
+    id: 4,
+    name: 'Music 1018',
+    course: 'Arjith',
+    student_count: 28,
+  },
+  {
+    id: 5,
+    name: 'Dance 1010',
+    course: 'Moh',
+    student_count: 38,
+  },
+];
+
 export const batches = [
   {
-  id:1,
-  name:"math 1012",
-  course:"Algebra",
-  student_count:31
-},
-{
-  id:2,
-  name:"Phy 1014",
-  course:"ainstee",
-  student_count:22
-},
-{
-  id:1,
-  name:"Chem 1016",
-  course:"Algebra",
-  student_count:320
-},
-{
-  id:1,
-  name:"Music 1018",
-  course:"Arjith",
-  student_count:28
-},
-{
-  id:1,
-  name:"Dance 1010",
-  course:"Moh",
-  student_count:38
-},
-
-]
+    id: 1,
+    name: 'Grade 10 Science',
+    subject: 'Physics & Chemistry',
+    schedule: 'Mon, Wed, Fri',
+    time: '4:00 PM - 5:30 PM',
+    studentCount: 31,
+  },
+  {
+    id: 2,
+    name: 'Grade 11 Mathematics',
+    subject: 'Advanced Mathematics',
+    schedule: 'Tue, Thu, Sat',
+    time: '5:30 PM - 7:00 PM',
+    studentCount: 25,
+  },
+  {
+    id: 3,
+    name: 'Grade 9 Science',
+    subject: 'Biology & Chemistry',
+    schedule: 'Mon, Thu',
+    time: '3:00 PM - 4:30 PM',
+    studentCount: 28,
+  },
+];
