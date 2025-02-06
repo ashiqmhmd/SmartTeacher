@@ -6,6 +6,8 @@ import FeesScreen from '../screens/FeesScreen';
 import AssignmentScreen from '../screens/AssignmentScreen';
 import ChatsScreen from '../screens/ChatsScreen';
 import NotesScreen from '../screens/NotesScreen';
+import LoginScreen from '../screens/LoginScreen';
+import SignUpScreen from '../screens/SignUpScreen';
 export type BottomTabParamsList = {
   Home: undefined;
   Fee: undefined;
@@ -104,7 +106,7 @@ const BottomTabNavigator = () => {
       <Tab.Screen name="Fee" component={FeesScreen} />
       <Tab.Screen name="Assignment" component={AssignmentScreen} />
       <Tab.Screen name="Notes" component={NotesScreen} />
-      <Tab.Screen name="Chats" component={ChatsScreen} />
+      <Tab.Screen name="Chats" component={SignUpScreen} />
     </Tab.Navigator>
   );
 };
