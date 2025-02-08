@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -18,18 +18,50 @@ import LinearGradient from 'react-native-linear-gradient';
 import BottomNavigation from '../components/BottomNavBar';
 import {batchDetails, batches, students} from '../dumyDb';
 import RBSheet from 'react-native-raw-bottom-sheet';
+import { getapi } from '../utils/api';
 
 const HomeScreen = ({navigation}) => {
   const refRBSheet = useRef();
   const [selectedBatch, setSelectedBatch] = useState(batchDetails);
+  const [studentss, setStudent] = useState([]);
+  // var codesPostal: CodePostal[] = []
+
+
+  const students_fetch = () => {
+    const url = 'students/batch/123e4567-e89b-12d3-a456-426614174000'
+    const headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+  }
+  const onResponse = (res) => {
+    console.log("hiii")
+    setStudent(res)
+  }
+
+  const onCatch = (res) => {
+    console.log(res)
+  }
+  getapi(url,headers,onResponse,onCatch)
+  }
+
+
+
+
+ useEffect(() => {
+  students_fetch()
+  console.log(students)
+  console.log("mo")
+ },[1])
 
   // // Function to Open Bottom Sheet
   // const handleOpenBottomSheet = useCallback(() => {
   //   bottomSheetRef.current?.expand();
   // }, []);
 
-  const renderStudentCard = ({item}) => (
-    <TouchableOpacity style={styles.listCard}>
+  const renderStudentCard = ({item}) => {
+    console.log(item.age)
+    return(
+       <TouchableOpacity style={styles.listCard}>
       <Image source={{uri: item.profilePicUrl}} style={styles.profilePic} />
       <View style={{flexDirection: 'column'}}>
         <Text style={styles.studentName}>
@@ -48,6 +80,7 @@ const HomeScreen = ({navigation}) => {
       </View> */}
     </TouchableOpacity>
   );
+}
 
   const BatchItem = ({item, onSelect}) => (
     <TouchableOpacity
@@ -126,6 +159,9 @@ const HomeScreen = ({navigation}) => {
     refRBSheet.current.close();
   };
 
+
+
+
   return (
     <View style={styles.screen}>
       <View style={styles.appBar}>
@@ -196,9 +232,9 @@ const HomeScreen = ({navigation}) => {
         {/* <Text style={styles.listTitle}>Students In Batch</Text> */}
 
         <FlatList
-          data={students}
+          data={studentss}
           renderItem={renderStudentCard}
-          keyExtractor={item => item.id}
+          keyExtractor={item => item.firstName}
           contentContainerStyle={styles.list}
         />
       </View>
