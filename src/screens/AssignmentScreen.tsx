@@ -56,7 +56,7 @@ const AssignmentsScreen = ({navigation}) => {
   const AssignmentCard = ({item}) => (
     <TouchableOpacity
       onPress={() =>
-        navigation.navigate('AssignmentDetails', {assignment: item})
+        navigation.navigate('Assignment_Edit', {assignment: item})
       }
       style={styles.assignmentCard}>
       <View style={styles.assignmentHeader}>
@@ -119,7 +119,7 @@ const AssignmentsScreen = ({navigation}) => {
           </View>
           <TouchableOpacity
             style={styles.createButton}
-            onPress={() => navigation.navigate('CreateAssignment')}>
+            onPress={() => navigation.navigate('Assignment_Creation')}>
             <Text style={styles.createButtonText}>Create</Text>
           </TouchableOpacity>
         </View>
