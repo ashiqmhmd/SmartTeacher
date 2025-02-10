@@ -11,7 +11,7 @@ export const batchDetails = {
   paymentDayOfMonth: 15,
 };
 
-export const students = [
+export const studentz = [
   {
     addressState: 'Otherstate',
     lastName: 'Doe',
