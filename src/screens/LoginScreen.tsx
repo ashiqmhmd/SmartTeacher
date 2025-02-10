@@ -209,12 +209,6 @@ const styles = StyleSheet.create({
     color: '#1D49A7',
     fontWeight: 'bold',
   },
-  colorChangeButton: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    zIndex: 10,
-  },
 });
 
 export default TrendyLoginScreen;
