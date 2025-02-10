@@ -1,4 +1,3 @@
-
 // export const GetApi = async (url: string, headers: { Accept: string; 'Content-Type': string }, onResponse: (responseJson: any) => void, onCatch: (responseJson: any) => void, { url = '', header = {}, onResponse = null, onCatch = null }) => {
 
 //     let base_url = "https://zkbsgdbbhc.execute-api.us-east-1.amazonaws.com/mvp/"
@@ -45,47 +44,40 @@ interface FileData {
 }
 
 export const getapi = async (
-    url: string = '',
-    header: Record<string, string> = {},
-    onResponse: Callback | null = null,
-    onCatch: Callback | null = null,
-    file: FileData | null = null,
+  url: string = '',
+  header: Record<string, string> = {},
+  onResponse: Callback | null = null,
+  onCatch: Callback | null = null,
+  file: FileData | null = null,
 ): Promise<any> => {
+  let base_url = 'https://zkbsgdbbhc.execute-api.us-east-1.amazonaws.com/Dev/';
+  // Prepare headers
+  const headers = {
+    'Content-Type': 'application/json',
+    ...header,
+  };
 
-    let base_url = "https://zkbsgdbbhc.execute-api.us-east-1.amazonaws.com/mvp/"
-        // Prepare headers
-        const headers = {
-            'Content-Type': 'application/json',
-            ...header,
-        };
+  fetch(base_url + url, {
+    method: 'GET',
+    headers: header,
+  })
+    .then(response => response.json())
+    .then(responseJson => {
+      console.log('response: ' + JSON.stringify(responseJson));
+      if (responseJson) {
+        console.log('if entered');
+      } else {
+        console.log('else entered');
+      }
 
-        fetch(base_url + url, {
-            method: 'GET',
-            headers: header,
-        })
-            .then((response) => response.json())
-            .then((responseJson) => {
-                console.log("response: " + JSON.stringify(responseJson))
-                if (responseJson) {
-              
-                        console.log("if entered")
-                  
-                }
-                else {
-                    console.log("else entered")
-                }
+      onResponse && onResponse(responseJson);
+    })
+    .catch(e => {
+      console.log('error bellow');
+      console.log(e);
+      console.log('error Json ' + JSON.stringify(e));
+      console.log('error toString ' + e.toString());
 
-                onResponse && onResponse(responseJson)
-
-            })
-            .catch((e) => {
-                console.log('error bellow')
-                console.log(e)
-                console.log('error Json ' + JSON.stringify(e))
-                console.log('error toString ' + e.toString())
-
-                onCatch && onCatch(e)
-
-            })
-    }
-
+      onCatch && onCatch(e);
+    });
+};
