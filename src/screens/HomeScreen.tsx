@@ -167,9 +167,15 @@ const HomeScreen = ({navigation}) => {
           />
         </View>
         <Text style={styles.appBarTitle}>Smart Teacher</Text>
-        <View style={styles.notificationIcon}>
-          <Ionicons name="notifications-outline" size={30} color="rgb(0,0,0)" />
-        </View>
+        <TouchableOpacity onPress={() => navigation.navigate('Notification')}>
+          <View style={styles.notificationIcon}>
+            <Ionicons
+              name="notifications-outline"
+              size={30}
+              color="rgb(0,0,0)"
+            />
+          </View>
+        </TouchableOpacity>
       </View>
       <View style={styles.container}>
         <View style={styles.batchCard}>
