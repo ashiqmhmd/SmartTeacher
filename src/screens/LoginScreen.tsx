@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
-  SafeAreaView, 
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Image
+  Image,
+  StatusBar,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
@@ -18,29 +19,34 @@ const TrendyLoginScreen = ({navigation}) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  return(
-
-<LinearGradient 
-colors={['#4158D0', '#FFF']} 
-style={styles.container}
->
-<View style={{justifyContent:"center",alignItems:"center",top:60}}>
-  <Image style={{width:110,height:100}} source={require("../resources/logo.png")}/>
-</View>
-<KeyboardAvoidingView 
-  behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-  style={styles.keyboardContainer}
->
-<ScrollView 
+  return (
+    <LinearGradient
+      colors={['#1D49A7', '#1D49A7', '#FFF']}
+      style={styles.container}>
+      <StatusBar backgroundColor="#1D49A7" barStyle="light-content" />
+      <View style={styles.logoContainer}>
+        <Image style={styles.logo} source={require('../resources/logo.png')} />
+        <Text style={styles.logotitle}>Smart Teacher</Text>
+      </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardContainer}>
+        <ScrollView
           contentContainerStyle={styles.scrollContainer}
-          keyboardShouldPersistTaps="handled"
-        >
+          keyboardShouldPersistTaps="handled">
           <View style={styles.glassContainer}>
-            <Text style={styles.title}>Smart Teacher</Text>
-            <Text style={styles.subtitle}>Welcome Back!</Text>
+            <Text style={styles.title}>Welcome Back!</Text>
+            <Text style={styles.subtitle}>
+              Login to your account to Continue
+            </Text>
 
             <View style={styles.inputContainer}>
-              <Feather name="user" size={20} color="#6a11cb" style={styles.inputIcon} />
+              <Feather
+                name="user"
+                size={20}
+                color="#001d3d"
+                style={styles.inputIcon}
+              />
               <TextInput
                 style={styles.input}
                 placeholder="Username"
@@ -51,7 +57,12 @@ style={styles.container}
             </View>
 
             <View style={styles.inputContainer}>
-              <Feather name="lock" size={20} color="#6a11cb" style={styles.inputIcon} />
+              <Feather
+                name="lock"
+                size={20}
+                color="#001d3d"
+                style={styles.inputIcon}
+              />
               <TextInput
                 style={styles.input}
                 placeholder="Password"
@@ -60,14 +71,13 @@ style={styles.container}
                 value={password}
                 onChangeText={setPassword}
               />
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
-                style={styles.showPasswordIcon}
-              >
-                <Feather 
-                  name={showPassword ? "eye" : "eye-off"} 
-                  size={20} 
-                  color="#6a11cb" 
+                style={styles.showPasswordIcon}>
+                <Feather
+                  name={showPassword ? 'eye' : 'eye-off'}
+                  size={20}
+                  color="#001d3d"
                 />
               </TouchableOpacity>
             </View>
@@ -76,21 +86,22 @@ style={styles.container}
               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() =>navigation.navigate("Tabs") } style={styles.loginButton}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Tabs')}
+              style={styles.loginButton}>
               <Text style={styles.loginButtonText}>Login</Text>
             </TouchableOpacity>
 
             <View style={styles.signupContainer}>
               <Text style={styles.signupText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
+              <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
                 <Text style={styles.signupLinkText}>Sign Up</Text>
               </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
-  {/* Rest of the previous login screen code remains the same */}
-</KeyboardAvoidingView>
-</LinearGradient>
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
 };
 
@@ -98,38 +109,52 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  logoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: '30%',
+  },
+  logo: {
+    width: 100,
+    height: 100,
+  },
+  logotitle: {
+    fontSize: 42,
+    fontWeight: 'bold',
+    color: '#ffff',
+    textAlign: 'center',
+    paddingTop: 12,
+  },
   keyboardContainer: {
     flex: 1,
   },
   scrollContainer: {
-    flexGrow: 1,
+    flexGrow: 0.5,
     justifyContent: 'center',
-    padding: 20,
+    paddingHorizontal: '5%',
   },
   glassContainer: {
-    backgroundColor: '#fffafa',
+    backgroundColor: '#ffff',
     borderRadius: 20,
     padding: 30,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.125)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
+    shadowColor: '#1D49A7',
+    shadowOffset: {width: 0, height: 10},
     shadowOpacity: 0.1,
     shadowRadius: 20,
-    elevation: 5,
+    elevation: 20,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#4158D0',
     textAlign: 'center',
-    marginBottom: 10,
+    color: '#001d3d',
+    marginBottom: 5,
   },
   subtitle: {
-    fontSize: 18,
-    color: '#4158D0',
+    fontSize: 14,
+    color: '#001d3d',
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 50,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -140,7 +165,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderWidth: 1,
     borderColor: '#ddd',
-    
   },
   inputIcon: {
     marginRight: 10,
@@ -155,14 +179,14 @@ const styles = StyleSheet.create({
   },
   forgotPassword: {
     alignSelf: 'flex-end',
-    marginBottom: 20,
+    marginBottom: 30,
   },
   forgotPasswordText: {
-    color: '#4158D0',
+    color: '#1D49A7',
     textDecorationLine: 'underline',
   },
   loginButton: {
-    backgroundColor: '#4158D0',
+    backgroundColor: '#001d3d',
     borderRadius: 10,
     padding: 15,
     alignItems: 'center',
@@ -179,10 +203,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   signupText: {
-    color: '#4158D0',
+    color: '#001d3d',
   },
   signupLinkText: {
-    color: '#4158D0',
+    color: '#1D49A7',
     fontWeight: 'bold',
   },
   colorChangeButton: {
