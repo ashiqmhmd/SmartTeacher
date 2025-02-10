@@ -1,27 +1,20 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Image
+  Image,
+  StatusBar,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
 
-const ColorVariants = {
-  PURPLE_BLUE: ['#6a11cb', '#2575fc'],
-  SUNSET: ['#ff6b6b', '#ff9a9e'],
-  OCEAN: ['#00b4db', '#0083b0'],
-  FOREST: ['#11998e', '#38ef7d'],
-  DAWN: ['#ff6a88', '#ff99ac']
-};
-
-const TrendySignupScreen = () => {
+const TrendySignupScreen = ({navigation}) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -32,54 +25,62 @@ const TrendySignupScreen = () => {
   const [gender, setGender] = useState(null);
 
   return (
-    <LinearGradient 
-      colors={['#4158D0', '#FFF']} 
-      style={styles.container}
-    >
-     
-   
-
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardContainer}
-      >
-        <ScrollView 
-          contentContainerStyle={styles.scrollContainer}
-          keyboardShouldPersistTaps="handled"
-        >
-           <View style={{justifyContent:"center",alignItems:"center",}}>
-        <Image style={{width:110,height:100}} source={require("../resources/logo.png")}/>
+    <LinearGradient
+      colors={['#1D49A7', '#1D49A7', '#FFF']}
+      style={styles.container}>
+      <StatusBar backgroundColor="#1D49A7" barStyle="light-content" />
+      <View style={styles.logoContainer}>
+        <Image style={styles.logo} source={require('../resources/logo.png')} />
+        <Text style={styles.logotitle}>Smart Teacher</Text>
       </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardContainer}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled">
           <View style={styles.glassContainer}>
-            
             <Text style={styles.title}>Create Account</Text>
             <Text style={styles.subtitle}>Join Smart Teacher</Text>
 
-            <View style={styles.nameContainer}>
-              <View style={[styles.inputContainer, styles.halfInput]}>
-                <Feather name="user" size={20} color="#6a11cb" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="First Name"
-                  placeholderTextColor="#888"
-                  value={firstName}
-                  onChangeText={setFirstName}
-                />
-              </View>
-              <View style={[styles.inputContainer, styles.halfInput]}>
-                <Feather name="user" size={20} color="#6a11cb" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Last Name"
-                  placeholderTextColor="#888"
-                  value={lastName}
-                  onChangeText={setLastName}
-                />
-              </View>
+            <View style={styles.inputContainer}>
+              <Feather
+                name="user"
+                size={20}
+                color="#001d3d"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="First Name"
+                placeholderTextColor="#888"
+                value={firstName}
+                onChangeText={setFirstName}
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <Feather
+                name="user"
+                size={20}
+                color="#001d3d"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Last Name"
+                placeholderTextColor="#888"
+                value={lastName}
+                onChangeText={setLastName}
+              />
             </View>
 
             <View style={styles.inputContainer}>
-              <Feather name="mail" size={20} color="#6a11cb" style={styles.inputIcon} />
+              <Feather
+                name="mail"
+                size={20}
+                color="#001d3d"
+                style={styles.inputIcon}
+              />
               <TextInput
                 style={styles.input}
                 placeholder="Email"
@@ -91,7 +92,12 @@ const TrendySignupScreen = () => {
             </View>
 
             <View style={styles.inputContainer}>
-              <Feather name="lock" size={20} color="#6a11cb" style={styles.inputIcon} />
+              <Feather
+                name="lock"
+                size={20}
+                color="#001d3d"
+                style={styles.inputIcon}
+              />
               <TextInput
                 style={styles.input}
                 placeholder="Password"
@@ -100,20 +106,50 @@ const TrendySignupScreen = () => {
                 value={password}
                 onChangeText={setPassword}
               />
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
-                style={styles.showPasswordIcon}
-              >
-                <Feather 
-                  name={showPassword ? "eye" : "eye-off"} 
-                  size={20} 
-                  color="#6a11cb" 
+                style={styles.showPasswordIcon}>
+                <Feather
+                  name={showPassword ? 'eye' : 'eye-off'}
+                  size={20}
+                  color="#001d3d"
                 />
               </TouchableOpacity>
             </View>
 
             <View style={styles.inputContainer}>
-              <Feather name="map-pin" size={20} color="#6a11cb" style={styles.inputIcon} />
+              <Feather
+                name="lock"
+                size={20}
+                color="#001d3d"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Confirm Password"
+                placeholderTextColor="#888"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.showPasswordIcon}>
+                <Feather
+                  name={showPassword ? 'eye' : 'eye-off'}
+                  size={20}
+                  color="#001d3d"
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* <View style={styles.inputContainer}>
+              <Feather
+                name="map-pin"
+                size={20}
+                color="#001d3d"
+                style={styles.inputIcon}
+              />
               <TextInput
                 style={styles.input}
                 placeholder="Address"
@@ -121,10 +157,15 @@ const TrendySignupScreen = () => {
                 value={address}
                 onChangeText={setAddress}
               />
-            </View>
+            </View> */}
 
-            <View style={styles.inputContainer}>
-              <Feather name="map" size={20} color="#6a11cb" style={styles.inputIcon} />
+            {/* <View style={styles.inputContainer}>
+              <Feather
+                name="map"
+                size={20}
+                color="#001d3d"
+                style={styles.inputIcon}
+              />
               <TextInput
                 style={styles.input}
                 placeholder="Pincode"
@@ -133,25 +174,28 @@ const TrendySignupScreen = () => {
                 onChangeText={setPincode}
                 keyboardType="numeric"
               />
-            </View>
+            </View> */}
 
-            <View style={styles.genderContainer}>
+            {/* <View style={styles.genderContainer}>
               <Text style={styles.genderLabel}>Gender:</Text>
               <View style={styles.genderOptions}>
-                {['Male', 'Female', 'Transgender', 'Other'].map((genderOption) => (
-                  <TouchableOpacity 
-                    key={genderOption}
-                    style={[
-                      styles.genderButton,
-                      gender === genderOption && styles.selectedGender
-                    ]}
-                    onPress={() => setGender(genderOption)}
-                  >
-                    <Text style={styles.genderButtonText}>{genderOption}</Text>
-                  </TouchableOpacity>
-                ))}
+                {['Male', 'Female', 'Transgender', 'Other'].map(
+                  genderOption => (
+                    <TouchableOpacity
+                      key={genderOption}
+                      style={[
+                        styles.genderButton,
+                        gender === genderOption && styles.selectedGender,
+                      ]}
+                      onPress={() => setGender(genderOption)}>
+                      <Text style={styles.genderButtonText}>
+                        {genderOption}
+                      </Text>
+                    </TouchableOpacity>
+                  ),
+                )}
               </View>
-            </View>
+            </View> */}
 
             <TouchableOpacity style={styles.signupButton}>
               <Text style={styles.signupButtonText}>Sign Up</Text>
@@ -159,7 +203,7 @@ const TrendySignupScreen = () => {
 
             <View style={styles.loginContainer}>
               <Text style={styles.loginText}>Already have an account? </Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
                 <Text style={styles.loginLinkText}>Login</Text>
               </TouchableOpacity>
             </View>
@@ -174,11 +218,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  colorChangeButton: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    zIndex: 10,
+  logoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: '10%',
+  },
+  logo: {
+    width: 100,
+    height: 100,
+  },
+  logotitle: {
+    fontSize: 42,
+    fontWeight: 'bold',
+    color: '#ffff',
+    textAlign: 'center',
+    paddingTop: 12,
   },
   keyboardContainer: {
     flex: 1,
@@ -186,32 +240,31 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 20,
+    paddingHorizontal: '5%',
   },
+
   glassContainer: {
-    backgroundColor: '#fffafa',
+    backgroundColor: '#ffff',
     borderRadius: 20,
     padding: 30,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.125)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
+    shadowColor: '#1D49A7',
+    shadowOffset: {width: 0, height: 10},
     shadowOpacity: 0.1,
     shadowRadius: 20,
-    elevation: 5,
+    elevation: 20,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#4158D0',
+    color: '#001d3d',
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 5,
   },
   subtitle: {
-    fontSize: 18,
-    color: '#4158D0',
+    fontSize: 14,
+    color: '#001d3d',
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 50,
   },
   nameContainer: {
     flexDirection: 'row',
@@ -227,9 +280,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
   },
-  halfInput: {
-    width: '48%',
-  },
   inputIcon: {
     marginRight: 10,
   },
@@ -243,10 +293,9 @@ const styles = StyleSheet.create({
   },
   genderContainer: {
     marginBottom: 20,
-
   },
   genderLabel: {
-    color: '#4158D0',
+    color: '#001d3d',
     marginBottom: 10,
   },
   genderOptions: {
@@ -254,8 +303,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   genderButton: {
-    height:50,
-    justifyContent:"center",
+    height: 50,
+    justifyContent: 'center',
     padding: 12,
     borderRadius: 10,
     backgroundColor: 'gray',
@@ -263,15 +312,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   selectedGender: {
-    backgroundColor: '#4158D0' },
+    backgroundColor: '#001d3d',
+  },
   genderButtonText: {
     color: 'white',
   },
   signupButton: {
-    backgroundColor: '#4158D0',
+    backgroundColor: '#001d3d',
     borderRadius: 10,
     padding: 15,
     alignItems: 'center',
+    marginTop: 20,
     marginBottom: 20,
   },
   signupButtonText: {
@@ -285,10 +336,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loginText: {
-    color: 'rgba(255,255,255,0.7)',
+    color: '#001d3d',
   },
   loginLinkText: {
-    color: 'white',
+    color: '#1D49A7',
     fontWeight: 'bold',
   },
 });
