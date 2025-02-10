@@ -16,14 +16,25 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import BottomNavigation from '../components/BottomNavBar';
-import {batchDetails, batches, students} from '../dumyDb';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import {getapi} from '../utils/api';
+import BatchSelectorSheet from '../components/BatchSelectorSheet';
 
 const HomeScreen = ({navigation}) => {
   const refRBSheet = useRef();
-  const [selectedBatch, setSelectedBatch] = useState(batchDetails);
-  const [studentss, setStudent] = useState([]);
+  const [selectedBatch, setSelectedBatch] = useState({
+    subject: 'Algebra',
+    paymentFrequency: 'Monthly',
+    course: 'Mathematics',
+    teacherId: '660e8400-e29b-41d4-a716-446655440001',
+    description:
+      'An introductory course to Algebra covering basic concepts and problem-solving techniques.',
+    id: '212e46a9-9a1d-4906-a27e-5ef03e989955',
+    paymentAmount: 150,
+    name: 'Math 1012',
+    paymentDayOfMonth: 15,
+  });
+  const [students, setStudents] = useState([]);
   // var codesPostal: CodePostal[] = []
 
   const students_fetch = () => {
@@ -34,10 +45,12 @@ const HomeScreen = ({navigation}) => {
     };
     const onResponse = res => {
       console.log('hiii');
-      setStudent(res);
+      console.log(res);
+      setStudents(res);
     };
 
     const onCatch = res => {
+      console.log('Error');
       console.log(res);
     };
     getapi(url, headers, onResponse, onCatch);
@@ -77,78 +90,6 @@ const HomeScreen = ({navigation}) => {
       </TouchableOpacity>
     );
   };
-
-  const BatchItem = ({item, onSelect}) => (
-    <TouchableOpacity
-      style={[
-        styles.batchItem,
-        selectedBatch.name === item.name && styles.selectedBatchItem,
-      ]}
-      onPress={() => onSelect(item)}>
-      <View style={styles.batchItemContent}>
-        <View style={styles.batchItemLeft}>
-          <View style={styles.batchIcon}>
-            <MaterialCommunityIcons
-              name="book-education"
-              size={24}
-              color={selectedBatch.name === item.name ? '#fff' : '#0F1F4B'}
-            />
-          </View>
-          <View style={styles.batchInfo}>
-            <Text
-              style={[
-                styles.batchName,
-                selectedBatch.name === item.name && styles.selectedText,
-              ]}>
-              {item.name}
-            </Text>
-            <Text
-              style={[
-                styles.batchSubject,
-                selectedBatch.name === item.name && styles.selectedSubText,
-              ]}>
-              {item.subject}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.batchItemRight}>
-          <View style={styles.scheduleInfo}>
-            <Text
-              style={[
-                styles.scheduleText,
-                selectedBatch.name === item.name && styles.selectedSubText,
-              ]}>
-              {item.schedule}
-            </Text>
-            <Text
-              style={[
-                styles.timeText,
-                selectedBatch.name === item.name && styles.selectedSubText,
-              ]}>
-              {item.time}
-            </Text>
-          </View>
-          {selectedBatch.name === item.name && (
-            <MaterialIcons name="check-circle" size={24} color="#fff" />
-          )}
-        </View>
-      </View>
-      <View style={styles.studentCount}>
-        <MaterialIcons
-          name="people"
-          size={16}
-          color={selectedBatch.name === item.name ? '#fff' : '#666'}
-        />
-        <Text
-          style={[
-            styles.studentCountText,
-            selectedBatch.name === item.name && styles.selectedSubText,
-          ]}>
-          {item.studentCount} Students
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
 
   const handleBatchSelect = batch => {
     setSelectedBatch(batch);
@@ -198,9 +139,11 @@ const HomeScreen = ({navigation}) => {
                 />
               </LinearGradient>
             </TouchableOpacity>
-            <Text style={styles.batchCardTitle}>{batchDetails.name}</Text>
-            <Text style={styles.batchCardSubtitle}>{batchDetails.subject}</Text>
-            <Text style={styles.batchCardCount}>31</Text>
+            <Text style={styles.batchCardTitle}>{selectedBatch.name}</Text>
+            <Text style={styles.batchCardSubtitle}>
+              {selectedBatch.subject}
+            </Text>
+            <Text style={styles.batchCardCount}>{students.length}</Text>
             <View style={styles.createBatch}>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Batch_Create')}
@@ -231,50 +174,17 @@ const HomeScreen = ({navigation}) => {
         {/* <Text style={styles.listTitle}>Students In Batch</Text> */}
 
         <FlatList
-          data={studentss}
+          data={students}
           renderItem={renderStudentCard}
           keyExtractor={item => item.firstName}
           contentContainerStyle={styles.list}
         />
       </View>
-      <RBSheet
+      <BatchSelectorSheet
         ref={refRBSheet}
-        closeOnDragDown={true}
-        closeOnPressMask={true}
-        height={500}
-        customStyles={{
-          wrapper: {
-            backgroundColor: 'rgba(0, 0, 0, 0.3)',
-          },
-          container: {
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-          },
-          draggableIcon: {
-            backgroundColor: '#D1D5DB',
-            width: 60,
-          },
-        }}>
-        <View style={styles.bottomSheetContent}>
-          <Text style={styles.bottomSheetTitle}>Select Batch</Text>
-          <View style={styles.searchBarSheet}>
-            <Ionicons name="search" size={20} color="rgb(153,153,153)" />
-            <TextInput
-              placeholder="Search batches"
-              style={styles.searchInputSheet}
-            />
-          </View>
-          <FlatList
-            data={batches}
-            renderItem={({item}) => (
-              <BatchItem item={item} onSelect={handleBatchSelect} />
-            )}
-            keyExtractor={item => item.id.toString()}
-            contentContainerStyle={styles.batchList}
-            showsVerticalScrollIndicator={false}
-          />
-        </View>
-      </RBSheet>
+        selectedBatch={selectedBatch}
+        onBatchSelect={handleBatchSelect}
+      />
     </View>
   );
 };
