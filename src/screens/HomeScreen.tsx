@@ -18,7 +18,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import BottomNavigation from '../components/BottomNavBar';
 import {batchDetails, batches, students} from '../dumyDb';
 import RBSheet from 'react-native-raw-bottom-sheet';
-import { getapi } from '../utils/api';
+import {getapi} from '../utils/api';
 
 const HomeScreen = ({navigation}) => {
   const refRBSheet = useRef();
@@ -26,32 +26,28 @@ const HomeScreen = ({navigation}) => {
   const [studentss, setStudent] = useState([]);
   // var codesPostal: CodePostal[] = []
 
-
   const students_fetch = () => {
-    const url = 'students/batch/123e4567-e89b-12d3-a456-426614174000'
+    const url = 'students/batch/123e4567-e89b-12d3-a456-426614174000';
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-  }
-  const onResponse = (res) => {
-    console.log("hiii")
-    setStudent(res)
-  }
+    };
+    const onResponse = res => {
+      console.log('hiii');
+      setStudent(res);
+    };
 
-  const onCatch = (res) => {
-    console.log(res)
-  }
-  getapi(url,headers,onResponse,onCatch)
-  }
+    const onCatch = res => {
+      console.log(res);
+    };
+    getapi(url, headers, onResponse, onCatch);
+  };
 
-
-
-
- useEffect(() => {
-  students_fetch()
-  console.log(students)
-  console.log("mo")
- },[1])
+  useEffect(() => {
+    students_fetch();
+    console.log(students);
+    console.log('mo');
+  }, [1]);
 
   // // Function to Open Bottom Sheet
   // const handleOpenBottomSheet = useCallback(() => {
@@ -59,18 +55,18 @@ const HomeScreen = ({navigation}) => {
   // }, []);
 
   const renderStudentCard = ({item}) => {
-    console.log(item.age)
-    return(
-       <TouchableOpacity style={styles.listCard}>
-      <Image source={{uri: item.profilePicUrl}} style={styles.profilePic} />
-      <View style={{flexDirection: 'column'}}>
-        <Text style={styles.studentName}>
-          {item.firstName} {item.lastName}
-        </Text>
-        <Text style={styles.parentDtl}>Parent: {item.parent1Name}</Text>
-        <Text style={styles.parentDtl}>Phone No: {item.parent1Phone}</Text>
-      </View>
-      {/* <View style={styles.actions}>
+    console.log(item.age);
+    return (
+      <TouchableOpacity style={styles.listCard}>
+        <Image source={{uri: item.profilePicUrl}} style={styles.profilePic} />
+        <View style={{flexDirection: 'column'}}>
+          <Text style={styles.studentName}>
+            {item.firstName} {item.lastName}
+          </Text>
+          <Text style={styles.parentDtl}>Parent: {item.parent1Name}</Text>
+          <Text style={styles.parentDtl}>Phone No: {item.parent1Phone}</Text>
+        </View>
+        {/* <View style={styles.actions}>
         <TouchableOpacity style={styles.actionButton}>
           <MaterialIcons name="message" size={20} color="#4CAF50" />
         </TouchableOpacity>
@@ -78,9 +74,9 @@ const HomeScreen = ({navigation}) => {
           <MaterialIcons name="visibility" size={20} color="#2196F3" />
         </TouchableOpacity>
       </View> */}
-    </TouchableOpacity>
-  );
-}
+      </TouchableOpacity>
+    );
+  };
 
   const BatchItem = ({item, onSelect}) => (
     <TouchableOpacity
@@ -159,9 +155,6 @@ const HomeScreen = ({navigation}) => {
     refRBSheet.current.close();
   };
 
-
-
-
   return (
     <View style={styles.screen}>
       <View style={styles.appBar}>
@@ -203,7 +196,9 @@ const HomeScreen = ({navigation}) => {
             <Text style={styles.batchCardSubtitle}>{batchDetails.subject}</Text>
             <Text style={styles.batchCardCount}>31</Text>
             <View style={styles.createBatch}>
-              <TouchableOpacity onPress={() => navigation.navigate("Batch_Create")} style={styles.createBatchButton}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Batch_Create')}
+                style={styles.createBatchButton}>
                 <Text style={styles.createBatchButtonText}>
                   Create New Batch
                 </Text>
@@ -223,9 +218,7 @@ const HomeScreen = ({navigation}) => {
           <TouchableOpacity
             style={styles.addStudentButton}
             accessibilityLabel="Add new student"
-            onPress={() =>
-             navigation.navigate("Student_Create")
-            }>
+            onPress={() => navigation.navigate('Student_Create')}>
             <Text style={styles.addStudentButtonText}>Add Student</Text>
           </TouchableOpacity>
         </View>
@@ -435,7 +428,8 @@ const styles = StyleSheet.create({
   },
   addStudentButton: {
     // backgroundColor: 'rgb(53, 104, 244)',
-    backgroundColor: 'rgb(34, 78, 200)',
+    // backgroundColor: 'rgb(34, 78, 200)',
+    backgroundColor: '#0F1F4B',
     padding: 10,
     borderRadius: 20,
     shadowColor: '#000',
