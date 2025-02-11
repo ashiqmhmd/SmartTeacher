@@ -12,11 +12,11 @@ import {
 import React, {useEffect, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
-import { getapi } from '../utils/api';
+import {getapi} from '../utils/api';
 
 const AssignmentsScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [assignment,setAssignment] = useState(null);
+  const [assignment, setAssignment] = useState(null);
   // Sample data for assignments
   const assignments = [
     {
@@ -48,38 +48,34 @@ const AssignmentsScreen = ({navigation}) => {
     },
   ];
 
-  
-    const Assignment_fetch = () => {
-      const url = 'assignments/batch/:123e4567-e89b-12d3-a456-426614174000';
-      const headers = {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      };
-      const onResponse = res => {
-        console.log('hiii');
-        console.log(res);
-        setAssignment(res);
-      };
-  
-      const onCatch = res => {
-        console.log('Error');
-        console.log(res);
-      };
-      getapi(url, headers, onResponse, onCatch);
+  const Assignment_fetch = () => {
+    const url = 'assignments/batch/:123e4567-e89b-12d3-a456-426614174000';
+    const headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
     };
-  
-    useEffect(() => {
-      Assignment_fetch();
-      console.log(assignment);
-      console.log('mo');
-    }, [1]);
-  
+    const onResponse = res => {
+      console.log('hiii');
+      console.log(res);
+      setAssignment(res);
+    };
+
+    const onCatch = res => {
+      console.log('Error');
+      console.log(res);
+    };
+    getapi(url, headers, onResponse, onCatch);
+  };
+
+  useEffect(() => {
+    Assignment_fetch();
+    console.log(assignment);
+    console.log('mo');
+  }, [1]);
 
   const AssignmentCard = ({item}) => (
     <TouchableOpacity
-      onPress={() =>
-        navigation.navigate('Assignment_Edit', {assignment: item})
-      }
+      onPress={() => navigation.navigate('Assignment_Edit', {assignment: item})}
       style={styles.assignmentCard}>
       <View style={styles.assignmentHeader}>
         <Text style={styles.assignmentTitle}>{item.title}</Text>
@@ -165,17 +161,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   header: {
-    paddingTop: Platform.OS === 'ios' ? 40 : StatusBar.currentHeight + 10,
+    // paddingTop: Platform.OS === 'ios' ? 40 : StatusBar.currentHeight + 10,
+    paddingTop: 10,
     paddingBottom: 15,
     paddingHorizontal: 20,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#0F1F4B',
+    color: '#001d3d',
   },
   container: {
     flex: 1,
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f7f7f7',
+    backgroundColor: '#f8f9fa',
     borderColor: 'rgb(0,0,0)',
     borderWidth: 0.1,
     borderRadius: 25,
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   createButton: {
-    backgroundColor: '#0F1F4B',
+    backgroundColor: '#001d3d',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 25,
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 15,
     marginBottom: 15,
-    shadowColor: 'rgb(19, 79, 243)',
+    shadowColor: '#1D49A7',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
   assignmentTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#0F1F4B',
+    color: '#001d3d',
     flex: 1,
     marginRight: 10,
   },
