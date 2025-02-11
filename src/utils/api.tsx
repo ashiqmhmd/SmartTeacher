@@ -50,7 +50,7 @@ export const getapi = async (
   onCatch: Callback | null = null,
   file: FileData | null = null,
 ): Promise<any> => {
-  let base_url = 'https://zkbsgdbbhc.execute-api.us-east-1.amazonaws.com/mvp/';
+  let base_url = 'https://zkbsgdbbhc.execute-api.us-east-1.amazonaws.com/Dev/';
   // Prepare headers
   const headers = {
     'Content-Type': 'application/json',
