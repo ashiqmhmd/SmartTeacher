@@ -8,7 +8,7 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, {
@@ -17,6 +17,7 @@ import Svg, {
   LinearGradient as SvgGradient,
   Stop,
 } from 'react-native-svg';
+import BatchSelectorSheet from '../components/BatchSelectorSheet';
 
 const FeesScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,6 +54,13 @@ const FeesScreen = ({navigation}) => {
 
   const monthOptions = ['Current Month', 'January', 'February', 'March'];
   const filterOptions = ['All', 'Paid', 'Unpaid'];
+
+  const refRBSheet = useRef();
+
+  const handleBatchSelect = batch => {
+    setSelectedBatch(batch);
+    refRBSheet.current.close();
+  };
 
   const FeeCard = ({record}) => (
     <TouchableOpacity
@@ -244,6 +252,11 @@ const FeesScreen = ({navigation}) => {
           ))}
         </View>
       </ScrollView>
+      <BatchSelectorSheet
+        ref={refRBSheet}
+        selectedBatch={selectedBatch}
+        onBatchSelect={handleBatchSelect}
+      />
     </View>
   );
 };
