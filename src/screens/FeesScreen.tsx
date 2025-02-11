@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
   batchButton: {
     backgroundColor: '#f8f9fa',
     borderRadius: 16,
-    paddingHorizontal: 15,
+    paddingHorizontal: '5%',
     paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
