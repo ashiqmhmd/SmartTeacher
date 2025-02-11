@@ -38,7 +38,7 @@ const HomeScreen = ({navigation}) => {
   // var codesPostal: CodePostal[] = []
 
   const students_fetch = () => {
-    const url = 'students/batch/123e4567-e89b-12d3-a456-426614174000';
+    const url = 'students/batch/212e46a9-9a1d-4906-a27e-5ef03e989955';
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
@@ -98,6 +98,7 @@ const HomeScreen = ({navigation}) => {
 
   return (
     <View style={styles.screen}>
+      <StatusBar backgroundColor="#fff" barStyle="dark-content" />
       <View style={styles.appBar}>
         <View>
           <Image
@@ -134,7 +135,7 @@ const HomeScreen = ({navigation}) => {
                 <MaterialIcons
                   name="change-circle"
                   size={24}
-                  color="rgb(105,103,103)"
+                  color="#001d3d"
                   style={styles.hexagonIcon}
                 />
               </LinearGradient>
@@ -211,7 +212,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '900',
     fontStyle: 'italic',
-    color: 'rgb(15, 31, 75)',
+    color: '#001d3d',
   },
   avatar: {
     width: 50,
@@ -238,7 +239,7 @@ const styles = StyleSheet.create({
     height: 130,
     backgroundColor: 'rgb(255,255,255)',
     borderRadius: 10,
-    shadowColor: 'rgb(105, 144, 252)',
+    shadowColor: '#1D49A7',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -254,7 +255,7 @@ const styles = StyleSheet.create({
   },
   batchCardSubtitle: {
     fontSize: 14,
-    color: 'rgb(102,102,102)',
+    color: '#888',
     paddingLeft: 20,
   },
   batchCardCount: {
@@ -271,11 +272,11 @@ const styles = StyleSheet.create({
     padding: 15,
     justifyContent: 'center',
     position: 'relative',
-    shadowColor: 'rgb(0,0,0)',
+    shadowColor: '#1D49A7',
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.2,
     shadowRadius: 6,
-    elevation: 5,
+    elevation: 15,
     overflow: 'hidden',
   },
   hexagonWrapper: {
@@ -292,7 +293,7 @@ const styles = StyleSheet.create({
     transform: [{rotate: '45deg'}, {translateX: -10}, {translateY: -10}],
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: 'rgb(155, 178, 245)',
+    shadowColor: '#1D49A7',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -314,11 +315,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 5,
     paddingVertical: 2,
-    borderColor: 'rgb(141, 165, 233)',
+    borderColor: '#1D49A7',
   },
   createBatchButtonText: {
     fontSize: 12,
-    color: 'rgb(118, 149, 233)',
+    color: '#1D49A7',
   },
   header: {
     flexDirection: 'row',
@@ -330,7 +331,7 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f7f7f7',
+    backgroundColor: '#f8f9fa',
     borderColor: 'rgb(0,0,0)',
     borderWidth: 0.1,
     borderRadius: 25,
@@ -345,17 +346,17 @@ const styles = StyleSheet.create({
   addStudentButton: {
     // backgroundColor: 'rgb(53, 104, 244)',
     // backgroundColor: 'rgb(34, 78, 200)',
-    backgroundColor: '#0F1F4B',
+    backgroundColor: '#001d3d',
     padding: 10,
     borderRadius: 20,
-    shadowColor: '#000',
+    shadowColor: '#1D49A7',
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 8,
     marginLeft: 10,
   },
   addStudentButtonText: {
-    color: 'rgb(255,255,255)',
+    color: '#FFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -373,11 +374,11 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgb(255,255,255)',
+    backgroundColor: '#FFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: 'rgb(105, 144, 252)',
+    shadowColor: '#1D49A7',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -404,110 +405,5 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     marginLeft: 12,
-  },
-  bottomSheetContent: {
-    flex: 1,
-    padding: 20,
-  },
-  bottomSheetTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#0F1F4B',
-    marginBottom: 16,
-  },
-  searchBarSheet: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f7f7f7',
-    borderColor: 'rgb(0,0,0)',
-    borderWidth: 0.1,
-    borderRadius: 25,
-    paddingHorizontal: 15,
-    marginBottom: 20,
-  },
-  searchInputSheet: {
-    flex: 1,
-    paddingVertical: 12,
-    marginLeft: 10,
-    fontSize: 16,
-  },
-  batchList: {
-    paddingBottom: 20,
-  },
-  batchItem: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  selectedBatchItem: {
-    backgroundColor: '#0F1F4B',
-    borderColor: '#0F1F4B',
-  },
-  batchItemContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  batchItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  batchIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  batchInfo: {
-    flex: 1,
-  },
-  batchName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#0F1F4B',
-    marginBottom: 4,
-  },
-  batchSubject: {
-    fontSize: 14,
-    color: '#666',
-  },
-  batchItemRight: {
-    alignItems: 'flex-end',
-  },
-  scheduleInfo: {
-    alignItems: 'flex-end',
-    marginBottom: 4,
-  },
-  scheduleText: {
-    fontSize: 14,
-    color: '#0F1F4B',
-    fontWeight: '500',
-  },
-  timeText: {
-    fontSize: 12,
-    color: '#666',
-  },
-  studentCount: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  studentCountText: {
-    fontSize: 12,
-    color: '#666',
-    marginLeft: 4,
-  },
-  selectedText: {
-    color: '#fff',
-  },
-  selectedSubText: {
-    color: '#E5E7EB',
   },
 });
