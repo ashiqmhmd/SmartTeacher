@@ -13,16 +13,43 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
+import { postApi } from '../utils/api';
 
 const TrendySignupScreen = ({navigation}) => {
   const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [address, setAddress] = useState('');
   const [pincode, setPincode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [gender, setGender] = useState(null);
+
+   const Teacher_signup = () => {
+      const url = 'login/teacher';
+      const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      };
+       const body = {
+        firstName:firstName,
+        userName:username,
+        email:email,
+        password: password
+       }
+      const onResponse = res => {
+        console.log("created succesfully")
+         navigation.replace("Login")
+      };
+  
+      const onCatch = res => {
+        console.log('Error');
+        console.log(res);
+      };
+  
+      postApi(url,headers,body,onResponse,onCatch)
+  
+    }
 
   return (
     <LinearGradient
@@ -67,10 +94,10 @@ const TrendySignupScreen = ({navigation}) => {
               />
               <TextInput
                 style={styles.input}
-                placeholder="Last Name"
+                placeholder="User Name"
                 placeholderTextColor="#888"
-                value={lastName}
-                onChangeText={setLastName}
+                value={username}
+                onChangeText={setUsername}
               />
             </View>
 
@@ -197,7 +224,7 @@ const TrendySignupScreen = ({navigation}) => {
               </View>
             </View> */}
 
-            <TouchableOpacity style={styles.signupButton}>
+            <TouchableOpacity onPress={() => Teacher_signup()} style={styles.signupButton}>
               <Text style={styles.signupButtonText}>Sign Up</Text>
             </TouchableOpacity>
 

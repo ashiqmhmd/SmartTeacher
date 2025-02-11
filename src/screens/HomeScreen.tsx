@@ -19,6 +19,8 @@ import BottomNavigation from '../components/BottomNavBar';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import {getapi} from '../utils/api';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
+import { useDispatch } from 'react-redux';
+import { logout } from '../utils/authslice';
 
 const HomeScreen = ({navigation}) => {
   const refRBSheet = useRef();
@@ -36,6 +38,7 @@ const HomeScreen = ({navigation}) => {
   });
   const [students, setStudents] = useState([]);
   // var codesPostal: CodePostal[] = []
+const dispatch = useDispatch();
 
   const students_fetch = () => {
     const url = 'students/batch/212e46a9-9a1d-4906-a27e-5ef03e989955';
@@ -55,6 +58,11 @@ const HomeScreen = ({navigation}) => {
     };
     getapi(url, headers, onResponse, onCatch);
   };
+
+  const handle_logout = () => {
+    dispatch(logout())
+    navigation.replace("Login")
+  }
 
   useEffect(() => {
     students_fetch();
@@ -100,14 +108,14 @@ const HomeScreen = ({navigation}) => {
     <View style={styles.screen}>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
       <View style={styles.appBar}>
-        <View>
+        <TouchableOpacity onPress={() => handle_logout()}>
           <Image
             style={styles.avatarImg}
             source={{
               uri: 'https://cdn-icons-png.flaticon.com/512/5310/5310895.png',
             }}
           />
-        </View>
+        </TouchableOpacity>
         <Text style={styles.appBarTitle}>Smart Teacher</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Notification')}>
           <View style={styles.notificationIcon}>

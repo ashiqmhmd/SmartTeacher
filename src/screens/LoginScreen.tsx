@@ -14,11 +14,45 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
+import { useDispatch } from 'react-redux';
+import { postApi } from '../utils/api';
+import { login } from '../utils/authslice';
 
-const TrendyLoginScreen = ({navigation}) => {
+const LoginScreen = ({navigation}) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const dispatch = useDispatch()
+
+  const Teacher_Login = () => {
+    const url = 'login/teacher';
+    const headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    };
+     const body = {
+      userName:username,
+      password:password
+     }
+    const onResponse = res => {
+        const userData = {
+            token: res.token,
+          };
+          console.log(userData)
+          dispatch(login(userData)); // Dispatch the login action
+          navigation.replace('Tabs');
+    };
+
+    const onCatch = res => {
+      console.log('Error');
+      console.log(res);
+    };
+
+    postApi(url,headers,body,onResponse,onCatch)
+
+  }
+
+
   return (
     <LinearGradient
       colors={['#1D49A7', '#1D49A7', '#FFF']}
@@ -87,7 +121,7 @@ const TrendyLoginScreen = ({navigation}) => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => navigation.navigate('Tabs')}
+              onPress={() =>  Teacher_Login()}
               style={styles.loginButton}>
               <Text style={styles.loginButtonText}>Login</Text>
             </TouchableOpacity>
@@ -211,4 +245,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TrendyLoginScreen;
+export default LoginScreen;
