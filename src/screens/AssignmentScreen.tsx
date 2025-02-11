@@ -9,19 +9,14 @@ import {
   StatusBar,
   FlatList,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
-import Svg, {
-  Path,
-  Defs,
-  LinearGradient as SvgGradient,
-  Stop,
-} from 'react-native-svg';
+import { getapi } from '../utils/api';
 
 const AssignmentsScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
-
+  const [assignment,setAssignment] = useState(null);
   // Sample data for assignments
   const assignments = [
     {
@@ -52,6 +47,33 @@ const AssignmentsScreen = ({navigation}) => {
       totalStudents: 31,
     },
   ];
+
+  
+    const Assignment_fetch = () => {
+      const url = 'assignments/batch/:123e4567-e89b-12d3-a456-426614174000';
+      const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      };
+      const onResponse = res => {
+        console.log('hiii');
+        console.log(res);
+        setAssignment(res);
+      };
+  
+      const onCatch = res => {
+        console.log('Error');
+        console.log(res);
+      };
+      getapi(url, headers, onResponse, onCatch);
+    };
+  
+    useEffect(() => {
+      Assignment_fetch();
+      console.log(assignment);
+      console.log('mo');
+    }, [1]);
+  
 
   const AssignmentCard = ({item}) => (
     <TouchableOpacity
@@ -126,7 +148,7 @@ const AssignmentsScreen = ({navigation}) => {
 
         <View style={styles.assignmentsList}>
           <FlatList
-            data={assignments}
+            data={assignment}
             renderItem={({item}) => <AssignmentCard item={item} />}
             keyExtractor={item => item.id.toString()}
             scrollEnabled={false}
