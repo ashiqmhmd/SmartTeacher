@@ -22,6 +22,11 @@ const FeesScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('Current Month');
   const [paymentFilter, setPaymentFilter] = useState('All');
+  const [selectedBatch, setSelectedBatch] = useState({
+    subject: 'Algebra',
+    name: 'Math 1012',
+    id: '212e46a9-9a1d-4906-a27e-5ef03e989955',
+  });
 
   const summaryData = {
     totalExpected: 50000,
@@ -101,9 +106,49 @@ const FeesScreen = ({navigation}) => {
 
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Fee Tracker</Text>
+
+        <TouchableOpacity
+          onPress={() => refRBSheet.current.open()}
+          style={{
+            // backgroundColor: '#f8f9fa',
+            borderRadius: 12,
+            paddingHorizontal: 10,
+            paddingVertical: 5,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderWidth: 1,
+            borderColor: '#e0e0e0',
+          }}>
+          <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
+            {selectedBatch.name}
+          </Text>
+
+          <MaterialIcons
+            name="keyboard-arrow-down"
+            size={20}
+            color="#001d3d"
+            style={{paddingLeft: 5}}
+          />
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.container}>
+        {/* <View style={styles.batchSelector}>
+          <TouchableOpacity
+            onPress={() => refRBSheet.current.open()}
+            style={styles.batchButton}>
+            <Text style={styles.batchName}>{selectedBatch.name}</Text>
+            <Text style={styles.batchSubject}>{selectedBatch.subject}</Text>
+            <MaterialIcons
+              name="keyboard-arrow-down"
+              size={24}
+              color="#001d3d"
+              style={styles.batchIcon}
+            />
+          </TouchableOpacity>
+        </View> */}
+
         <View style={styles.feesummeryCard}>
           <LinearGradient
             colors={['rgb(255,255,255)', 'rgb(229,235,252)']}
@@ -216,25 +261,57 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#0F1F4B',
+    color: '#001d3d',
   },
   container: {
     flex: 1,
+  },
+  batchSelector: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+  batchButton: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 16,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  batchName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#001d3d',
+  },
+  batchSubject: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 10,
+    flex: 1,
+  },
+  batchIcon: {
+    marginLeft: 10,
   },
   feesummeryCard: {
     width: '90%',
     height: 130,
     backgroundColor: 'rgb(255,255,255)',
     borderRadius: 10,
-    shadowColor: 'rgb(105, 144, 252)',
+    shadowColor: '#1D49A7',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 8,
+    elevation: 15,
     marginBottom: 20,
     marginHorizontal: '5%',
     marginTop: 20,
@@ -269,7 +346,7 @@ const styles = StyleSheet.create({
   summaryAmount: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#0F1F4B',
+    color: '#001d3d',
   },
   divider: {
     width: 1,
@@ -306,7 +383,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   selectedChip: {
-    backgroundColor: '#0F1F4B',
+    backgroundColor: '#001d3d',
   },
   filterChipText: {
     color: '#666',
@@ -323,7 +400,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 15,
     marginBottom: 15,
-    shadowColor: 'rgb(19, 79, 243)',
+    shadowColor: '#1D49A7',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -338,7 +415,7 @@ const styles = StyleSheet.create({
   studentName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#0F1F4B',
+    color: '#001d3d',
   },
   status: {
     fontSize: 14,
@@ -352,7 +429,7 @@ const styles = StyleSheet.create({
   amount: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#0F1F4B',
+    color: '#001d3d',
   },
   date: {
     fontSize: 14,
