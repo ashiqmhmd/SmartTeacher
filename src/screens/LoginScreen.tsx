@@ -11,47 +11,121 @@ import {
   ScrollView,
   Image,
   StatusBar,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
-import { useDispatch } from 'react-redux';
-import { postApi } from '../utils/api';
-import { login } from '../utils/authslice';
+import {useDispatch} from 'react-redux';
+import {postApi} from '../utils/api';
+import {login} from '../utils/authslice';
 
 const LoginScreen = ({navigation}) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const dispatch = useDispatch()
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({
+    username: '',
+    password: '',
+    general: '',
+  });
+  const dispatch = useDispatch();
 
-  const Teacher_Login = () => {
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = {
+      username: '',
+      password: '',
+      general: '',
+    };
+
+    // Username validation
+    if (!username.trim()) {
+      newErrors.username = 'Username is required';
+      isValid = false;
+    } else if (username.length < 3) {
+      newErrors.username = 'Username must be at least 3 characters';
+      isValid = false;
+    }
+
+    // Password validation
+    if (!password) {
+      newErrors.password = 'Password is required';
+      isValid = false;
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const Teacher_Login = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+    setErrors({...errors, general: ''});
+
     const url = 'login/teacher';
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     };
-     const body = {
-      userName:username,
-      password:password
-     }
+    const body = {
+      userName: username.trim(),
+      password: password,
+    };
+
     const onResponse = res => {
+      setLoading(false);
+      if (res.token) {
         const userData = {
-            token: res.token,
-          };
-          console.log(userData)
-          dispatch(login(userData)); // Dispatch the login action
-          navigation.replace('Tabs');
+          token: res.token,
+        };
+        dispatch(login(userData));
+        navigation.replace('Tabs');
+      } else {
+        setErrors({...errors, general: 'Invalid response from server'});
+      }
     };
 
-    const onCatch = res => {
-      console.log('Error');
-      console.log(res);
+    const onCatch = error => {
+      setLoading(false);
+      console.log('Error:', error);
+      if (error.response?.status === 401) {
+        setErrors({...errors, general: 'Invalid username or password'});
+      } else if (error.response?.status === 429) {
+        setErrors({
+          ...errors,
+          general: 'Too many attempts. Please try again later',
+        });
+      } else {
+        setErrors({
+          ...errors,
+          general: 'An error occurred. Please try again later',
+        });
+      }
     };
 
-    postApi(url,headers,body,onResponse,onCatch)
+    try {
+      await postApi(url, headers, body, onResponse, onCatch);
+    } catch (error) {
+      setLoading(false);
+      setErrors({
+        ...errors,
+        general: 'Network error. Please check your connection',
+      });
+    }
+  };
 
-  }
-
+  const renderError = error => {
+    if (!error) return null;
+    return <Text style={styles.errorText}>{error}</Text>;
+  };
 
   return (
     <LinearGradient
@@ -74,7 +148,13 @@ const LoginScreen = ({navigation}) => {
               Login to your account to Continue
             </Text>
 
-            <View style={styles.inputContainer}>
+            {renderError(errors.general)}
+
+            <View
+              style={[
+                styles.inputContainer,
+                errors.username && styles.inputError,
+              ]}>
               <Feather
                 name="user"
                 size={20}
@@ -86,11 +166,21 @@ const LoginScreen = ({navigation}) => {
                 placeholder="Username"
                 placeholderTextColor="#888"
                 value={username}
-                onChangeText={setUsername}
+                onChangeText={text => {
+                  setUsername(text);
+                  setErrors({...errors, username: '', general: ''});
+                }}
+                autoCapitalize="none"
+                editable={!loading}
               />
             </View>
+            {renderError(errors.username)}
 
-            <View style={styles.inputContainer}>
+            <View
+              style={[
+                styles.inputContainer,
+                errors.password && styles.inputError,
+              ]}>
               <Feather
                 name="lock"
                 size={20}
@@ -103,11 +193,16 @@ const LoginScreen = ({navigation}) => {
                 placeholderTextColor="#888"
                 secureTextEntry={!showPassword}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={text => {
+                  setPassword(text);
+                  setErrors({...errors, password: '', general: ''});
+                }}
+                editable={!loading}
               />
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
-                style={styles.showPasswordIcon}>
+                style={styles.showPasswordIcon}
+                disabled={loading}>
                 <Feather
                   name={showPassword ? 'eye' : 'eye-off'}
                   size={20}
@@ -115,20 +210,34 @@ const LoginScreen = ({navigation}) => {
                 />
               </TouchableOpacity>
             </View>
+            {renderError(errors.password)}
 
-            <TouchableOpacity style={styles.forgotPassword}>
+            <TouchableOpacity
+              style={styles.forgotPassword}
+              disabled={loading}
+              onPress={() => navigation.navigate('ForgotPassword')}>
               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() =>  Teacher_Login()}
-              style={styles.loginButton}>
-              <Text style={styles.loginButtonText}>Login</Text>
+              onPress={Teacher_Login}
+              style={[
+                styles.loginButton,
+                loading && styles.loginButtonDisabled,
+              ]}
+              disabled={loading}>
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text style={styles.loginButtonText}>Login</Text>
+              )}
             </TouchableOpacity>
 
             <View style={styles.signupContainer}>
               <Text style={styles.signupText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('SignUp')}
+                disabled={loading}>
                 <Text style={styles.signupLinkText}>Sign Up</Text>
               </TouchableOpacity>
             </View>
@@ -188,17 +297,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#001d3d',
     textAlign: 'center',
-    marginBottom: 50,
+    marginBottom: 30,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f8f9fa',
     borderRadius: 10,
-    marginBottom: 20,
+    marginBottom: 8,
     paddingHorizontal: 15,
     borderWidth: 1,
     borderColor: '#ddd',
+  },
+  inputError: {
+    borderColor: '#dc3545',
+    borderWidth: 1,
   },
   inputIcon: {
     marginRight: 10,
@@ -210,6 +323,12 @@ const styles = StyleSheet.create({
   },
   showPasswordIcon: {
     padding: 10,
+  },
+  errorText: {
+    color: '#dc3545',
+    fontSize: 12,
+    marginBottom: 10,
+    marginLeft: 5,
   },
   forgotPassword: {
     alignSelf: 'flex-end',
@@ -225,6 +344,9 @@ const styles = StyleSheet.create({
     padding: 15,
     alignItems: 'center',
     marginBottom: 20,
+  },
+  loginButtonDisabled: {
+    backgroundColor: '#cccccc',
   },
   loginButtonText: {
     color: 'white',
