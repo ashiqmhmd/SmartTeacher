@@ -19,8 +19,8 @@ import BottomNavigation from '../components/BottomNavBar';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import {getapi} from '../utils/api';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
-import { useDispatch } from 'react-redux';
-import { logout } from '../utils/authslice';
+import {useDispatch} from 'react-redux';
+import {logout} from '../utils/authslice';
 
 const HomeScreen = ({navigation}) => {
   const refRBSheet = useRef();
@@ -38,7 +38,7 @@ const HomeScreen = ({navigation}) => {
   });
   const [students, setStudents] = useState([]);
   // var codesPostal: CodePostal[] = []
-const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
   const students_fetch = () => {
     const url = 'students/batch/212e46a9-9a1d-4906-a27e-5ef03e989955';
@@ -60,9 +60,9 @@ const dispatch = useDispatch();
   };
 
   const handle_logout = () => {
-    dispatch(logout())
-    navigation.replace("Login")
-  }
+    dispatch(logout());
+    navigation.replace('Login');
+  };
 
   useEffect(() => {
     students_fetch();
