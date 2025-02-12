@@ -9,7 +9,7 @@ import {
   StatusBar,
   FlatList,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
@@ -19,10 +19,14 @@ import Svg, {
   LinearGradient as SvgGradient,
   Stop,
 } from 'react-native-svg';
-import {notes} from '../dumyDb';
+// import {notes} from '../dumyDb';
+import { getapi } from '../utils/api';
+import dateconvert from '../components/moment';
 
 const NotesScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [notes, setNotes] = useState([]);
+
 
   const getIconForType = type => {
     switch (type) {
@@ -43,6 +47,36 @@ const NotesScreen = ({navigation}) => {
     }
   };
 
+  
+
+const Notes_fetch = () => {
+    const url = '/notes/batch/123e4567-e89b-12d3-a456-426614174000';
+    const headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    };
+    const onResponse = (res) => {
+      console.log('hiii');
+      console.log(res);
+      setNotes(res);
+    };
+
+    const onCatch = res => {
+      console.log('Error');
+      console.log(res);
+    };
+    getapi(url, headers, onResponse, onCatch);
+  };
+
+  
+    useEffect(() => {
+      Notes_fetch();
+      console.log(notes);
+      console.log('notes fetch');
+    }, [1]);
+  
+
+
   const NoteCard = ({item}) => (
     <TouchableOpacity
       onPress={() => navigation.navigate('NoteDetails', {note: item})}
@@ -56,7 +90,7 @@ const NotesScreen = ({navigation}) => {
           <Text style={styles.noteContent} numberOfLines={2}>
             {item.content}
           </Text>
-          <Text style={styles.noteDate}>{item.publishDate.split('T')[0]}</Text>
+          <Text style={styles.noteDate}>{dateconvert(item.publishDate)}</Text>
         </View>
       </View>
     </TouchableOpacity>
