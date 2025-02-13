@@ -13,6 +13,7 @@ import FeesScreen from '../screens/FeesScreen';
 import AssignmentsScreen from '../screens/AssignmentScreen';
 import LoginScreen from '../screens/LoginScreen';
 import {useSelector} from 'react-redux';
+import UpdateProfileScreen from '../screens/UpdateProfileScreen';
 
 type Props = {};
 
@@ -34,6 +35,7 @@ const Rootnavigator = () => {
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="SignUp" component={SignUpScreen} />
+      <Stack.Screen name="Update_Profile" component={UpdateProfileScreen} />
       <Stack.Screen name="Fees" component={FeesScreen} />
       <Stack.Screen name="Assignment" component={AssignmentsScreen} />
       <Stack.Screen name="Assignment_Edit" component={EditAssignment} />
