@@ -11,43 +11,12 @@ import {
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import LinearGradient from 'react-native-linear-gradient';
 import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
 
 const AssignmentsScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [assignment, setAssignment] = useState([]);
-  // Sample data for assignments
-  const assignments = [
-    {
-      id: 1,
-      title: 'Mathematics - Quadratic Equations',
-      publishDate: '2025-02-01',
-      dueDate: '2025-02-15',
-      status: 'Active',
-      submissionCount: 15,
-      totalStudents: 31,
-    },
-    {
-      id: 2,
-      title: "Physics - Newton's Laws",
-      publishDate: '2025-02-03',
-      dueDate: '2025-02-17',
-      status: 'Active',
-      submissionCount: 8,
-      totalStudents: 31,
-    },
-    {
-      id: 3,
-      title: 'Chemistry - Periodic Table',
-      publishDate: '2025-01-25',
-      dueDate: '2025-02-08',
-      status: 'Completed',
-      submissionCount: 28,
-      totalStudents: 31,
-    },
-  ];
 
   const Assignment_fetch = () => {
     const url = 'assignments/batch/550e8400-e29b-41d4-a716-446655440000';
@@ -83,36 +52,34 @@ const AssignmentsScreen = ({navigation}) => {
         <View
           style={[
             styles.statusBadge,
-            {backgroundColor: item.status === 'Active' ? '#E3F2FD' : '#E8F5E9'},
+            {backgroundColor: item.status === 'Active' ? '#E8F5E9' : '#ffb5a7'},
           ]}>
           <Text
             style={[
               styles.statusText,
-              {color: item.status === 'Active' ? '#1976D2' : '#43A047'},
+              {
+                color:
+                  Date() < dateconvert(item.submissionDate)
+                    ? '#43A047'
+                    : '#e53935',
+              },
             ]}>
-            {item.status}
+            {Date() < dateconvert(item.submissionDate) ? 'Active' : 'Expired'}
           </Text>
         </View>
       </View>
       <View style={styles.assignmentDetails}>
         <View style={styles.detailItem}>
           <MaterialIcons name="event" size={16} color="#666" />
-          <Text style={styles.detailText}>Due: {dateconvert(item.submissionDate)}</Text>
-        </View>
-        <View style={styles.detailItem}>
-          <MaterialIcons name="people" size={16} color="#666" />
-          <Text style={styles.detailText}>
-            {item.submissionCount}/{item.totalStudents} Submitted
+          <Text style={styles.submissionDate}>
+            Due: {dateconvert(item.submissionDate)}
           </Text>
         </View>
-      </View>
-      <View style={styles.progressBar}>
-        <View
-          style={[
-            styles.progressFill,
-            {width: `${(item.submissionCount / item.totalStudents) * 100}%`},
-          ]}
-        />
+        <View style={styles.detailItem}>
+          <Text style={styles.publishDate}>
+            {dateconvert(item.publishdate)}
+          </Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -143,14 +110,13 @@ const AssignmentsScreen = ({navigation}) => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.assignmentsList}>
-          <FlatList
-            data={assignment}
-            renderItem={({item}) => <AssignmentCard item={item} />}
-            keyExtractor={item => item.id.toString()}
-            scrollEnabled={false}
-          />
-        </View>
+        <FlatList
+          data={assignment}
+          renderItem={({item}) => <AssignmentCard item={item} />}
+          keyExtractor={item => item.id.toString()}
+          scrollEnabled={false}
+          style={styles.assignmentsList}
+        />
       </ScrollView>
     </View>
   );
@@ -165,7 +131,7 @@ const styles = StyleSheet.create({
     // paddingTop: Platform.OS === 'ios' ? 40 : StatusBar.currentHeight + 10,
     paddingTop: 10,
     paddingBottom: 15,
-    paddingHorizontal: 20,
+    paddingHorizontal: '5%',
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
@@ -217,24 +183,26 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   assignmentsList: {
-    paddingHorizontal: 20,
+    paddingVertical: 20,
+    paddingHorizontal: '5%',
   },
   assignmentCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 15,
+    paddingHorizontal: 15,
+    paddingVertical: 20,
     marginBottom: 15,
     shadowColor: '#1D49A7',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 8,
+    elevation: 15,
   },
   assignmentHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 15,
   },
   assignmentTitle: {
     fontSize: 16,
@@ -249,33 +217,26 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   statusText: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '500',
   },
   assignmentDetails: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
   },
   detailItem: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
   },
-  detailText: {
+  submissionDate: {
     marginLeft: 5,
     color: '#666',
-    fontSize: 14,
+    fontSize: 12,
   },
-  progressBar: {
-    height: 4,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#4CAF50',
-    borderRadius: 2,
+  publishDate: {
+    marginLeft: 5,
+    color: '#666',
+    fontSize: 10,
   },
 });
 
