@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
-import { postApi } from '../utils/api';
+import {postApi} from '../utils/api';
 
 const TrendySignupScreen = ({navigation}) => {
   const [firstName, setFirstName] = useState('');
@@ -25,31 +25,30 @@ const TrendySignupScreen = ({navigation}) => {
   const [showPassword, setShowPassword] = useState(false);
   const [gender, setGender] = useState(null);
 
-   const Teacher_signup = () => {
-      const url = 'login/teacher';
-      const headers = {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      };
-       const body = {
-        firstName:firstName,
-        userName:username,
-        email:email,
-        password: password
-       }
-      const onResponse = res => {
-        console.log("created succesfully")
-         navigation.replace("Login")
-      };
-  
-      const onCatch = res => {
-        console.log('Error');
-        console.log(res);
-      };
-  
-      postApi(url,headers,body,onResponse,onCatch)
-  
-    }
+  const Teacher_signup = () => {
+    const url = 'login/teacher';
+    const headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    };
+    const body = {
+      firstName: firstName,
+      userName: username,
+      email: email,
+      password: password,
+    };
+    const onResponse = res => {
+      console.log('created succesfully');
+      // navigation.replace('Login');
+    };
+
+    const onCatch = res => {
+      console.log('Error');
+      console.log(res);
+    };
+
+    postApi(url, headers, body, onResponse, onCatch);
+  };
 
   return (
     <LinearGradient
@@ -72,19 +71,21 @@ const TrendySignupScreen = ({navigation}) => {
 
             <View style={styles.inputContainer}>
               <Feather
-                name="user"
+                name="mail"
                 size={20}
                 color="#001d3d"
                 style={styles.inputIcon}
               />
               <TextInput
                 style={styles.input}
-                placeholder="First Name"
+                placeholder="Email"
                 placeholderTextColor="#888"
-                value={firstName}
-                onChangeText={setFirstName}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
               />
             </View>
+
             <View style={styles.inputContainer}>
               <Feather
                 name="user"
@@ -98,23 +99,6 @@ const TrendySignupScreen = ({navigation}) => {
                 placeholderTextColor="#888"
                 value={username}
                 onChangeText={setUsername}
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Feather
-                name="mail"
-                size={20}
-                color="#001d3d"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Email"
-                placeholderTextColor="#888"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
               />
             </View>
 
@@ -224,7 +208,10 @@ const TrendySignupScreen = ({navigation}) => {
               </View>
             </View> */}
 
-            <TouchableOpacity onPress={() => Teacher_signup()} style={styles.signupButton}>
+            <TouchableOpacity
+              // onPress={() => Teacher_signup()}
+              onPress={() => navigation.navigate('Update_Profile')}
+              style={styles.signupButton}>
               <Text style={styles.signupButtonText}>Sign Up</Text>
             </TouchableOpacity>
 
@@ -291,7 +278,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#001d3d',
     textAlign: 'center',
-    marginBottom: 50,
+    marginBottom: 40,
   },
   nameContainer: {
     flexDirection: 'row',
