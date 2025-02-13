@@ -13,10 +13,11 @@ import React, {useEffect, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import {getapi} from '../utils/api';
+import dateconvert from '../components/moment';
 
 const AssignmentsScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [assignment, setAssignment] = useState(null);
+  const [assignment, setAssignment] = useState([]);
   // Sample data for assignments
   const assignments = [
     {
@@ -49,13 +50,13 @@ const AssignmentsScreen = ({navigation}) => {
   ];
 
   const Assignment_fetch = () => {
-    const url = 'assignments/batch/:123e4567-e89b-12d3-a456-426614174000';
+    const url = 'assignments/batch/550e8400-e29b-41d4-a716-446655440000';
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     };
     const onResponse = res => {
-      console.log('hiii');
+      console.log('assignment response');
       console.log(res);
       setAssignment(res);
     };
@@ -70,7 +71,7 @@ const AssignmentsScreen = ({navigation}) => {
   useEffect(() => {
     Assignment_fetch();
     console.log(assignment);
-    console.log('mo');
+    console.log('assignment fetch');
   }, [1]);
 
   const AssignmentCard = ({item}) => (
@@ -96,7 +97,7 @@ const AssignmentsScreen = ({navigation}) => {
       <View style={styles.assignmentDetails}>
         <View style={styles.detailItem}>
           <MaterialIcons name="event" size={16} color="#666" />
-          <Text style={styles.detailText}>Due: {item.dueDate}</Text>
+          <Text style={styles.detailText}>Due: {dateconvert(item.submissionDate)}</Text>
         </View>
         <View style={styles.detailItem}>
           <MaterialIcons name="people" size={16} color="#666" />

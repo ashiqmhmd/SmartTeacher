@@ -7,8 +7,9 @@ import {
   TouchableOpacity,
   Platform,
   StatusBar,
+  Alert,
 } from 'react-native';
-import React, {useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, {
@@ -18,16 +19,22 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
+import { getapi, student_details } from '../utils/api';
+import dateconvert from '../components/moment';
 
-const FeesScreen = ({navigation}) => {
+const FeesScreen = ({ navigation }) => {
+  let sid = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('Current Month');
   const [paymentFilter, setPaymentFilter] = useState('All');
+  const [decc, setDec] = useState({})
   const [selectedBatch, setSelectedBatch] = useState({
     subject: 'Algebra',
     name: 'Math 1012',
     id: '212e46a9-9a1d-4906-a27e-5ef03e989955',
   });
+
+  const [fees, setFees] = useState([]);
 
   const summaryData = {
     totalExpected: 50000,
@@ -52,6 +59,32 @@ const FeesScreen = ({navigation}) => {
     },
   ];
 
+  const Fees_fetch = () => {
+    const url = 'fee-records/batches/550e8400-e29b-41d4-a716-446655440000';
+    const headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    };
+    const onResponse = res => {
+      console.log('Fees response');
+      console.log(res);
+      setFees(res);
+    };
+
+    const onCatch = res => {
+      console.log('Error');
+      console.log(res);
+    };
+    getapi(url, headers, onResponse, onCatch);
+  };
+
+  useEffect(() => {
+    Fees_fetch();
+    let dec = (student_details(sid));
+    setDec(dec)
+  }, [1]);
+
+
   const monthOptions = ['Current Month', 'January', 'February', 'March'];
   const filterOptions = ['All', 'Paid', 'Unpaid'];
 
@@ -62,16 +95,20 @@ const FeesScreen = ({navigation}) => {
     refRBSheet.current.close();
   };
 
-  const FeeCard = ({record}) => (
+  const FeeCard = ({ record }) => (
     <TouchableOpacity
-      onPress={() => navigation.navigate('FeeDetails', {feeRecord: record})}
+      onPress={() => navigation.navigate('FeeDetails', { feeRecord: record })}
       style={styles.feeCard}>
       <View style={styles.feeCardHeader}>
-        <Text style={styles.studentName}>{record.studentName}</Text>
+        {decc.map(record => (
+          <Text style={styles.studentName}>{record.firstName + " " + record.lastName}</Text>
+        ))
+
+        }
         <Text
           style={[
             styles.status,
-            {color: record.status === 'Paid' ? '#43A047' : '#E53935'},
+            { color: record.status === 'Paid' ? '#43A047' : '#E53935' },
           ]}>
           {record.status}
         </Text>
@@ -80,7 +117,7 @@ const FeesScreen = ({navigation}) => {
         <Text style={styles.amount}>₹{record.amount.toLocaleString()}</Text>
         <Text style={styles.date}>
           {record.status === 'Paid' ? 'Paid on: ' : 'Due by: '}
-          {record.paymentDate || record.dueDate}
+          {dateconvert(record.paymentDate || record.dueDate)}
         </Text>
       </View>
     </TouchableOpacity>
@@ -128,7 +165,7 @@ const FeesScreen = ({navigation}) => {
             borderWidth: 1,
             borderColor: '#e0e0e0',
           }}>
-          <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
+          <Text style={{ color: '#001d3d', fontWeight: 'bold', fontSize: 16 }}>
             {selectedBatch.name}
           </Text>
 
@@ -136,7 +173,7 @@ const FeesScreen = ({navigation}) => {
             name="keyboard-arrow-down"
             size={20}
             color="#001d3d"
-            style={{paddingLeft: 5}}
+            style={{ paddingLeft: 5 }}
           />
         </TouchableOpacity>
       </View>
@@ -160,8 +197,8 @@ const FeesScreen = ({navigation}) => {
         <View style={styles.feesummeryCard}>
           <LinearGradient
             colors={['rgb(255,255,255)', 'rgb(229,235,252)']}
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 1}}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={styles.card}>
             <BackgroundGraph />
             <View style={styles.summaryContent}>
@@ -172,14 +209,14 @@ const FeesScreen = ({navigation}) => {
               <View style={styles.divider} />
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Received</Text>
-                <Text style={[styles.summaryAmount, {color: '#43A047'}]}>
+                <Text style={[styles.summaryAmount, { color: '#43A047' }]}>
                   ₹35,000
                 </Text>
               </View>
               <View style={styles.divider} />
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Balance</Text>
-                <Text style={[styles.summaryAmount, {color: '#E53935'}]}>
+                <Text style={[styles.summaryAmount, { color: '#E53935' }]}>
                   ₹15,000
                 </Text>
               </View>
@@ -247,7 +284,7 @@ const FeesScreen = ({navigation}) => {
         </View>
 
         <View style={styles.feeList}>
-          {feeRecords.map(record => (
+          {fees.map(record => (
             <FeeCard key={record.id} record={record} />
           ))}
         </View>
@@ -321,7 +358,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(255,255,255)',
     borderRadius: 10,
     shadowColor: '#1D49A7',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 15,
@@ -414,7 +451,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 15,
     shadowColor: '#1D49A7',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
