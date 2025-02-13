@@ -1,5 +1,3 @@
-
-
 // import React, { useRef, useState } from 'react';
 // import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Animated } from 'react-native';
 // import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -8,7 +6,7 @@
 // const AnimatedInput = ({ label, icon, ...props }) => {
 //     const [isFocused, setIsFocused] = useState(false);
 //     const labelAnim = useRef(new Animated.Value(props.value ? 1 : 0)).current;
-  
+
 //     const animateLabel = (toValue) => {
 //       Animated.timing(labelAnim, {
 //         toValue,
@@ -16,19 +14,18 @@
 //         useNativeDriver: false,
 //       }).start();
 //     };
-  
+
 //     const handleFocus = () => {
 //       setIsFocused(true);
 //       animateLabel(1);
 //     };
-  
+
 //     const handleBlur = () => {
 //       if (!props.value) {
 //         setIsFocused(false);
 //         animateLabel(0);
 //       }
 //     };
-  
 
 //     const labelStyle = {
 //         position: 'absolute',
@@ -48,7 +45,7 @@
 //       };
 
 //   return (
-    
+
 //     <View style={styles.inputContainer}>
 //       <Animated.Text style={labelStyle}>{label}</Animated.Text>
 //       {icon && <Ionicons name={icon} size={20} color="#666" style={styles.inputIcon} />}
@@ -103,10 +100,10 @@
 //                 ]}
 //                 onPress={() => setActiveStep(index)}
 //               >
-//                 <Ionicons 
-//                   name={step.icon} 
-//                   size={24} 
-//                   color={activeStep === index ? '#fff' : '#666'} 
+//                 <Ionicons
+//                   name={step.icon}
+//                   size={24}
+//                   color={activeStep === index ? '#fff' : '#666'}
 //                 />
 //               </TouchableOpacity>
 //               <Text style={styles.stepText}>{step.title}</Text>
@@ -170,7 +167,7 @@
 //           {activeStep === 1 && (
 //             <>
 //               <AnimatedInput
-                
+
 //                 label="Contact Number"
 //                 icon="call"
 //                 keyboardType="phone-pad"
@@ -227,15 +224,15 @@
 
 //           <View style={styles.buttonContainer}>
 //             {activeStep > 0 && (
-//               <TouchableOpacity 
+//               <TouchableOpacity
 //                 style={styles.secondaryButton}
 //                 onPress={() => setActiveStep(current => current - 1)}
 //               >
 //                 <Text style={styles.secondaryButtonText}>Previous</Text>
 //               </TouchableOpacity>
 //             )}
-            
-//             <TouchableOpacity 
+
+//             <TouchableOpacity
 //               style={styles.primaryButton}
 //               onPress={() => {
 //                 if (activeStep < 2) {
@@ -420,9 +417,17 @@
 
 // export default Batch_creation;
 
-
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Animated, Image } from 'react-native';
+import React, {useState, useRef, useEffect} from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Animated,
+  Image,
+} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -434,43 +439,38 @@ const BatchCreationForm = () => {
     description: '',
     feeAmount: '',
     freequency: 'Monthly',
-    paymentDate: ''
+    paymentDate: '',
   });
 
   const scrollViewRef = useRef();
   const [activeSection, setActiveSection] = useState('basic');
-  const [date,setDate] = useState("")
+  const [date, setDate] = useState('');
 
-
-  useEffect(() =>{
+  useEffect(() => {
     var date = new Date().getDate(); //Current Date
     var month = new Date().getMonth() + 1; //Current Month
     var year = new Date().getFullYear(); //Current Year
-    setDate(
-      date + '/' + month + '/' + year 
-    );
-  },[1])
+    setDate(date + '/' + month + '/' + year);
+  }, [1]);
 
-
-
-  const AnimatedInput = ({ label, icon, ...props }) => {
+  const AnimatedInput = ({label, icon, ...props}) => {
     const [isFocused, setIsFocused] = useState(false);
-   
+
     const labelAnim = useRef(new Animated.Value(props.value ? 1 : 0)).current;
-  
-    const animateLabel = (toValue) => {
+
+    const animateLabel = toValue => {
       Animated.timing(labelAnim, {
         toValue,
         duration: 200,
         useNativeDriver: false,
       }).start();
     };
-  
+
     const handleFocus = () => {
       setIsFocused(true);
       animateLabel(1);
     };
-  
+
     const handleBlur = () => {
       if (!props.value) {
         setIsFocused(false);
@@ -478,58 +478,62 @@ const BatchCreationForm = () => {
       }
     };
 
-  
-  
-
     const labelStyle = {
-        position: 'absolute',
-        left: icon ? 45 : 15,
-        backgroundColor: 'white',
-        paddingHorizontal: 4,
-        top: labelAnim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [12, -10],
-        }),
-        fontSize: labelAnim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [16, 12],
-        }),
-        color: isFocused ? '#4158D0' : '#666',
-        zIndex: 1,
-      };
+      position: 'absolute',
+      left: icon ? 45 : 15,
+      backgroundColor: 'white',
+      paddingHorizontal: 4,
+      top: labelAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [12, -10],
+      }),
+      fontSize: labelAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [16, 12],
+      }),
+      color: isFocused ? '#4158D0' : '#666',
+      zIndex: 1,
+    };
 
-  return (
-    
-    <View style={styles.inputContainer}>
-      <Animated.Text style={labelStyle}>{label}</Animated.Text>
-      {icon && <Ionicons name={icon} size={20} color="#666" style={styles.inputIcon} />}
-      <TextInput
-        {...props}
-        style={[styles.input, icon && styles.inputWithIcon]}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        placeholder=""
-      />
-    </View>
-  );
-};
+    return (
+      <View style={styles.inputContainer}>
+        <Animated.Text style={labelStyle}>{label}</Animated.Text>
+        {icon && (
+          <Ionicons
+            name={icon}
+            size={20}
+            color="#666"
+            style={styles.inputIcon}
+          />
+        )}
+        <TextInput
+          {...props}
+          style={[styles.input, icon && styles.inputWithIcon]}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          placeholder=""
+        />
+      </View>
+    );
+  };
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
       <LinearGradient
         colors={['rgba(65, 88, 208, 0.8)', 'rgba(65, 88, 208, 0.4)']}
-        style={styles.headerGradient}
-      >
+        style={styles.headerGradient}>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Create New Batch</Text>
           <View style={styles.statsContainer}>
-             <View style={styles.profileSection}>
-                            <TouchableOpacity style={styles.avatarContainer}>
-                              
-                                <Image style={{width:100,height:100}} resizeMode='cover' source={require("../resources/batch.png")}/>
-                             
-                            </TouchableOpacity>
-                          </View>
+            <View style={styles.profileSection}>
+              <TouchableOpacity style={styles.avatarContainer}>
+                <Image
+                  style={{width: 100, height: 100}}
+                  resizeMode="cover"
+                  source={require('../resources/batch.png')}
+                />
+              </TouchableOpacity>
+            </View>
             {/* <View style={styles.statItem}>
               <Text style={styles.statNumber}>24</Text>
               <Text style={styles.statLabel}>Active Batches</Text>
@@ -547,27 +551,50 @@ const BatchCreationForm = () => {
   return (
     <View style={styles.container}>
       {renderHeader()}
-      
-      <ScrollView 
+
+      <ScrollView
         ref={scrollViewRef}
         style={styles.formContainer}
-        showsVerticalScrollIndicator={false}
-      >
+        showsVerticalScrollIndicator={false}>
         <View style={styles.formContent}>
           <View style={styles.sectionTabs}>
-            <TouchableOpacity 
-              style={[styles.sectionTab, activeSection === 'basic' && styles.activeTab]}
-              onPress={() => setActiveSection('basic')}
-            >
-              <Ionicons name="document-text" size={20} color={activeSection === 'basic' ? '#4158D0' : '#666'} />
-              <Text style={[styles.tabText, activeSection === 'basic' && styles.activeTabText]}>Basic Info</Text>
+            <TouchableOpacity
+              style={[
+                styles.sectionTab,
+                activeSection === 'basic' && styles.activeTab,
+              ]}
+              onPress={() => setActiveSection('basic')}>
+              <Ionicons
+                name="document-text"
+                size={20}
+                color={activeSection === 'basic' ? '#4158D0' : '#666'}
+              />
+              <Text
+                style={[
+                  styles.tabText,
+                  activeSection === 'basic' && styles.activeTabText,
+                ]}>
+                Basic Info
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.sectionTab, activeSection === 'payment' && styles.activeTab]}
-              onPress={() => setActiveSection('payment')}
-            >
-              <Ionicons name="card" size={20} color={activeSection === 'payment' ? '#4158D0' : '#666'} />
-              <Text style={[styles.tabText, activeSection === 'payment' && styles.activeTabText]}>Payment</Text>
+            <TouchableOpacity
+              style={[
+                styles.sectionTab,
+                activeSection === 'payment' && styles.activeTab,
+              ]}
+              onPress={() => setActiveSection('payment')}>
+              <Ionicons
+                name="card"
+                size={20}
+                color={activeSection === 'payment' ? '#4158D0' : '#666'}
+              />
+              <Text
+                style={[
+                  styles.tabText,
+                  activeSection === 'payment' && styles.activeTabText,
+                ]}>
+                Payment
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -577,31 +604,33 @@ const BatchCreationForm = () => {
                 label="Batch Name"
                 icon="bookmark"
                 value={formData.name}
-                onChangeText={(text) => setFormData({...formData, name: text})}
+                onChangeText={text => setFormData({...formData, name: text})}
               />
               <AnimatedInput
                 label="Course"
                 icon="school"
                 value={formData.course}
-                onChangeText={(text) => setFormData({...formData, course: text})}
+                onChangeText={text => setFormData({...formData, course: text})}
               />
               <AnimatedInput
                 label="Subject"
                 icon="book"
                 value={formData.subject}
-                onChangeText={(text) => setFormData({...formData, subject: text})}
+                onChangeText={text => setFormData({...formData, subject: text})}
               />
-               <AnimatedInput
+              <AnimatedInput
                 icon="calendar-number-outline"
                 value={date}
-                editable = {false}
-                onChangeText={(text) => setFormData({...formData, subject: text})}
+                editable={false}
+                onChangeText={text => setFormData({...formData, subject: text})}
               />
               <AnimatedInput
                 label="Description"
                 icon="information-circle"
                 value={formData.description}
-                onChangeText={(text) => setFormData({...formData, description: text})}
+                onChangeText={text =>
+                  setFormData({...formData, description: text})
+                }
                 multiline
                 numberOfLines={3}
                 style={[styles.input, styles.textArea]}
@@ -613,32 +642,43 @@ const BatchCreationForm = () => {
                 label="Fee Amount"
                 icon="cash"
                 value={formData.feeAmount}
-                onChangeText={(text) => setFormData({...formData, feeAmount: text})}
+                onChangeText={text =>
+                  setFormData({...formData, feeAmount: text})
+                }
                 keyboardType="numeric"
               />
-              
+
               <View style={styles.freequencyWrapper}>
                 <Text style={styles.freequencyTitle}>Payment Frequency</Text>
                 <View style={styles.freequencyOptions}>
-                  {['Monthly', 'Ontime'].map((option) => (
+                  {['Monthly', 'Ontime'].map(option => (
                     <TouchableOpacity
                       key={option}
                       style={[
                         styles.freequencyOption,
-                        formData.freequency === option && styles.activeFrequency
+                        formData.freequency === option &&
+                          styles.activeFrequency,
                       ]}
-                      onPress={() => setFormData({...formData, freequency: option})}
-                    >
+                      onPress={() =>
+                        setFormData({...formData, freequency: option})
+                      }>
                       <View style={styles.radioOuter}>
-                        <View style={[
-                          styles.radioInner,
-                          formData.freequency === option && styles.activeRadioInner
-                        ]} />
+                        <View
+                          style={[
+                            styles.radioInner,
+                            formData.freequency === option &&
+                              styles.activeRadioInner,
+                          ]}
+                        />
                       </View>
-                      <Text style={[
-                        styles.freequencyText,
-                        formData.freequency === option && styles.activeFrequencyText
-                      ]}>{option}</Text>
+                      <Text
+                        style={[
+                          styles.freequencyText,
+                          formData.freequency === option &&
+                            styles.activeFrequencyText,
+                        ]}>
+                        {option}
+                      </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -648,7 +688,9 @@ const BatchCreationForm = () => {
                 label="Payment Date"
                 icon="calendar"
                 value={formData.paymentDate}
-                onChangeText={(text) => setFormData({...formData, paymentDate: text})}
+                onChangeText={text =>
+                  setFormData({...formData, paymentDate: text})
+                }
               />
             </>
           )}
@@ -656,8 +698,7 @@ const BatchCreationForm = () => {
           <TouchableOpacity style={styles.submitButton}>
             <LinearGradient
               colors={['#4158D0', '#3B4FBC']}
-              style={styles.submitGradient}
-            >
+              style={styles.submitGradient}>
               <Text style={styles.submitText}>Create Batch</Text>
               <Ionicons name="arrow-forward" size={20} color="white" />
             </LinearGradient>
@@ -692,7 +733,7 @@ const styles = StyleSheet.create({
   },
   statsContainer: {
     // flexDirection: 'row',
-    justifyContent:"center",
+    justifyContent: 'center',
     // gap: 20,
   },
   statItem: {
@@ -818,44 +859,44 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   inputContainer: {
-        marginBottom: 20,
-        position: 'relative',
-      },
-      input: {
-        height: 50,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 10,
-        paddingHorizontal: 15,
-        fontSize: 16,
-        backgroundColor: '#f8f9fa',
-      },
-      inputWithIcon: {
-        paddingLeft: 40,
-      },
-      inputIcon: {
-        position: 'absolute',
-        left: 10,
-        top: 15,
-        zIndex: 1,
-      },
-      profileSection: {
-        alignItems: 'center',
-        marginBottom: 20,
-      },
-      avatarContainer: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        overflow: 'hidden',
-        backgroundColor:"white"
-      },
-      avatar: {
-        width: '100%',
-        height: '100%',
-        justifyContent: 'center',
-        alignItems: 'center',
-      },
+    marginBottom: 20,
+    position: 'relative',
+  },
+  input: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    backgroundColor: '#f8f9fa',
+  },
+  inputWithIcon: {
+    paddingLeft: 40,
+  },
+  inputIcon: {
+    position: 'absolute',
+    left: 10,
+    top: 15,
+    zIndex: 1,
+  },
+  profileSection: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  avatarContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    overflow: 'hidden',
+    backgroundColor: 'white',
+  },
+  avatar: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
 
 export default BatchCreationForm;
