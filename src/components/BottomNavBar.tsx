@@ -22,7 +22,7 @@ const BottomTabNavigator = () => {
   const TabBarBackground = focused => (
     <View
       style={{
-        backgroundColor: focused ? 'rgba(0, 0, 255, 0.2)' : 'transparent', // Light blue when active
+        backgroundColor: focused ? '#1D49A7' : 'transparent', // Light blue when active
         padding: 50, // Space around the icon
         borderRadius: 50, // Circular shape
       }}></View>
@@ -45,7 +45,7 @@ const BottomTabNavigator = () => {
               <Ionicons
                 name={'home-outline'}
                 size={24}
-                color={focused ? 'rgb(53, 104, 244)' : '#666'}
+                color={focused ? '#1D49A7' : '#666'}
               />
             );
           } else if (route.name == 'Fee') {
@@ -53,7 +53,7 @@ const BottomTabNavigator = () => {
               <Ionicons
                 name={'receipt-outline'}
                 size={24}
-                color={focused ? 'rgb(53, 104, 244)' : '#666'}
+                color={focused ? '#1D49A7' : '#666'}
               />
             );
           } else if (route.name == 'Assignment') {
@@ -61,7 +61,7 @@ const BottomTabNavigator = () => {
               <Ionicons
                 name={'clipboard-outline'}
                 size={24}
-                color={focused ? 'rgb(53, 104, 244)' : '#666'}
+                color={focused ? '#1D49A7' : '#666'}
               />
             );
           } else if (route.name == 'Notes') {
@@ -69,7 +69,7 @@ const BottomTabNavigator = () => {
               <Ionicons
                 name={'book-outline'}
                 size={24}
-                color={focused ? 'rgb(53, 104, 244)' : '#666'}
+                color={focused ? '#1D49A7' : '#666'}
               />
             );
           } else if (route.name == 'Chats') {
@@ -77,7 +77,7 @@ const BottomTabNavigator = () => {
               <Ionicons
                 name={'chatbubbles-outline'}
                 size={24}
-                color={focused ? 'rgb(53, 104, 244)' : '#666'}
+                color={focused ? '#1D49A7' : '#666'}
               />
             );
           }
@@ -99,7 +99,7 @@ const BottomTabNavigator = () => {
           shadowRadius: 12,
         },
 
-        tabBarActiveTintColor: 'rgb(53, 104, 244)',
+        tabBarActiveTintColor: '#1D49A7',
         tabBarIconStyle: {marginTop: 10},
       })}>
       <Tab.Screen name="Home" component={HomeScreen} />
