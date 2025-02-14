@@ -20,13 +20,12 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 // import {notes} from '../dumyDb';
-import { getapi } from '../utils/api';
+import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
 
 const NotesScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [notes, setNotes] = useState([]);
-
 
   const getIconForType = type => {
     switch (type) {
@@ -47,15 +46,13 @@ const NotesScreen = ({navigation}) => {
     }
   };
 
-  
-
-const Notes_fetch = () => {
+  const Notes_fetch = () => {
     const url = '/notes/batch/123e4567-e89b-12d3-a456-426614174000';
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     };
-    const onResponse = (res) => {
+    const onResponse = res => {
       console.log('hiii');
       console.log(res);
       setNotes(res);
@@ -68,14 +65,11 @@ const Notes_fetch = () => {
     getapi(url, headers, onResponse, onCatch);
   };
 
-  
-    useEffect(() => {
-      Notes_fetch();
-      console.log(notes);
-      console.log('notes fetch');
-    }, [1]);
-  
-
+  useEffect(() => {
+    Notes_fetch();
+    console.log(notes);
+    console.log('notes fetch');
+  }, [1]);
 
   const NoteCard = ({item}) => (
     <TouchableOpacity
@@ -117,7 +111,7 @@ const Notes_fetch = () => {
           </View>
           <TouchableOpacity
             style={styles.createButton}
-            onPress={() => navigation.navigate('CreateNote')}>
+            onPress={() => navigation.navigate('Note_Create')}>
             <Text style={styles.createButtonText}>Create</Text>
           </TouchableOpacity>
         </View>
