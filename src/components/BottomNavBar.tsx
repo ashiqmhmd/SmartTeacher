@@ -91,7 +91,7 @@ const BottomTabNavigator = () => {
           borderRadius: 50, // Rounded corners for a floating effect
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: 'rgb(241, 240, 250)',
+          backgroundColor: 'rgb(229,235,252)',
           elevation: 20, // Android shadow
           shadowColor: '#000', // iOS shadow
           // shadowOffset: {width: 0, height: 4},
