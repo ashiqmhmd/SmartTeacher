@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -14,13 +14,13 @@ import {
   Image,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import * as DocumentPicker from 'react-native-document-picker';
+import { pick } from '@react-native-documents/picker'
 
-const NoteCreateScreen = ({navigation}) => {
+const NoteCreateScreen = ({ navigation }) => {
   const [note, setNote] = useState({
     title: '',
     description: '',
-    attachment: null,
+    attachment: [],
   });
 
   const [errors, setErrors] = useState({});
@@ -43,6 +43,16 @@ const NoteCreateScreen = ({navigation}) => {
       }),
     ]).start();
   };
+
+  const attachmentValidation = (size) => {
+    console.log(size)
+    const newErrors = {};
+    console.log(size > 2 * 1024 * 1024)
+    if (size > 2 * 1024) {
+      newErrors.attachment = 'File size must be less than 2MB';
+      setErrors(newErrors)
+    }
+  }
 
   const validateForm = () => {
     const newErrors = {};
@@ -71,58 +81,35 @@ const NoteCreateScreen = ({navigation}) => {
     }, 2000);
   };
 
-  const handleAttachment = async () => {
-    try {
-      // Check permissions first
-      const hasPermission = await requestStoragePermission();
-      if (!hasPermission) {
-        Alert.alert(
-          'Permission Required',
-          'Please grant storage permission to attach files',
-          [{text: 'OK'}],
-        );
-        return;
-      }
+  const handleAttachments = async () => {
 
-      // Configure document picker options
-      const pickerResult = await DocumentPicker.pick({
-        type: [DocumentPicker.types.pdf, DocumentPicker.types.images],
-        copyTo: 'cachesDirectory', // This helps prevent NULL_PRESENTER error
-        presentationStyle: 'fullScreen', // This helps on iOS
+    try {
+      const result = await pick({
+        allowMultiSelection: false,
+        type: ['*/*'], // All file types
       });
 
-      const file = pickerResult[0];
+      if (result) {
+        console.log('Document selected:', result);
+        let size = result[0].size;
+        attachmentValidation(size)
+        setNote(prev => ({ ...prev, attachment: result }))
 
-      // Validate file size
-      if (file.size > 2 * 1024 * 1024) {
-        Alert.alert('File Too Large', 'Please select a file smaller than 2MB', [
-          {text: 'OK'},
-        ]);
-        return;
       }
-
-      setNote(prev => ({
-        ...prev,
-        attachment: file,
-      }));
-      setErrors(prev => ({
-        ...prev,
-        attachment: undefined,
-      }));
-    } catch (err) {
-      if (!DocumentPicker.isCancel(err)) {
-        console.log('Document picker error:', err);
-        Alert.alert('Error', 'Failed to pick file. Please try again.', [
-          {text: 'OK'},
-        ]);
+    } catch (error) {
+      if (error.message === 'User canceled') {
+        console.log('User canceled the picker');
+      } else {
+        console.error('Document Picker Error:', error);
       }
     }
   };
 
-  const renderAttachment = () => {
-    if (!note.attachment) return null;
 
-    const isPDF = note.attachment.type === 'application/pdf';
+  const renderAttachment = (item, index) => {
+    // if (!note.attachment) return null;
+
+    const isPDF = item.type === 'application/pdf';
 
     return (
       <View style={styles.attachmentItem}>
@@ -132,12 +119,17 @@ const NoteCreateScreen = ({navigation}) => {
           color="#6B7280"
         />
         <Text style={styles.attachmentName} numberOfLines={1}>
-          {note.attachment.name}
+          {item.name}
         </Text>
         <TouchableOpacity
           onPress={() => {
-            setNote(prev => ({...prev, attachment: null}));
-            setErrors(prev => ({...prev, attachment: undefined}));
+            // setNote(prev => ({ ...prev, attachment: null }));
+            // setErrors(prev => ({ ...prev, attachment: undefined }));
+            const newErrors = {};
+            const newAttachments = [...note.attachment];
+            newAttachments.splice(index, 1);
+            setNote(prev => ({ ...prev, attachment: newAttachments }));
+            setErrors(newErrors)
           }}
           style={styles.removeAttachment}>
           <MaterialIcons name="close" size={20} color="#EF4444" />
@@ -156,7 +148,7 @@ const NoteCreateScreen = ({navigation}) => {
           <MaterialIcons name="arrow-back" size={24} color="#001d3d" />
         </TouchableOpacity>
         <Text style={styles.appBarTitle}>Create Note</Text>
-        <View style={{width: 24}} />
+        <View style={{ width: 24 }} />
       </View>
 
       <KeyboardAvoidingView
@@ -164,7 +156,7 @@ const NoteCreateScreen = ({navigation}) => {
         style={styles.container}>
         <ScrollView style={styles.scrollView}>
           {showSuccessMessage && (
-            <Animated.View style={[styles.successMessage, {opacity: fadeAnim}]}>
+            <Animated.View style={[styles.successMessage, { opacity: fadeAnim }]}>
               <MaterialIcons name="check-circle" size={24} color="#059669" />
               <Text style={styles.successText}>Note saved successfully</Text>
             </Animated.View>
@@ -178,9 +170,9 @@ const NoteCreateScreen = ({navigation}) => {
                 style={[styles.input, errors.title && styles.inputError]}
                 value={note.title}
                 onChangeText={text => {
-                  setNote(prev => ({...prev, title: text}));
+                  setNote(prev => ({ ...prev, title: text }));
                   if (errors.title) {
-                    setErrors(prev => ({...prev, title: undefined}));
+                    setErrors(prev => ({ ...prev, title: undefined }));
                   }
                 }}
                 placeholder="Enter note title"
@@ -198,7 +190,7 @@ const NoteCreateScreen = ({navigation}) => {
                 style={[styles.input, styles.textArea]}
                 value={note.description}
                 onChangeText={text =>
-                  setNote(prev => ({...prev, description: text}))
+                  setNote(prev => ({ ...prev, description: text }))
                 }
                 placeholder="Enter note description"
                 placeholderTextColor="#9CA3AF"
@@ -213,16 +205,21 @@ const NoteCreateScreen = ({navigation}) => {
               <Text style={styles.label}>Attachment</Text>
               <TouchableOpacity
                 style={styles.attachmentButton}
-                onPress={handleAttachment}>
+                onPress={handleAttachments}
+              >
                 <MaterialIcons name="attach-file" size={24} color="#6B7280" />
                 <Text style={styles.attachmentButtonText}>
                   Add PDF or Image (max 2MB)
                 </Text>
               </TouchableOpacity>
+
+              {note.attachment.map((item, index) =>
+                renderAttachment(item, index),
+              )}
+
               {errors.attachment && (
                 <Text style={styles.errorText}>{errors.attachment}</Text>
               )}
-              {renderAttachment()}
             </View>
           </View>
         </ScrollView>
@@ -352,7 +349,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: -2},
+    shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 5,
@@ -375,7 +372,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#001d3d',
     shadowColor: '#001d3d',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,

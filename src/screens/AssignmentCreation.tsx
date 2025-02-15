@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -14,9 +14,11 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {pick} from '@react-native-documents/picker';
+import { pick } from '@react-native-documents/picker'
 
-const CreateAssignment = ({navigation}) => {
+const CreateAssignment = ({ navigation }) => {
+
+
   const [assignment, setAssignment] = useState({
     title: '',
     submissionDate: new Date(),
@@ -46,6 +48,16 @@ const CreateAssignment = ({navigation}) => {
     ]).start();
   };
 
+  const attachmentValidation = (size) => {
+    console.log(size)
+    const newErrors = {};
+    console.log(size > 2 * 1024 * 1024)
+    if (size > 2 * 1024) {
+      newErrors.attachment = 'File size must be less than 2MB';
+      setErrors(newErrors)
+    }
+  }
+
   const validateForm = () => {
     const newErrors = {};
     if (!assignment.title.trim()) {
@@ -71,16 +83,26 @@ const CreateAssignment = ({navigation}) => {
   };
 
   const handleAttachments = async () => {
+
     try {
-      const [pickResult] = await pick();
-      if (pickResult) {
-        setAssignment(prev => ({
-          ...prev,
-          attachments: [...prev.attachments, pickResult],
-        }));
+      const result = await pick({
+        allowMultiSelection: false,
+        type: ['*/*'], // All file types
+      });
+
+      if (result) {
+        console.log('Document selected:', result);
+        let size = result[0].size;
+        setAssignment(prev => ({ ...prev, attachments: result }))
+        attachmentValidation(size)
+
       }
-    } catch (err) {
-      console.log('Document picker error:', err);
+    } catch (error) {
+      if (error.message === 'User canceled') {
+        console.log('User canceled the picker');
+      } else {
+        console.error('Document Picker Error:', error);
+      }
     }
   };
 
@@ -92,9 +114,11 @@ const CreateAssignment = ({navigation}) => {
       </Text>
       <TouchableOpacity
         onPress={() => {
+          const newErrors = {};
           const newAttachments = [...assignment.attachments];
           newAttachments.splice(index, 1);
-          setAssignment(prev => ({...prev, attachments: newAttachments}));
+          setAssignment(prev => ({ ...prev, attachments: newAttachments }));
+          setErrors(newErrors)
         }}
         style={styles.removeAttachment}>
         <MaterialIcons name="close" size={20} color="#EF4444" />
@@ -112,7 +136,7 @@ const CreateAssignment = ({navigation}) => {
           <MaterialIcons name="arrow-back" size={24} color="#001d3d" />
         </TouchableOpacity>
         <Text style={styles.appBarTitle}>Create Assignment</Text>
-        <View style={{width: 24}} />
+        <View style={{ width: 24 }} />
       </View>
 
       <KeyboardAvoidingView
@@ -120,7 +144,7 @@ const CreateAssignment = ({navigation}) => {
         style={styles.container}>
         <ScrollView style={styles.scrollView}>
           {showSuccessMessage && (
-            <Animated.View style={[styles.successMessage, {opacity: fadeAnim}]}>
+            <Animated.View style={[styles.successMessage, { opacity: fadeAnim }]}>
               <MaterialIcons name="check-circle" size={24} color="#059669" />
               <Text style={styles.successText}>
                 Assignment saved successfully
@@ -136,9 +160,9 @@ const CreateAssignment = ({navigation}) => {
                 style={[styles.input, errors.title && styles.inputError]}
                 value={assignment.title}
                 onChangeText={text => {
-                  setAssignment(prev => ({...prev, title: text}));
+                  setAssignment(prev => ({ ...prev, title: text }));
                   if (errors.title)
-                    setErrors(prev => ({...prev, title: undefined}));
+                    setErrors(prev => ({ ...prev, title: undefined }));
                 }}
                 placeholder="Enter assignment title"
                 placeholderTextColor="#9CA3AF"
@@ -175,7 +199,7 @@ const CreateAssignment = ({navigation}) => {
                 style={[styles.input, styles.textArea]}
                 value={assignment.description}
                 onChangeText={text =>
-                  setAssignment(prev => ({...prev, description: text}))
+                  setAssignment(prev => ({ ...prev, description: text }))
                 }
                 placeholder="Enter assignment description"
                 placeholderTextColor="#9CA3AF"
@@ -197,6 +221,9 @@ const CreateAssignment = ({navigation}) => {
               <View style={styles.attachmentsList}>
                 {assignment.attachments.map((item, index) =>
                   renderAttachmentItem(item, index),
+                )}
+                {errors.attachment && (
+                  <Text style={styles.errorText}>{errors.attachment}</Text>
                 )}
               </View>
             </View>
@@ -362,7 +389,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: -2},
+    shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 5,
@@ -386,7 +413,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#001d3d',
     shadowColor: '#001d3d',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
