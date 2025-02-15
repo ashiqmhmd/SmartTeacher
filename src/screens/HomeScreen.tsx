@@ -81,7 +81,16 @@ const HomeScreen = ({navigation}) => {
       <TouchableOpacity
         style={styles.listCard}
         onPress={() => navigation.navigate('Student_Detail', {student: item})}>
-        <Image source={{uri: item.profilePicUrl}} style={styles.profilePic} />
+        {item.profilePicUrl != null ? (
+          <Image source={{uri: item.profilePicUrl}} style={styles.profilePic} />
+        ) : (
+          <View style={styles.noPicContainer}>
+            <Image
+              source={require('../resources/logo.png')}
+              style={styles.noPic}
+            />
+          </View>
+        )}
         <View style={{flexDirection: 'column'}}>
           <Text style={styles.studentName}>
             {item.firstName} {item.lastName}
@@ -399,6 +408,21 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     marginRight: 16,
+  },
+  noPicContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgb(229,235,252)',
+  },
+  noPic: {
+    width: 30,
+    height: 30,
+
+    opacity: 0.5,
   },
   studentName: {
     flex: 1,
