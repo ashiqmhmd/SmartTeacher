@@ -65,11 +65,11 @@ const StudentDetailsScreen = ({route, navigation}) => {
           <Text style={styles.studentName}>
             {student.firstName} {student.lastName}
           </Text>
-          <View style={styles.badgeContainer}>
+          {/* <View style={styles.badgeContainer}>
             <View style={styles.badge}>
               <Text style={styles.badgeText}>ID: {student.id.slice(0, 8)}</Text>
             </View>
-          </View>
+          </View> */}
         </View>
       </LinearGradient>
 
@@ -160,6 +160,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
     elevation: 15,
+    shadowColor: '#001d3d',
   },
   appBar: {
     flexDirection: 'row',
@@ -225,6 +226,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: width * 0.28,
     elevation: 15,
+    shadowColor: '#001d3d',
   },
   statValue: {
     fontSize: 20,
@@ -251,6 +253,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     elevation: 15,
+    shadowColor: '#001d3d',
   },
   contactItem: {
     flexDirection: 'row',
@@ -279,6 +282,7 @@ const styles = StyleSheet.create({
     padding: 16,
     elevation: 15,
     flexDirection: 'row',
+    shadowColor: '#001d3d',
   },
   addressIcon: {
     marginRight: 16,
@@ -305,6 +309,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     elevation: 15,
     overflow: 'hidden',
+    shadowColor: '#001d3d',
   },
   batchContent: {
     flexDirection: 'row',
