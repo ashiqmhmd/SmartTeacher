@@ -9,7 +9,7 @@ import {
   StatusBar,
   FlatList,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
@@ -22,10 +22,24 @@ import Svg, {
 // import {notes} from '../dumyDb';
 import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
+import BatchSelectorSheet from '../components/BatchSelectorSheet';
 
 const NotesScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [notes, setNotes] = useState([]);
+
+  const [selectedBatch, setSelectedBatch] = useState({
+    subject: 'Algebra',
+    name: 'Math 1012',
+    id: '212e46a9-9a1d-4906-a27e-5ef03e989955',
+  });
+
+  const refRBSheet = useRef();
+
+  const handleBatchSelect = batch => {
+    setSelectedBatch(batch);
+    refRBSheet.current.close();
+  };
 
   const getIconForType = type => {
     switch (type) {
@@ -96,6 +110,31 @@ const NotesScreen = ({navigation}) => {
 
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Notes</Text>
+
+        <TouchableOpacity
+          onPress={() => refRBSheet.current.open()}
+          style={{
+            // backgroundColor: '#f8f9fa',
+            borderRadius: 12,
+            paddingHorizontal: 10,
+            paddingVertical: 5,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderWidth: 1,
+            borderColor: '#e0e0e0',
+          }}>
+          <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
+            {selectedBatch.name}
+          </Text>
+
+          <MaterialIcons
+            name="keyboard-arrow-down"
+            size={20}
+            color="#001d3d"
+            style={{paddingLeft: 5}}
+          />
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.container}>
@@ -124,6 +163,11 @@ const NotesScreen = ({navigation}) => {
           style={styles.notesList}
         />
       </ScrollView>
+      <BatchSelectorSheet
+        ref={refRBSheet}
+        selectedBatch={selectedBatch}
+        onBatchSelect={handleBatchSelect}
+      />
     </View>
   );
 };
@@ -134,10 +178,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   header: {
-    // paddingTop: Platform.OS === 'ios' ? 40 : StatusBar.currentHeight + 10,
     paddingTop: 10,
     paddingBottom: 15,
-    paddingHorizontal: '5%',
+    paddingHorizontal: 20,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
@@ -153,7 +196,35 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-
+  batchSelector: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+  batchButton: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 16,
+    paddingHorizontal: '5%',
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  batchName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#001d3d',
+  },
+  batchSubject: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 10,
+    flex: 1,
+  },
+  batchIcon: {
+    marginLeft: 10,
+  },
   searchSection: {
     flexDirection: 'row',
     paddingHorizontal: 20,
