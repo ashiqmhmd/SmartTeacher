@@ -78,7 +78,9 @@ const HomeScreen = ({navigation}) => {
   const renderStudentCard = ({item}) => {
     console.log(item.age);
     return (
-      <TouchableOpacity style={styles.listCard}>
+      <TouchableOpacity
+        style={styles.listCard}
+        onPress={() => navigation.navigate('Student_Detail', {student: item})}>
         <Image source={{uri: item.profilePicUrl}} style={styles.profilePic} />
         <View style={{flexDirection: 'column'}}>
           <Text style={styles.studentName}>
