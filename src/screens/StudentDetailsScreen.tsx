@@ -1,227 +1,3 @@
-// import {
-//   View,
-//   Text,
-//   StyleSheet,
-//   Image,
-//   ScrollView,
-//   TouchableOpacity,
-//   StatusBar,
-// } from 'react-native';
-// import React from 'react';
-// import Ionicons from 'react-native-vector-icons/Ionicons';
-// import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-// import LinearGradient from 'react-native-linear-gradient';
-
-// const StudentDetailsScreen = ({route, navigation}) => {
-//   const student = route.params.student;
-
-//   const renderContactSection = (title, items) => (
-//     <View style={styles.section}>
-//       <Text style={styles.sectionTitle}>{title}</Text>
-//       <View style={styles.sectionContent}>
-//         {items.map((item, index) => (
-//           <View key={index} style={styles.contactItem}>
-//             <MaterialIcons name={item.icon} size={20} color="#666" />
-//             <Text style={styles.contactText}>{item.value}</Text>
-//           </View>
-//         ))}
-//       </View>
-//     </View>
-//   );
-
-//   return (
-//     <View style={styles.screen}>
-//       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-
-//       <View style={styles.appBar}>
-//         <TouchableOpacity onPress={() => navigation.goBack()}>
-//           <Ionicons name="arrow-back" size={24} color="#001d3d" />
-//         </TouchableOpacity>
-//         <Text style={styles.appBarTitle}>Student Details</Text>
-//         <TouchableOpacity
-//           onPress={() => navigation.navigate('EditStudent', {student})}>
-//           <MaterialIcons name="edit" size={24} color="#001d3d" />
-//         </TouchableOpacity>
-//       </View>
-
-//       <ScrollView style={styles.container}>
-//         {/* Profile Section */}
-//         <LinearGradient
-//           colors={['rgb(255,255,255)', 'rgb(229,235,252)']}
-//           style={styles.profileCard}>
-//           <Image
-//             source={{uri: student.profilePicUrl}}
-//             style={styles.profileImage}
-//           />
-//           <Text style={styles.studentName}>
-//             {student.firstName} {student.lastName}
-//           </Text>
-//           <View style={styles.basicInfo}>
-//             <View style={styles.infoItem}>
-//               <Text style={styles.infoLabel}>Age</Text>
-//               <Text style={styles.infoValue}>{student.age}</Text>
-//             </View>
-//             <View style={styles.infoItem}>
-//               <Text style={styles.infoLabel}>Gender</Text>
-//               <Text style={styles.infoValue}>{student.gender}</Text>
-//             </View>
-//             <View style={styles.infoItem}>
-//               <Text style={styles.infoLabel}>Batches</Text>
-//               <Text style={styles.infoValue}>{student.batches.length}</Text>
-//             </View>
-//           </View>
-//         </LinearGradient>
-
-//         {renderContactSection('Parent 1 Contact', [
-//           {icon: 'person', value: student.parent1Name},
-//           {icon: 'phone', value: student.parent1Phone},
-//           {icon: 'email', value: student.parent1Email},
-//         ])}
-
-//         {renderContactSection('Parent 2 Contact', [
-//           {icon: 'person', value: student.parent2Name},
-//           {icon: 'phone', value: student.parent2Phone},
-//           {icon: 'email', value: student.parent2Email},
-//         ])}
-
-//         <View style={styles.section}>
-//           <Text style={styles.sectionTitle}>Address</Text>
-//           <View style={styles.sectionContent}>
-//             <Text style={styles.addressText}>{student.addressLine1}</Text>
-//             <Text style={styles.addressText}>
-//               {student.addressCity}, {student.addressState}
-//             </Text>
-//             <Text style={styles.addressText}>PIN: {student.pinCode}</Text>
-//           </View>
-//         </View>
-
-//         <View style={styles.section}>
-//           <Text style={styles.sectionTitle}>Enrolled Batches</Text>
-//           <View style={styles.batchList}>
-//             {student.batches.map((batchId, index) => (
-//               <View key={index} style={styles.batchItem}>
-//                 <Text style={styles.batchText}>Batch {index + 1}</Text>
-//                 <MaterialIcons name="chevron-right" size={24} color="#666" />
-//               </View>
-//             ))}
-//           </View>
-//         </View>
-//       </ScrollView>
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   screen: {
-//     flex: 1,
-//     backgroundColor: 'rgb(255,255,255)',
-//   },
-//   appBar: {
-//     flexDirection: 'row',
-//     justifyContent: 'space-between',
-//     alignItems: 'center',
-//     paddingHorizontal: 20,
-//     paddingTop: 10,
-//     paddingBottom: 10,
-//     backgroundColor: '#fff',
-//     elevation: 2,
-//   },
-//   appBarTitle: {
-//     fontSize: 20,
-//     fontWeight: '700',
-//     color: '#001d3d',
-//   },
-//   container: {
-//     flex: 1,
-//     padding: 16,
-//   },
-//   profileCard: {
-//     padding: 20,
-//     borderRadius: 12,
-//     alignItems: 'center',
-//     marginBottom: 20,
-//     elevation: 4,
-//   },
-//   profileImage: {
-//     width: 100,
-//     height: 100,
-//     borderRadius: 50,
-//     marginBottom: 12,
-//   },
-//   studentName: {
-//     fontSize: 24,
-//     fontWeight: 'bold',
-//     color: '#001d3d',
-//     marginBottom: 12,
-//   },
-//   basicInfo: {
-//     flexDirection: 'row',
-//     justifyContent: 'space-around',
-//     width: '100%',
-//     marginTop: 10,
-//   },
-//   infoItem: {
-//     alignItems: 'center',
-//   },
-//   infoLabel: {
-//     fontSize: 14,
-//     color: '#666',
-//     marginBottom: 4,
-//   },
-//   infoValue: {
-//     fontSize: 16,
-//     fontWeight: '600',
-//     color: '#001d3d',
-//   },
-//   section: {
-//     backgroundColor: '#fff',
-//     borderRadius: 12,
-//     padding: 16,
-//     marginBottom: 16,
-//     elevation: 2,
-//   },
-//   sectionTitle: {
-//     fontSize: 18,
-//     fontWeight: '600',
-//     color: '#001d3d',
-//     marginBottom: 12,
-//   },
-//   sectionContent: {
-//     gap: 8,
-//   },
-//   contactItem: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     gap: 12,
-//   },
-//   contactText: {
-//     fontSize: 16,
-//     color: '#333',
-//   },
-//   addressText: {
-//     fontSize: 16,
-//     color: '#333',
-//     marginBottom: 4,
-//   },
-//   batchList: {
-//     gap: 8,
-//   },
-//   batchItem: {
-//     flexDirection: 'row',
-//     justifyContent: 'space-between',
-//     alignItems: 'center',
-//     backgroundColor: '#f8f9fa',
-//     padding: 12,
-//     borderRadius: 8,
-//   },
-//   batchText: {
-//     fontSize: 16,
-//     color: '#333',
-//   },
-// });
-
-// export default StudentDetailsScreen;
-
 import {
   View,
   Text,
@@ -383,7 +159,7 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
-    elevation: 8,
+    elevation: 15,
   },
   appBar: {
     flexDirection: 'row',
@@ -436,7 +212,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    marginTop: -20,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -449,7 +224,7 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     width: width * 0.28,
-    elevation: 4,
+    elevation: 15,
   },
   statValue: {
     fontSize: 20,
@@ -475,7 +250,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 16,
     padding: 16,
-    elevation: 4,
+    elevation: 15,
   },
   contactItem: {
     flexDirection: 'row',
@@ -502,7 +277,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 16,
     padding: 16,
-    elevation: 4,
+    elevation: 15,
     flexDirection: 'row',
   },
   addressIcon: {
@@ -528,7 +303,7 @@ const styles = StyleSheet.create({
   batchCard: {
     backgroundColor: '#ffffff',
     borderRadius: 16,
-    elevation: 4,
+    elevation: 15,
     overflow: 'hidden',
   },
   batchContent: {
