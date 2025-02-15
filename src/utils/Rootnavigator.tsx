@@ -2,8 +2,6 @@ import SignUpScreen from '../screens/SignUpScreen';
 import NotesScreen from '../screens/NotesScreen';
 import ChatsScreen from '../screens/ChatsScreen';
 import BottomTabNavigator from '../components/BottomNavBar';
-import StudentRegistrationForm from '../components/Student_Create';
-import Batch_creation from '../components/Batch_Creation';
 import EditAssignment from '../screens/AssignmentEdit';
 import CreateAssignment from '../screens/AssignmentCreation';
 import NotificationScreen from '../screens/NotificationScreen';
@@ -15,6 +13,8 @@ import LoginScreen from '../screens/LoginScreen';
 import {useSelector} from 'react-redux';
 import UpdateProfileScreen from '../screens/UpdateProfileScreen';
 import NoteCreateScreen from '../screens/NoteCreateScreen';
+import BatchCreation from '../screens/BatchCreation';
+import StudentCreation from '../screens/StudentCreation';
 
 type Props = {};
 
@@ -44,8 +44,8 @@ const Rootnavigator = () => {
       <Stack.Screen name="Notes" component={NotesScreen} />
       <Stack.Screen name="Note_Create" component={NoteCreateScreen} />
       <Stack.Screen name="Chats" component={ChatsScreen} />
-      <Stack.Screen name="Student_Create" component={StudentRegistrationForm} />
-      <Stack.Screen name="Batch_Create" component={Batch_creation} />
+      <Stack.Screen name="Student_Create" component={StudentCreation} />
+      <Stack.Screen name="Batch_Create" component={BatchCreation} />
       <Stack.Screen name="Notification" component={NotificationScreen} />
       <Stack.Screen name="Tabs" component={BottomTabNavigator} />
     </Stack.Navigator>
