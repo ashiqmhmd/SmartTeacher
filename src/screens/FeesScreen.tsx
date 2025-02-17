@@ -21,21 +21,38 @@ import Svg, {
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
 import {getapi, student_details} from '../utils/api';
 import dateconvert from '../components/moment';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useDispatch } from 'react-redux';
+import { batch_id } from '../utils/authslice';
+
+
+interface StudentDetails {
+  [studentId: string]: string; // studentId as key, student name as value
+}
+
+interface Fees {
+  id: string;
+  studentId: string;
+  amount: number;
+  status: string;
+}
+
 
 const FeesScreen = ({navigation}) => {
   let sid = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('Current Month');
   const [paymentFilter, setPaymentFilter] = useState('All');
-  const [decc, setDec] = useState({});
+  const [studentDetails, setStudentDetails] = useState<StudentDetails>({}); 
+  const [fees, setFees] =  useState<Fees[]>([]);
   const [selectedBatch, setSelectedBatch] = useState({
     subject: 'Algebra',
     name: 'Math 1012',
     id: '212e46a9-9a1d-4906-a27e-5ef03e989955',
   });
 
-  const [fees, setFees] = useState([]);
-
+ 
+const dispatch = useDispatch();
   const summaryData = {
     totalExpected: 50000,
     totalReceived: 35000,
@@ -59,8 +76,9 @@ const FeesScreen = ({navigation}) => {
     },
   ];
 
-  const Fees_fetch = () => {
-    const url = 'fee-records/batches/550e8400-e29b-41d4-a716-446655440000';
+  const Fees_fetch = async () => {
+    const Batch_id = await AsyncStorage.getItem("batch_id")
+    const url = `fee-records/batches/${Batch_id}`;
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
@@ -69,6 +87,7 @@ const FeesScreen = ({navigation}) => {
       console.log('Fees response');
       console.log(res);
       setFees(res);
+      student_details_fetch(res)
     };
 
     const onCatch = res => {
@@ -78,10 +97,43 @@ const FeesScreen = ({navigation}) => {
     getapi(url, headers, onResponse, onCatch);
   };
 
+  const student_details_fetch = async (records) => {
+
+    const studentIds = [...new Set(records.map(item => item.studentId))]; 
+
+    const studentDetailsResponse = await Promise.all(
+    studentIds.map(async (studentId) => {
+    const url = `students/${studentId}`;
+    const headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    };
+    const onResponse = res => {
+      console.log('student response');
+      return { studentId, name: res.firstName+res.lastName };
+    };
+
+    const details = studentDetailsResponse.reduce((acc, { studentId, name }) => {
+      acc[studentId] = name; // Map studentId to their name
+      return acc;
+    }, {});
+
+    setStudentDetails(details);
+
+    const onCatch = res => {
+      console.log('Error');
+      console.log(res);
+    };
+    
+    getapi(url, headers, onResponse, onCatch);
+  })
+)
+  };
+
   useEffect(() => {
     Fees_fetch();
-    let dec = student_details(sid);
-    setDec(dec);
+    // let dec = student_details(sid);
+    // setDec(dec);
   }, [1]);
 
   const monthOptions = ['Current Month', 'January', 'February', 'March'];
@@ -89,8 +141,12 @@ const FeesScreen = ({navigation}) => {
 
   const refRBSheet = useRef();
 
-  const handleBatchSelect = batch => {
+  const handleBatchSelect = async (batch) => {
+    await AsyncStorage.removeItem('batch_id');
     setSelectedBatch(batch);
+    console.log(batch.id)
+    dispatch((batch_id(batch.id)));
+    Fees_fetch()
     refRBSheet.current.close();
   };
 
@@ -99,11 +155,11 @@ const FeesScreen = ({navigation}) => {
       onPress={() => navigation.navigate('FeeDetails', {feeRecord: record})}
       style={styles.feeCard}>
       <View style={styles.feeCardHeader}>
-        {decc.map(record => (
           <Text style={styles.studentName}>
-            {record.firstName + ' ' + record.lastName}
+          {studentDetails[record.studentId] || 'Loading...'}
+            {/* {record.firstName + ' ' + record.lastName} */}
           </Text>
-        ))}
+   
         <Text
           style={[
             styles.status,

@@ -10,20 +10,22 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import BottomNavigation from '../components/BottomNavBar';
 import RBSheet from 'react-native-raw-bottom-sheet';
-import {getapi} from '../utils/api';
+import { getapi } from '../utils/api';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
-import {useDispatch} from 'react-redux';
-import {logout} from '../utils/authslice';
+import { useDispatch, useSelector } from 'react-redux';
+import { batch_id, logout } from '../utils/authslice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const HomeScreen = ({navigation}) => {
+const HomeScreen = ({ navigation }) => {
   const refRBSheet = useRef();
+  const Batch_id = useSelector(state => state.auth.batch_id);
   const [selectedBatch, setSelectedBatch] = useState({
     subject: 'Algebra',
     paymentFrequency: 'Monthly',
@@ -40,15 +42,18 @@ const HomeScreen = ({navigation}) => {
   // var codesPostal: CodePostal[] = []
   const dispatch = useDispatch();
 
-  const students_fetch = () => {
-    const url = 'students/batch/212e46a9-9a1d-4906-a27e-5ef03e989955';
+  const students_fetch = async () => {
+    console.log("knxs")
+    const Batch_id = await AsyncStorage.getItem("batch_id")
+    console.log(Batch_id)
+    const url = `students/batch/${Batch_id}`;
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     };
     const onResponse = res => {
       console.log('hiii');
-      console.log(res);
+      console.log(batch_id);
       setStudents(res);
     };
 
@@ -75,14 +80,14 @@ const HomeScreen = ({navigation}) => {
   //   bottomSheetRef.current?.expand();
   // }, []);
 
-  const renderStudentCard = ({item}) => {
+  const renderStudentCard = ({ item }) => {
     console.log(item.age);
     return (
       <TouchableOpacity
         style={styles.listCard}
-        onPress={() => navigation.navigate('Student_Detail', {student: item})}>
+        onPress={() => navigation.navigate('Student_Detail', { student: item })}>
         {item.profilePicUrl != null ? (
-          <Image source={{uri: item.profilePicUrl}} style={styles.profilePic} />
+          <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
         ) : (
           <View style={styles.noPicContainer}>
             <Image
@@ -91,7 +96,7 @@ const HomeScreen = ({navigation}) => {
             />
           </View>
         )}
-        <View style={{flexDirection: 'column'}}>
+        <View style={{ flexDirection: 'column' }}>
           <Text style={styles.studentName}>
             {item.firstName} {item.lastName}
           </Text>
@@ -110,9 +115,13 @@ const HomeScreen = ({navigation}) => {
     );
   };
 
-  const handleBatchSelect = batch => {
+  const handleBatchSelect = async (batch) => {
+    await AsyncStorage.removeItem('batch_id');
     setSelectedBatch(batch);
-    refRBSheet.current.close();
+    console.log(batch.id)
+    dispatch(batch_id(batch.id)),
+      refRBSheet.current.close();
+    await students_fetch()
   };
 
   return (
@@ -142,8 +151,8 @@ const HomeScreen = ({navigation}) => {
         <View style={styles.batchCard}>
           <LinearGradient
             colors={['rgb(255,255,255)', 'rgb(229,235,252)']} // Light gradient
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 1}}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={styles.card}>
             <TouchableOpacity
               onPress={() => refRBSheet.current.open()}
@@ -259,7 +268,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(255,255,255)',
     borderRadius: 10,
     shadowColor: '#1D49A7',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 8,
@@ -292,7 +301,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
     shadowColor: '#1D49A7',
-    shadowOffset: {width: 0, height: 4},
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 15,
@@ -309,11 +318,11 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 12,
-    transform: [{rotate: '45deg'}, {translateX: -10}, {translateY: -10}],
+    transform: [{ rotate: '45deg' }, { translateX: -10 }, { translateY: -10 }],
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#1D49A7',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 20,
@@ -321,7 +330,7 @@ const styles = StyleSheet.create({
   hexagonIcon: {
     paddingTop: 10,
     paddingRight: 5,
-    transform: [{rotate: '-45deg'}],
+    transform: [{ rotate: '-45deg' }],
   },
   createBatch: {
     position: 'absolute',
@@ -398,7 +407,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     shadowColor: '#1D49A7',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
