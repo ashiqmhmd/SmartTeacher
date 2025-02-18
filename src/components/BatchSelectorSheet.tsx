@@ -12,6 +12,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {getapi} from '../utils/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BatchItem = ({item, selectedBatch, onSelect}) => (
   <TouchableOpacity
@@ -60,11 +61,13 @@ const BatchSelectorSheet = React.forwardRef(
     const [batchs, setBatchs] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
 
-    const fetch_batchs = () => {
+    const fetch_batchs = async () => {
+      const Token = await AsyncStorage.getItem("Token")
       const url = 'batches/teacher/660e8400-e29b-41d4-a716-446655440001';
       const headers = {
         Accept: 'application/json',
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Token}`
       };
       const onResponse = res => {
         console.log(res);
