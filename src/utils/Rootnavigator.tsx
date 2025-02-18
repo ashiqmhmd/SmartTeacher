@@ -2,7 +2,6 @@ import SignUpScreen from '../screens/SignUpScreen';
 import NotesScreen from '../screens/NotesScreen';
 import ChatsScreen from '../screens/ChatsScreen';
 import BottomTabNavigator from '../components/BottomNavBar';
-import EditAssignment from '../screens/AssignmentEdit';
 import CreateAssignment from '../screens/AssignmentCreation';
 import NotificationScreen from '../screens/NotificationScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -16,6 +15,7 @@ import NoteCreateScreen from '../screens/NoteCreateScreen';
 import BatchCreation from '../screens/BatchCreation';
 import StudentCreation from '../screens/StudentCreation';
 import StudentDetailsScreen from '../screens/StudentDetailsScreen';
+// import ConversationScreen from '../screens/ConversationScreen';
 
 type Props = {};
 
@@ -40,11 +40,11 @@ const Rootnavigator = () => {
       <Stack.Screen name="Update_Profile" component={UpdateProfileScreen} />
       <Stack.Screen name="Fees" component={FeesScreen} />
       <Stack.Screen name="Assignment" component={AssignmentsScreen} />
-      <Stack.Screen name="Assignment_Edit" component={EditAssignment} />
       <Stack.Screen name="Assignment_Creation" component={CreateAssignment} />
       <Stack.Screen name="Notes" component={NotesScreen} />
       <Stack.Screen name="Note_Create" component={NoteCreateScreen} />
       <Stack.Screen name="Chats" component={ChatsScreen} />
+      {/* <Stack.Screen name="Chat" component={ConversationScreen} /> */}
       <Stack.Screen name="Student_Create" component={StudentCreation} />
       <Stack.Screen name="Student_Detail" component={StudentDetailsScreen} />
       <Stack.Screen name="Batch_Create" component={BatchCreation} />
