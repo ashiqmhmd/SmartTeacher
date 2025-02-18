@@ -12,7 +12,6 @@ import {
   StatusBar,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
-import LinearGradient from 'react-native-linear-gradient';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {postApi} from '../utils/api';
 
