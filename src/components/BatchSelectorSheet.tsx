@@ -59,42 +59,6 @@ const BatchSelectorSheet = React.forwardRef(
   ({selectedBatch, onBatchSelect}, ref) => {
     const [batchs, setBatchs] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedBatchs, setSelectedBatch] = useState([{
-        subject: 'Algebra',
-        paymentFrequency: 'Monthly',
-        course: 'Mathematics',
-        teacherId: '660e8400-e29b-41d4-a716-446655440001',
-        description:
-          'An introductory course to Algebra covering basic concepts and problem-solving techniques.',
-        id: '212e46a9-9a1d-4906-a27e-5ef03e989955',
-        paymentAmount: 150,
-        name: 'Math 1012',
-        paymentDayOfMonth: 15,
-  },
-  {
-    subject: 'Algeb',
-    paymentFrequency: 'Monthly',
-    course: 'Mathematics',
-    teacherId: '660e8400-e29b-41d4-a716-446655440001',
-    description:
-      'An introductory course to Algebra covering basic concepts and problem-solving techniques.',
-    id: '550e8400-e29b-41d4-a716-446655440000',
-    paymentAmount: 150,
-    name: 'Math 1012',
-    paymentDayOfMonth: 15,
-},
-{
-  subject: 'Algebra',
-  paymentFrequency: 'Monthly',
-  course: 'Mathematics',
-  teacherId: '660e8400-e29b-41d4-a716-446655440001',
-  description:
-    'An introductory course to Algebra covering basic concepts and problem-solving techniques.',
-  id: '212e46a9-9a1d-4906-a27e-5ef03e9899433',
-  paymentAmount: 150,
-  name: 'Math 1012',
-  paymentDayOfMonth: 15,
-}]);
 
     const fetch_batchs = () => {
       const url = 'batches/teacher/660e8400-e29b-41d4-a716-446655440001';
@@ -117,7 +81,7 @@ const BatchSelectorSheet = React.forwardRef(
       fetch_batchs();
     }, []);
 
-    const filteredBatches = selectedBatchs.filter(batch => {
+    const filteredBatches = batchs.filter(batch => {
       const searchLower = searchQuery.toLowerCase();
       return (
         batch.name.toLowerCase().includes(searchLower) ||
