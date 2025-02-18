@@ -67,7 +67,7 @@ const StudentDetailsScreen = ({route, navigation}) => {
           </Text>
           {/* <View style={styles.badgeContainer}>
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>ID: {student.id.slice(0, 8)}</Text>
+              <Text style={styles.badgeText}>ID: {student.id}</Text>
             </View>
           </View> */}
         </View>
