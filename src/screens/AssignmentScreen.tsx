@@ -14,6 +14,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AssignmentsScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,11 +33,13 @@ const AssignmentsScreen = ({navigation}) => {
     refRBSheet.current.close();
   };
 
-  const Assignment_fetch = () => {
+  const Assignment_fetch = async() => {
+    const Token = await AsyncStorage.getItem("Token")
     const url = 'assignments/batch/550e8400-e29b-41d4-a716-446655440000';
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${Token}`
     };
     const onResponse = res => {
       console.log('assignment response');

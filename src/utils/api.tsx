@@ -30,25 +30,35 @@ export const postApi = async (
       body:JSON.stringify(body)
       
     })
-      .then(response => response.json())
-      .then(responseJson => {
-        console.log('response: ' + JSON.stringify(responseJson));
-        if (responseJson) {
-          console.log('if entered');
-        } else {
-          console.log('else entered');
+    fetch(base_url + url, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(body),
+    })
+      .then(async response => {
+        const text = await response.text(); // Read response as text
+        console.log("Raw Response:", text);
+    
+        try {
+          // Manually fix the missing quotes in token
+          const fixedText = text.replace(/"token":\s*([^"{\[][^,}\]]*)/g, '"token": "$1"');
+    
+          return JSON.parse(fixedText); // Try parsing JSON again
+        } catch (error) {
+          console.error("JSON Parse Error:", error);
+          throw new Error(`Invalid JSON response: ${text}`);
         }
-  
+      })
+      .then(responseJson => {
+        console.log('Parsed JSON:', responseJson);
         onResponse && onResponse(responseJson);
       })
-      .catch((e) => {
-        console.log('error bellow');
-        console.log(e);
-        console.log('error Json ' + JSON.stringify(e));
-        console.log('error toString ' + e.toString());
-  
+      .catch(e => {
+        console.error('Fetch Error:', e);
         onCatch && onCatch(e);
       });
+    
+  
 }
 
 
@@ -66,7 +76,8 @@ export const getapi = async (
     'Content-Type': 'application/json',
     ...header,
   };
-
+  console.log("headerr")
+console.log(headers)
   fetch(base_url + url, {
     method: 'GET',
     headers: headers,

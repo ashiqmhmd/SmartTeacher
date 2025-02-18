@@ -43,13 +43,14 @@ const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
 
   const students_fetch = async () => {
-    console.log("knxs")
+    const Token = await AsyncStorage.getItem("Token")
     const Batch_id = await AsyncStorage.getItem("batch_id")
-    console.log(Batch_id)
+    console.log('Tokens',Token)
     const url = `students/batch/${Batch_id}`;
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${Token}`
     };
     const onResponse = res => {
       console.log('hiii');

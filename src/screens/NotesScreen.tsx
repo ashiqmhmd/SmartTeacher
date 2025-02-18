@@ -23,6 +23,7 @@ import Svg, {
 import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const NotesScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -60,11 +61,13 @@ const NotesScreen = ({navigation}) => {
     }
   };
 
-  const Notes_fetch = () => {
+  const Notes_fetch = async () => {
+    const Token = await AsyncStorage.getItem("Token")
     const url = '/notes/batch/123e4567-e89b-12d3-a456-426614174000';
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${Token}`
     };
     const onResponse = res => {
       console.log('hiii');

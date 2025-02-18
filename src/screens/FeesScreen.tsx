@@ -78,10 +78,12 @@ const dispatch = useDispatch();
 
   const Fees_fetch = async () => {
     const Batch_id = await AsyncStorage.getItem("batch_id")
+    const Token = await AsyncStorage.getItem("Token")
     const url = `fee-records/batches/${Batch_id}`;
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${Token}`
     };
     const onResponse = res => {
       console.log('Fees response');

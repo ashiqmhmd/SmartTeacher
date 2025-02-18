@@ -84,8 +84,10 @@ const LoginScreen = ({navigation}) => {
       setLoading(false);
       if (res.token) {
         const userData = {
-          token: res.token,
+          token: `${res.token}`,
         };
+        console.log(userData)
+        console.log('token', res.token)
         dispatch(login(userData));
         navigation.replace('Tabs');
       } else {
@@ -225,12 +227,13 @@ const LoginScreen = ({navigation}) => {
                 styles.loginButton,
                 loading && styles.loginButtonDisabled,
               ]}
-              disabled={loading}>
-              {loading ? (
-                <ActivityIndicator color="white" />
-              ) : (
+              // disabled={loading}
+              >
+              {/* {loading ? ( */}
+                {/* // <ActivityIndicator color="white" /> */}
+              {/* ) : ( */}
                 <Text style={styles.loginButtonText}>Login</Text>
-              )}
+              {/* )} */}
             </TouchableOpacity>
 
             <View style={styles.signupContainer}>

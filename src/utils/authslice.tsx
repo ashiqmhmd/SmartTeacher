@@ -16,7 +16,7 @@ const authSlice = createSlice({
     login: (state, action) => {
       state.isLoggedIn = true;
       state.token = action.payload.token;
-      
+      AsyncStorage.setItem("Token", action.payload.token)
     },
     logout: (state) => {
       state.isLoggedIn = false;
