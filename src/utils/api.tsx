@@ -1,4 +1,3 @@
-
 type Callback<T = any> = (data: T) => void;
 
 interface FileData {
@@ -16,53 +15,47 @@ export const postApi = async (
   onResponse: Callback | null = null,
   onCatch: Callback | null = null,
 ): Promise<any> => {
- 
-    // Prepare headers
-    const headers = {
-      'Content-Type': 'application/json',
-      ...header,
-    };
-    console.log(body)
+  const headers = {
+    'Content-Type': 'application/json',
+    ...header,
+  };
+  console.log(body);
 
-    fetch(base_url + url, {
-      method: 'POST',
-      headers: headers,
-      body:JSON.stringify(body)
-      
+  fetch(base_url + url, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify(body),
+  });
+  fetch(base_url + url, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify(body),
+  })
+    .then(async response => {
+      const text = await response.text();
+      console.log('Raw Response:', text);
+
+      try {
+        const fixedText = text.replace(
+          /"token":\s*([^"{\[][^,}\]]*)/g,
+          '"token": "$1"',
+        );
+
+        return JSON.parse(fixedText);
+      } catch (error) {
+        console.error('JSON Parse Error:', error);
+        throw new Error(`Invalid JSON response: ${text}`);
+      }
     })
-    fetch(base_url + url, {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify(body),
+    .then(responseJson => {
+      console.log('Parsed JSON:', responseJson);
+      onResponse && onResponse(responseJson);
     })
-      .then(async response => {
-        const text = await response.text(); // Read response as text
-        console.log("Raw Response:", text);
-    
-        try {
-          // Manually fix the missing quotes in token
-          const fixedText = text.replace(/"token":\s*([^"{\[][^,}\]]*)/g, '"token": "$1"');
-    
-          return JSON.parse(fixedText); // Try parsing JSON again
-        } catch (error) {
-          console.error("JSON Parse Error:", error);
-          throw new Error(`Invalid JSON response: ${text}`);
-        }
-      })
-      .then(responseJson => {
-        console.log('Parsed JSON:', responseJson);
-        onResponse && onResponse(responseJson);
-      })
-      .catch(e => {
-        console.error('Fetch Error:', e);
-        onCatch && onCatch(e);
-      });
-    
-  
-}
-
-
-
+    .catch(e => {
+      console.error('Fetch Error:', e);
+      onCatch && onCatch(e);
+    });
+};
 
 export const getapi = async (
   url: string = '',
@@ -71,13 +64,12 @@ export const getapi = async (
   onCatch: Callback | null = null,
   file: FileData | null = null,
 ): Promise<any> => {
-  // Prepare headers
   const headers = {
     'Content-Type': 'application/json',
     ...header,
   };
-  console.log("headerr")
-console.log(headers)
+  console.log('headerr');
+  console.log(headers);
   fetch(base_url + url, {
     method: 'GET',
     headers: headers,
@@ -103,9 +95,8 @@ console.log(headers)
     });
 };
 
-
-export const student_details = (id) => {
- let responsee: any[] = [];
+export const student_details = id => {
+  let responsee: any[] = [];
   const url = `/students/${id}`;
   const mheaders = {
     Accept: 'application/json',
@@ -116,13 +107,11 @@ export const student_details = (id) => {
     method: 'GET',
     headers: mheaders,
   })
-
     .then(response => response.json())
     .then(responseJson => {
-      // console.log('response: ' + JSON.stringify(responseJson));
       if (responseJson) {
         console.log('if entered');
-        responsee.push(responseJson)
+        responsee.push(responseJson);
       } else {
         console.log('else entered');
       }
@@ -133,7 +122,6 @@ export const student_details = (id) => {
       console.log('error Json ' + JSON.stringify(e));
       console.log('error toString ' + e.toString());
     });
-    
-    return responsee;
 
-}
+  return responsee;
+};
