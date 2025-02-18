@@ -5,23 +5,20 @@ import {
   FlatList,
   TouchableOpacity,
   Platform,
-  Image,
 } from 'react-native';
 import React, {useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const NotificationScreen = ({navigation}) => {
-  // Sample notification data
   const [notifications, setNotifications] = useState([
     {
       id: '1',
       type: 'message',
-      title: 'New Message from Parent',
-      description: "Rahul's father asked about the upcoming test schedule",
+      title: 'New Message from John',
+      description: 'What is .....',
       time: '2 hours ago',
-      isRead: false,
+      seen: false,
       icon: 'message',
       iconColor: '#4CAF50',
     },
@@ -29,43 +26,29 @@ const NotificationScreen = ({navigation}) => {
       id: '2',
       type: 'payment',
       title: 'Fee Payment Received',
-      description: 'Priya Singh has paid ₹2000 for Mathematics Batch',
+      description: 'John doe has paid ₹2000 for Math 1012 Algebra',
       time: '5 hours ago',
-      isRead: false,
+      seen: false,
       icon: 'payments',
       iconColor: '#2196F3',
     },
     {
       id: '3',
       type: 'test',
-      title: 'Test Results Updated',
-      description: 'Physics Unit Test results have been attested',
+      title: 'New Assignment',
+      description: '',
       time: '1 day ago',
-      isRead: true,
+      seen: true,
       icon: 'assignment',
       iconColor: '#FF9800',
     },
   ]);
 
   const handleNotificationPress = notification => {
-    // Mark notification as read
     const updatedNotifications = notifications.map(item =>
-      item.id === notification.id ? {...item, isRead: true} : item,
+      item.id === notification.id ? {...item, seen: true} : item,
     );
     setNotifications(updatedNotifications);
-
-    // Navigate based on notification type
-    switch (notification.type) {
-      case 'message':
-        navigation.navigate('MessageDetails', {id: notification.id});
-        break;
-      case 'payment':
-        navigation.navigate('PaymentDetails', {id: notification.id});
-        break;
-      case 'test':
-        navigation.navigate('TestResults', {id: notification.id});
-        break;
-    }
   };
 
   const renderNotificationCard = ({item}) => (
@@ -89,7 +72,7 @@ const NotificationScreen = ({navigation}) => {
         </View>
         <Text style={styles.notificationDescription}>{item.description}</Text>
       </View>
-      {!item.isRead && <View style={styles.unreadDot} />}
+      {!item.seen && <View style={styles.unreadDot} />}
     </TouchableOpacity>
   );
 
@@ -100,9 +83,7 @@ const NotificationScreen = ({navigation}) => {
           <Ionicons name="arrow-back" size={24} color="rgb(0,0,0)" />
         </TouchableOpacity>
         <Text style={styles.appBarTitle}>Notifications</Text>
-        <TouchableOpacity>
-          <MaterialIcons name="more-vert" size={24} color="rgb(0,0,0)" />
-        </TouchableOpacity>
+        <MaterialIcons name="arrow-back" size={24} color="rgba(0, 0, 0, 0)" />
       </View>
 
       <FlatList
