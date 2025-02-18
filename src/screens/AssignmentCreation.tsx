@@ -84,7 +84,7 @@ const CreateAssignment = ({navigation}) => {
     try {
       const result = await pick({
         allowMultiSelection: false,
-        type: ['*/*'], // All file types
+        type: ['*/*'],
       });
 
       if (result) {
@@ -100,11 +100,7 @@ const CreateAssignment = ({navigation}) => {
         attachmentValidation(size);
       }
     } catch (error) {
-      if (error.message === 'User canceled') {
-        console.log('User canceled the picker');
-      } else {
-        console.error('Document Picker Error:', error);
-      }
+      console.error('Document Picker Error:', error);
     }
   };
 
@@ -131,8 +127,6 @@ const CreateAssignment = ({navigation}) => {
   return (
     <View style={styles.screen}>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-
-      {/* App Bar */}
       <View style={styles.appBar}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <MaterialIcons name="arrow-back" size={24} color="#001d3d" />
@@ -155,7 +149,6 @@ const CreateAssignment = ({navigation}) => {
           )}
 
           <View style={styles.formContainer}>
-            {/* Title Input */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Title *</Text>
               <TextInput
@@ -174,7 +167,6 @@ const CreateAssignment = ({navigation}) => {
               )}
             </View>
 
-            {/* Submission Date */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Submission Date *</Text>
               <TouchableOpacity
@@ -194,7 +186,6 @@ const CreateAssignment = ({navigation}) => {
               )}
             </View>
 
-            {/* Description */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Description</Text>
               <TextInput
@@ -211,7 +202,6 @@ const CreateAssignment = ({navigation}) => {
               />
             </View>
 
-            {/* Attachments */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Attachments</Text>
               <TouchableOpacity
@@ -232,7 +222,6 @@ const CreateAssignment = ({navigation}) => {
           </View>
         </ScrollView>
 
-        {/* Action Buttons */}
         <View style={styles.actionButtons}>
           <TouchableOpacity
             style={styles.cancelButton}
