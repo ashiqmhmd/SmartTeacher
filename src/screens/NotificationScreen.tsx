@@ -9,40 +9,10 @@ import {
 import React, {useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {notificationz} from '../dumyDb';
 
 const NotificationScreen = ({navigation}) => {
-  const [notifications, setNotifications] = useState([
-    {
-      id: '1',
-      type: 'message',
-      title: 'New Message from John',
-      description: 'What is .....',
-      time: '2 hours ago',
-      seen: false,
-      icon: 'message',
-      iconColor: '#4CAF50',
-    },
-    {
-      id: '2',
-      type: 'payment',
-      title: 'Fee Payment Received',
-      description: 'John doe has paid ₹2000 for Math 1012 Algebra',
-      time: '5 hours ago',
-      seen: false,
-      icon: 'payments',
-      iconColor: '#2196F3',
-    },
-    {
-      id: '3',
-      type: 'test',
-      title: 'New Assignment',
-      description: '',
-      time: '1 day ago',
-      seen: true,
-      icon: 'assignment',
-      iconColor: '#FF9800',
-    },
-  ]);
+  const [notifications, setNotifications] = useState(notificationz);
 
   const handleNotificationPress = notification => {
     const updatedNotifications = notifications.map(item =>
