@@ -5,14 +5,11 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Image,
   StatusBar,
-  ActivityIndicator,
-  Alert,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
@@ -40,21 +37,12 @@ const LoginScreen = ({navigation}) => {
       general: '',
     };
 
-    // Username validation
     if (!username.trim()) {
       newErrors.username = 'Username is required';
       isValid = false;
-    } else if (username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
-      isValid = false;
     }
-
-    // Password validation
     if (!password) {
       newErrors.password = 'Password is required';
-      isValid = false;
-    } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
       isValid = false;
     }
 
@@ -82,14 +70,17 @@ const LoginScreen = ({navigation}) => {
 
     const onResponse = res => {
       setLoading(false);
+      console.log(res.error);
       if (res.token) {
         const userData = {
           token: `${res.token}`,
         };
-        console.log(userData)
-        console.log('token', res.token)
+        console.log(userData);
+        console.log('token', res.token);
         dispatch(login(userData));
         navigation.replace('Tabs');
+      } else if (res.error) {
+        setErrors({...errors, general: res.error});
       } else {
         setErrors({...errors, general: 'Invalid response from server'});
       }
@@ -100,11 +91,6 @@ const LoginScreen = ({navigation}) => {
       console.log('Error:', error);
       if (error.response?.status === 401) {
         setErrors({...errors, general: 'Invalid username or password'});
-      } else if (error.response?.status === 429) {
-        setErrors({
-          ...errors,
-          general: 'Too many attempts. Please try again later',
-        });
       } else {
         setErrors({
           ...errors,
@@ -119,7 +105,7 @@ const LoginScreen = ({navigation}) => {
       setLoading(false);
       setErrors({
         ...errors,
-        general: 'Network error. Please check your connection',
+        general: 'Network error.',
       });
     }
   };
@@ -226,14 +212,8 @@ const LoginScreen = ({navigation}) => {
               style={[
                 styles.loginButton,
                 loading && styles.loginButtonDisabled,
-              ]}
-              // disabled={loading}
-              >
-              {/* {loading ? ( */}
-                {/* // <ActivityIndicator color="white" /> */}
-              {/* ) : ( */}
-                <Text style={styles.loginButtonText}>Login</Text>
-              {/* )} */}
+              ]}>
+              <Text style={styles.loginButtonText}>Login</Text>
             </TouchableOpacity>
 
             <View style={styles.signupContainer}>
