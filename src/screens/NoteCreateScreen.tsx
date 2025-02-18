@@ -11,7 +11,6 @@ import {
   Animated,
   KeyboardAvoidingView,
   StatusBar,
-  Image,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {pick} from '@react-native-documents/picker';
@@ -70,7 +69,7 @@ const NoteCreateScreen = ({navigation}) => {
     if (!validateForm()) return;
 
     setIsSaving(true);
-    // Simulate API call
+    // API call
     await new Promise(resolve => setTimeout(resolve, 1500));
     setIsSaving(false);
     setShowSuccessMessage(true);
@@ -85,7 +84,7 @@ const NoteCreateScreen = ({navigation}) => {
     try {
       const result = await pick({
         allowMultiSelection: true,
-        type: ['*/*'], // All file types
+        type: ['*/*'],
       });
 
       if (result) {
@@ -111,8 +110,6 @@ const NoteCreateScreen = ({navigation}) => {
   };
 
   const renderAttachment = (item, index) => {
-    // if (!note.attachment) return null;
-
     const isPDF = item.type === 'application/pdf';
 
     return (
@@ -127,8 +124,6 @@ const NoteCreateScreen = ({navigation}) => {
         </Text>
         <TouchableOpacity
           onPress={() => {
-            // setNote(prev => ({ ...prev, attachment: null }));
-            // setErrors(prev => ({ ...prev, attachment: undefined }));
             const newErrors = {};
             const newAttachments = [...note.attachments];
             newAttachments.splice(index, 1);
@@ -145,8 +140,6 @@ const NoteCreateScreen = ({navigation}) => {
   return (
     <View style={styles.screen}>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-
-      {/* App Bar */}
       <View style={styles.appBar}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <MaterialIcons name="arrow-back" size={24} color="#001d3d" />
@@ -167,7 +160,6 @@ const NoteCreateScreen = ({navigation}) => {
           )}
 
           <View style={styles.formContainer}>
-            {/* Title Input */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Title *</Text>
               <TextInput
@@ -187,7 +179,6 @@ const NoteCreateScreen = ({navigation}) => {
               )}
             </View>
 
-            {/* Description */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Description</Text>
               <TextInput
@@ -204,7 +195,6 @@ const NoteCreateScreen = ({navigation}) => {
               />
             </View>
 
-            {/* Attachment */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Attachment</Text>
               <TouchableOpacity
@@ -227,7 +217,6 @@ const NoteCreateScreen = ({navigation}) => {
           </View>
         </ScrollView>
 
-        {/* Action Buttons */}
         <View style={styles.actionButtons}>
           <TouchableOpacity
             style={styles.cancelButton}
