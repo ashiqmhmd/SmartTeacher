@@ -308,3 +308,36 @@ export const notes = [
     batchId: '123e4567-e89b-12d3-a456-426614174000',
   },
 ];
+
+export const notificationz = [
+  {
+    id: '1',
+    type: 'message',
+    title: 'New Message from John',
+    description: 'What is .....',
+    time: '2 hours ago',
+    seen: false,
+    icon: 'message',
+    iconColor: '#4CAF50',
+  },
+  {
+    id: '2',
+    type: 'payment',
+    title: 'Fee Payment Received',
+    description: 'John doe has paid ₹2000 for Math 1012 Algebra',
+    time: '5 hours ago',
+    seen: false,
+    icon: 'payments',
+    iconColor: '#2196F3',
+  },
+  {
+    id: '3',
+    type: 'test',
+    title: 'New Assignment',
+    description: '',
+    time: '1 day ago',
+    seen: true,
+    icon: 'assignment',
+    iconColor: '#FF9800',
+  },
+];
