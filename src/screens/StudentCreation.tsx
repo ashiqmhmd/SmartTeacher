@@ -91,8 +91,8 @@ const StudentCreation = ({navigation}) => {
       newErrors.parent1Email = 'Valid email required';
 
     if (!student.username.trim()) newErrors.username = 'Username is required';
-    if (student.password.length < 8)
-      newErrors.password = 'Password must be at least 8 characters';
+    if (student.password.length < 6)
+      newErrors.password = 'Password must be at least 6 characters';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
