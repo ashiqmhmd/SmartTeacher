@@ -5,7 +5,6 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
-  Platform,
   StatusBar,
   FlatList,
 } from 'react-native';
@@ -33,13 +32,13 @@ const AssignmentsScreen = ({navigation}) => {
     refRBSheet.current.close();
   };
 
-  const Assignment_fetch = async() => {
-    const Token = await AsyncStorage.getItem("Token")
+  const Assignment_fetch = async () => {
+    const Token = await AsyncStorage.getItem('Token');
     const url = 'assignments/batch/550e8400-e29b-41d4-a716-446655440000';
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${Token}`
+      Authorization: `Bearer ${Token}`,
     };
     const onResponse = res => {
       console.log('assignment response');
@@ -61,9 +60,7 @@ const AssignmentsScreen = ({navigation}) => {
   }, [1]);
 
   const AssignmentCard = ({item}) => (
-    <TouchableOpacity
-      onPress={() => navigation.navigate('Assignment_Edit', {assignment: item})}
-      style={styles.assignmentCard}>
+    <TouchableOpacity style={styles.assignmentCard}>
       <View style={styles.assignmentHeader}>
         <Text style={styles.assignmentTitle}>{item.title}</Text>
         <View
