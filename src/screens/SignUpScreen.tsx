@@ -16,14 +16,12 @@ import LinearGradient from 'react-native-linear-gradient';
 import {postApi} from '../utils/api';
 
 const TrendySignupScreen = ({navigation}) => {
-  const [firstName, setFirstName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [address, setAddress] = useState('');
-  const [pincode, setPincode] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [gender, setGender] = useState(null);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const Teacher_signup = () => {
     const url = 'login/teacher';
@@ -32,14 +30,12 @@ const TrendySignupScreen = ({navigation}) => {
       'Content-Type': 'application/json',
     };
     const body = {
-      firstName: firstName,
       userName: username,
       email: email,
       password: password,
     };
     const onResponse = res => {
       console.log('created succesfully');
-      // navigation.replace('Login');
     };
 
     const onCatch = res => {
@@ -139,77 +135,22 @@ const TrendySignupScreen = ({navigation}) => {
                 style={styles.input}
                 placeholder="Confirm Password"
                 placeholderTextColor="#888"
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={setPassword}
+                secureTextEntry={!showConfirmPassword}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
               />
               <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 style={styles.showPasswordIcon}>
                 <Feather
-                  name={showPassword ? 'eye' : 'eye-off'}
+                  name={showConfirmPassword ? 'eye' : 'eye-off'}
                   size={20}
                   color="#001d3d"
                 />
               </TouchableOpacity>
             </View>
 
-            {/* <View style={styles.inputContainer}>
-              <Feather
-                name="map-pin"
-                size={20}
-                color="#001d3d"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Address"
-                placeholderTextColor="#888"
-                value={address}
-                onChangeText={setAddress}
-              />
-            </View> */}
-
-            {/* <View style={styles.inputContainer}>
-              <Feather
-                name="map"
-                size={20}
-                color="#001d3d"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Pincode"
-                placeholderTextColor="#888"
-                value={pincode}
-                onChangeText={setPincode}
-                keyboardType="numeric"
-              />
-            </View> */}
-
-            {/* <View style={styles.genderContainer}>
-              <Text style={styles.genderLabel}>Gender:</Text>
-              <View style={styles.genderOptions}>
-                {['Male', 'Female', 'Transgender', 'Other'].map(
-                  genderOption => (
-                    <TouchableOpacity
-                      key={genderOption}
-                      style={[
-                        styles.genderButton,
-                        gender === genderOption && styles.selectedGender,
-                      ]}
-                      onPress={() => setGender(genderOption)}>
-                      <Text style={styles.genderButtonText}>
-                        {genderOption}
-                      </Text>
-                    </TouchableOpacity>
-                  ),
-                )}
-              </View>
-            </View> */}
-
             <TouchableOpacity
-              // onPress={() => Teacher_signup()}
               onPress={() => navigation.navigate('Update_Profile')}
               style={styles.signupButton}>
               <Text style={styles.signupButtonText}>Sign Up</Text>
