@@ -1,4 +1,4 @@
-import {Image, Text, View, StyleSheet, TouchableOpacity} from 'react-native';
+import {View, StyleSheet, TouchableOpacity} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import HomeScreen from '../screens/HomeScreen';
@@ -6,8 +6,6 @@ import FeesScreen from '../screens/FeesScreen';
 import AssignmentScreen from '../screens/AssignmentScreen';
 import ChatsScreen from '../screens/ChatsScreen';
 import NotesScreen from '../screens/NotesScreen';
-import LoginScreen from '../screens/LoginScreen';
-import SignUpScreen from '../screens/SignUpScreen';
 export type BottomTabParamsList = {
   Home: undefined;
   Fee: undefined;
@@ -22,9 +20,9 @@ const BottomTabNavigator = () => {
   const TabBarBackground = focused => (
     <View
       style={{
-        backgroundColor: focused ? '#1D49A7' : 'transparent', // Light blue when active
-        padding: 50, // Space around the icon
-        borderRadius: 50, // Circular shape
+        backgroundColor: focused ? '#1D49A7' : 'transparent',
+        padding: 50,
+        borderRadius: 50,
       }}></View>
   );
   return (
@@ -33,10 +31,7 @@ const BottomTabNavigator = () => {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarButton: props => (
-          <TouchableOpacity
-            activeOpacity={0.7} // Controls the press effect visibility
-            {...props}
-          />
+          <TouchableOpacity activeOpacity={0.7} {...props} />
         ),
         tabBarIcon: ({focused, color, size}) => {
           TabBarBackground(focused);
@@ -84,17 +79,16 @@ const BottomTabNavigator = () => {
         },
         tabBarStyle: {
           position: 'absolute',
-          width: '90%', // Adjust as needed
+          width: '90%',
           height: 60,
           bottom: 20,
           marginHorizontal: '5%',
-          borderRadius: 50, // Rounded corners for a floating effect
+          borderRadius: 50,
           justifyContent: 'center',
           alignItems: 'center',
           backgroundColor: 'rgb(229,235,252)',
-          elevation: 20, // Android shadow
-          shadowColor: '#000', // iOS shadow
-          // shadowOffset: {width: 0, height: 4},
+          elevation: 20,
+          shadowColor: '#000',
           shadowOpacity: 1,
           shadowRadius: 12,
         },
