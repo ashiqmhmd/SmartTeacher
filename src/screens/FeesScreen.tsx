@@ -5,9 +5,7 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
-  Platform,
   StatusBar,
-  Alert,
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -22,12 +20,11 @@ import BatchSelectorSheet from '../components/BatchSelectorSheet';
 import {getapi, student_details} from '../utils/api';
 import dateconvert from '../components/moment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useDispatch } from 'react-redux';
-import { batch_id } from '../utils/authslice';
-
+import {useDispatch} from 'react-redux';
+import {batch_id} from '../utils/authslice';
 
 interface StudentDetails {
-  [studentId: string]: string; // studentId as key, student name as value
+  [studentId: string]: string;
 }
 
 interface Fees {
@@ -37,59 +34,34 @@ interface Fees {
   status: string;
 }
 
-
 const FeesScreen = ({navigation}) => {
-  let sid = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('Current Month');
   const [paymentFilter, setPaymentFilter] = useState('All');
-  const [studentDetails, setStudentDetails] = useState<StudentDetails>({}); 
-  const [fees, setFees] =  useState<Fees[]>([]);
+  const [studentDetails, setStudentDetails] = useState<StudentDetails>({});
+  const [fees, setFees] = useState<Fees[]>([]);
   const [selectedBatch, setSelectedBatch] = useState({
     subject: 'Algebra',
     name: 'Math 1012',
     id: '212e46a9-9a1d-4906-a27e-5ef03e989955',
   });
 
- 
-const dispatch = useDispatch();
-  const summaryData = {
-    totalExpected: 50000,
-    totalReceived: 35000,
-    balanceToReceive: 15000,
-  };
-
-  const feeRecords = [
-    {
-      id: 1,
-      studentName: 'Kirthi Doe',
-      amount: 5000,
-      status: 'Paid',
-      paymentDate: '2025-02-01',
-    },
-    {
-      id: 2,
-      studentName: 'Jane12 Doe12',
-      amount: 5000,
-      status: 'Unpaid',
-      dueDate: '2025-02-15',
-    },
-  ];
+  const dispatch = useDispatch();
 
   const Fees_fetch = async () => {
-    const Batch_id = await AsyncStorage.getItem("batch_id")
-    const Token = await AsyncStorage.getItem("Token")
+    const Batch_id = await AsyncStorage.getItem('batch_id');
+    const Token = await AsyncStorage.getItem('Token');
     const url = `fee-records/batches/${Batch_id}`;
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${Token}`
+      Authorization: `Bearer ${Token}`,
     };
     const onResponse = res => {
       console.log('Fees response');
       console.log(res);
       setFees(res);
-      student_details_fetch(res)
+      student_details_fetch(res);
     };
 
     const onCatch = res => {
@@ -99,43 +71,43 @@ const dispatch = useDispatch();
     getapi(url, headers, onResponse, onCatch);
   };
 
-  const student_details_fetch = async (records) => {
-
-    const studentIds = [...new Set(records.map(item => item.studentId))]; 
+  const student_details_fetch = async records => {
+    const studentIds = [...new Set(records.map(item => item.studentId))];
 
     const studentDetailsResponse = await Promise.all(
-    studentIds.map(async (studentId) => {
-    const url = `students/${studentId}`;
-    const headers = {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    };
-    const onResponse = res => {
-      console.log('student response');
-      return { studentId, name: res.firstName+res.lastName };
-    };
+      studentIds.map(async studentId => {
+        const url = `students/${studentId}`;
+        const headers = {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        };
+        const onResponse = res => {
+          console.log('student response');
+          return {studentId, name: res.firstName + res.lastName};
+        };
 
-    const details = studentDetailsResponse.reduce((acc, { studentId, name }) => {
-      acc[studentId] = name; // Map studentId to their name
-      return acc;
-    }, {});
+        const details = studentDetailsResponse.reduce(
+          (acc, {studentId, name}) => {
+            acc[studentId] = name;
+            return acc;
+          },
+          {},
+        );
 
-    setStudentDetails(details);
+        setStudentDetails(details);
 
-    const onCatch = res => {
-      console.log('Error');
-      console.log(res);
-    };
-    
-    getapi(url, headers, onResponse, onCatch);
-  })
-)
+        const onCatch = res => {
+          console.log('Error');
+          console.log(res);
+        };
+
+        getapi(url, headers, onResponse, onCatch);
+      }),
+    );
   };
 
   useEffect(() => {
     Fees_fetch();
-    // let dec = student_details(sid);
-    // setDec(dec);
   }, [1]);
 
   const monthOptions = ['Current Month', 'January', 'February', 'March'];
@@ -143,12 +115,12 @@ const dispatch = useDispatch();
 
   const refRBSheet = useRef();
 
-  const handleBatchSelect = async (batch) => {
+  const handleBatchSelect = async batch => {
     await AsyncStorage.removeItem('batch_id');
     setSelectedBatch(batch);
-    console.log(batch.id)
-    dispatch((batch_id(batch.id)));
-    Fees_fetch()
+    console.log(batch.id);
+    dispatch(batch_id(batch.id));
+    Fees_fetch();
     refRBSheet.current.close();
   };
 
@@ -157,11 +129,10 @@ const dispatch = useDispatch();
       onPress={() => navigation.navigate('FeeDetails', {feeRecord: record})}
       style={styles.feeCard}>
       <View style={styles.feeCardHeader}>
-          <Text style={styles.studentName}>
+        <Text style={styles.studentName}>
           {studentDetails[record.studentId] || 'Loading...'}
-            {/* {record.firstName + ' ' + record.lastName} */}
-          </Text>
-   
+        </Text>
+
         <Text
           style={[
             styles.status,
@@ -212,7 +183,6 @@ const dispatch = useDispatch();
         <TouchableOpacity
           onPress={() => refRBSheet.current.open()}
           style={{
-            // backgroundColor: '#f8f9fa',
             borderRadius: 12,
             paddingHorizontal: 10,
             paddingVertical: 5,
@@ -236,21 +206,6 @@ const dispatch = useDispatch();
       </View>
 
       <ScrollView style={styles.container}>
-        {/* <View style={styles.batchSelector}>
-          <TouchableOpacity
-            onPress={() => refRBSheet.current.open()}
-            style={styles.batchButton}>
-            <Text style={styles.batchName}>{selectedBatch.name}</Text>
-            <Text style={styles.batchSubject}>{selectedBatch.subject}</Text>
-            <MaterialIcons
-              name="keyboard-arrow-down"
-              size={24}
-              color="#001d3d"
-              style={styles.batchIcon}
-            />
-          </TouchableOpacity>
-        </View> */}
-
         <View style={styles.feesummeryCard}>
           <LinearGradient
             colors={['rgb(255,255,255)', 'rgb(229,235,252)']}
