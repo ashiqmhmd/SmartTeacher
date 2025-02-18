@@ -5,21 +5,13 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
-  Platform,
   StatusBar,
   FlatList,
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import LinearGradient from 'react-native-linear-gradient';
-import Svg, {
-  Path,
-  Defs,
-  LinearGradient as SvgGradient,
-  Stop,
-} from 'react-native-svg';
-// import {notes} from '../dumyDb';
+
 import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
@@ -42,32 +34,13 @@ const NotesScreen = ({navigation}) => {
     refRBSheet.current.close();
   };
 
-  const getIconForType = type => {
-    switch (type) {
-      case 'PDF':
-        return (
-          <MaterialCommunityIcons
-            name="file-pdf-box"
-            size={24}
-            color="#F44336"
-          />
-        );
-      case 'Video':
-        return <MaterialIcons name="videocam" size={24} color="#2196F3" />;
-      case 'Audio':
-        return <MaterialIcons name="audiotrack" size={24} color="#4CAF50" />;
-      default:
-        return <MaterialIcons name="description" size={24} color="#FF9800" />;
-    }
-  };
-
   const Notes_fetch = async () => {
-    const Token = await AsyncStorage.getItem("Token")
+    const Token = await AsyncStorage.getItem('Token');
     const url = '/notes/batch/123e4567-e89b-12d3-a456-426614174000';
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${Token}`
+      Authorization: `Bearer ${Token}`,
     };
     const onResponse = res => {
       console.log('hiii');
@@ -92,7 +65,9 @@ const NotesScreen = ({navigation}) => {
     <TouchableOpacity
       onPress={() => navigation.navigate('NoteDetails', {note: item})}
       style={styles.noteCard}>
-      <View style={styles.noteTypeIcon}>{getIconForType(item.type)}</View>
+      <View style={styles.noteTypeIcon}>
+        <MaterialIcons name="description" size={24} color="#FF9800" />
+      </View>
       <View style={styles.noteDetailsContainer}>
         <Text style={styles.noteTitle} numberOfLines={1}>
           {item.Title}
@@ -117,7 +92,6 @@ const NotesScreen = ({navigation}) => {
         <TouchableOpacity
           onPress={() => refRBSheet.current.open()}
           style={{
-            // backgroundColor: '#f8f9fa',
             borderRadius: 12,
             paddingHorizontal: 10,
             paddingVertical: 5,
