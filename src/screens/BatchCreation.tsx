@@ -13,7 +13,6 @@ import {
   StatusBar,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-// import {Picker} from '@react-native-picker/picker';
 
 const BatchCreation = ({navigation}) => {
   const [batch, setBatch] = useState({
@@ -21,7 +20,7 @@ const BatchCreation = ({navigation}) => {
     course: '',
     subject: '',
     description: '',
-    paymentFrequency: 'Monthly',
+    paymentFrequency: '',
     paymentAmount: '',
     paymentDayOfMonth: '',
   });
@@ -58,15 +57,13 @@ const BatchCreation = ({navigation}) => {
     if (!batch.paymentAmount || isNaN(batch.paymentAmount)) {
       newErrors.paymentAmount = 'Valid payment amount is required';
     }
-    if (batch.paymentFrequency === 'Monthly') {
-      if (
-        !batch.paymentDayOfMonth ||
-        isNaN(batch.paymentDayOfMonth) ||
-        batch.paymentDayOfMonth < 1 ||
-        batch.paymentDayOfMonth > 31
-      ) {
-        newErrors.paymentDayOfMonth = 'Valid day of month (1-31) is required';
-      }
+    if (
+      !batch.paymentDayOfMonth ||
+      isNaN(batch.paymentDayOfMonth) ||
+      batch.paymentDayOfMonth < 1 ||
+      batch.paymentDayOfMonth > 31
+    ) {
+      newErrors.paymentDayOfMonth = 'Valid day of month (1-31) is required';
     }
 
     setErrors(newErrors);
@@ -77,7 +74,7 @@ const BatchCreation = ({navigation}) => {
     if (!validateForm()) return;
 
     setIsSaving(true);
-    // API call would go here
+    // API call
     await new Promise(resolve => setTimeout(resolve, 1500));
     setIsSaving(false);
     setShowSuccessMessage(true);
@@ -88,7 +85,7 @@ const BatchCreation = ({navigation}) => {
     }, 2000);
   };
 
-  const renderInput = (
+  const inputField = (
     field,
     label,
     placeholder,
@@ -143,11 +140,10 @@ const BatchCreation = ({navigation}) => {
           )}
 
           <View style={styles.formContainer}>
-            {/* Basic Information */}
-            {renderInput('name', 'Batch Name', 'Enter batch name')}
-            {renderInput('course', 'Course', 'Enter course name')}
-            {renderInput('subject', 'Subject', 'Enter subject name')}
-            {renderInput(
+            {inputField('name', 'Batch Name', 'Enter batch name')}
+            {inputField('course', 'Course', 'Enter course name')}
+            {inputField('subject', 'Subject', 'Enter subject name')}
+            {inputField(
               'description',
               'Description',
               'Enter batch description',
@@ -155,52 +151,33 @@ const BatchCreation = ({navigation}) => {
               true,
             )}
 
-            {/* Payment Settings */}
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Payment Settings</Text>
             </View>
 
-            {/* Payment Frequency */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Payment Frequency *</Text>
               <View style={[styles.input, styles.pickerContainer]}>
-                {/* <Picker
-                  selectedValue={batch.paymentFrequency}
-                  onValueChange={itemValue =>
-                    setBatch(prev => ({...prev, paymentFrequency: itemValue}))
-                  }
-                  style={styles.picker}>
-                  {paymentFrequencies.map(frequency => (
-                    <Picker.Item
-                      key={frequency}
-                      label={frequency}
-                      value={frequency}
-                    />
-                  ))}
-                </Picker> */}
+                {/* Frequency Picker */}
               </View>
             </View>
 
-            {/* Payment Amount */}
-            {renderInput(
+            {inputField(
               'paymentAmount',
               'Payment Amount',
               'Enter amount',
               'decimal-pad',
             )}
 
-            {/* Payment Day (only for monthly frequency) */}
-            {batch.paymentFrequency === 'Monthly' &&
-              renderInput(
-                'paymentDayOfMonth',
-                'Payment Day of Month',
-                'Enter day (1-31)',
-                'numeric',
-              )}
+            {inputField(
+              'paymentDayOfMonth',
+              'Payment Day of Month',
+              'Enter day (1-31)',
+              'numeric',
+            )}
           </View>
         </ScrollView>
 
-        {/* Action Buttons */}
         <View style={styles.actionButtons}>
           <TouchableOpacity
             style={styles.cancelButton}
