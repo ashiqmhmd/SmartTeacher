@@ -4,7 +4,8 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
   isLoggedIn: false,
   token: null,
-  batch_id:null
+  batch_id:null,
+  Teacher_id:null
 };
 
 console.log(initialState.batch_id)
@@ -17,6 +18,8 @@ const authSlice = createSlice({
       state.isLoggedIn = true;
       state.token = action.payload.token;
       AsyncStorage.setItem("Token", action.payload.token)
+      state.Teacher_id = action.payload.Teacher_id
+      AsyncStorage.setItem("TeacherId", action.payload.Teacher_id)
     },
     logout: (state) => {
       state.isLoggedIn = false;

@@ -63,14 +63,14 @@ const BatchSelectorSheet = React.forwardRef(
 
     const fetch_batchs = async () => {
       const Token = await AsyncStorage.getItem("Token")
-      const url = 'batches/teacher/660e8400-e29b-41d4-a716-446655440001';
+      const Teacher_id = await AsyncStorage.getItem("TeacherId")
+      const url = `batches/teacher/${Teacher_id}`;
       const headers = {
         Accept: 'application/json',
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${Token}`
       };
       const onResponse = res => {
-        console.log(res);
         setBatchs(res);
       };
       const onCatch = res => {

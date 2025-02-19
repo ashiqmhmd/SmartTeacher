@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -13,11 +13,12 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
-import {useDispatch} from 'react-redux';
-import {postApi} from '../utils/api';
-import {login} from '../utils/authslice';
+import { useDispatch } from 'react-redux';
+import { postApi } from '../utils/api';
+import { login } from '../utils/authslice';
+import { getUserId, Token_decode } from '../utils/TokenDecoder';
 
-const LoginScreen = ({navigation}) => {
+const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -56,7 +57,7 @@ const LoginScreen = ({navigation}) => {
     }
 
     setLoading(true);
-    setErrors({...errors, general: ''});
+    setErrors({ ...errors, general: '' });
 
     const url = 'login/teacher';
     const headers = {
@@ -68,21 +69,20 @@ const LoginScreen = ({navigation}) => {
       password: password,
     };
 
-    const onResponse = res => {
+    const onResponse = async (res) => {
       setLoading(false);
-      console.log(res.error);
+      const Teacherid = await getUserId(res.token);
       if (res.token) {
         const userData = {
           token: `${res.token}`,
+          Teacher_id: Teacherid
         };
-        console.log(userData);
-        console.log('token', res.token);
         dispatch(login(userData));
         navigation.replace('Tabs');
       } else if (res.error) {
-        setErrors({...errors, general: res.error});
+        setErrors({ ...errors, general: res.error });
       } else {
-        setErrors({...errors, general: 'Invalid response from server'});
+        setErrors({ ...errors, general: 'Invalid response from server' });
       }
     };
 
@@ -90,7 +90,7 @@ const LoginScreen = ({navigation}) => {
       setLoading(false);
       console.log('Error:', error);
       if (error.response?.status === 401) {
-        setErrors({...errors, general: 'Invalid username or password'});
+        setErrors({ ...errors, general: 'Invalid username or password' });
       } else {
         setErrors({
           ...errors,
@@ -156,7 +156,7 @@ const LoginScreen = ({navigation}) => {
                 value={username}
                 onChangeText={text => {
                   setUsername(text);
-                  setErrors({...errors, username: '', general: ''});
+                  setErrors({ ...errors, username: '', general: '' });
                 }}
                 autoCapitalize="none"
                 editable={!loading}
@@ -183,7 +183,7 @@ const LoginScreen = ({navigation}) => {
                 value={password}
                 onChangeText={text => {
                   setPassword(text);
-                  setErrors({...errors, password: '', general: ''});
+                  setErrors({ ...errors, password: '', general: '' });
                 }}
                 editable={!loading}
               />
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 30,
     shadowColor: '#1D49A7',
-    shadowOffset: {width: 0, height: 10},
+    shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 20,

@@ -26,18 +26,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const HomeScreen = ({ navigation }) => {
   const refRBSheet = useRef();
   const Batch_id = useSelector(state => state.auth.batch_id);
-  const [selectedBatch, setSelectedBatch] = useState({
-    subject: 'Algebra',
-    paymentFrequency: 'Monthly',
-    course: 'Mathematics',
-    teacherId: '660e8400-e29b-41d4-a716-446655440001',
-    description:
-      'An introductory course to Algebra covering basic concepts and problem-solving techniques.',
-    id: '212e46a9-9a1d-4906-a27e-5ef03e989955',
-    paymentAmount: 150,
-    name: 'Math 1012',
-    paymentDayOfMonth: 15,
-  });
+  const [selectedBatch, setSelectedBatch] = useState({});
   const [students, setStudents] = useState([]);
   // var codesPostal: CodePostal[] = []
   const dispatch = useDispatch();
@@ -45,7 +34,6 @@ const HomeScreen = ({ navigation }) => {
   const students_fetch = async () => {
     const Token = await AsyncStorage.getItem("Token")
     const Batch_id = await AsyncStorage.getItem("batch_id")
-    console.log('Tokens',Token)
     const url = `students/batch/${Batch_id}`;
     const headers = {
       Accept: 'application/json',
@@ -53,8 +41,6 @@ const HomeScreen = ({ navigation }) => {
       'Authorization': `Bearer ${Token}`
     };
     const onResponse = res => {
-      console.log('hiii');
-      console.log(batch_id);
       setStudents(res);
     };
 
@@ -72,8 +58,6 @@ const HomeScreen = ({ navigation }) => {
 
   useEffect(() => {
     students_fetch();
-    console.log(students);
-    console.log('mo');
   }, [1]);
 
   // // Function to Open Bottom Sheet
@@ -82,7 +66,6 @@ const HomeScreen = ({ navigation }) => {
   // }, []);
 
   const renderStudentCard = ({ item }) => {
-    console.log(item.age);
     return (
       <TouchableOpacity
         style={styles.listCard}
@@ -119,7 +102,6 @@ const HomeScreen = ({ navigation }) => {
   const handleBatchSelect = async (batch) => {
     await AsyncStorage.removeItem('batch_id');
     setSelectedBatch(batch);
-    console.log(batch.id)
     dispatch(batch_id(batch.id)),
       refRBSheet.current.close();
     await students_fetch()

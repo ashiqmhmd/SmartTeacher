@@ -58,8 +58,6 @@ const FeesScreen = ({navigation}) => {
       Authorization: `Bearer ${Token}`,
     };
     const onResponse = res => {
-      console.log('Fees response');
-      console.log(res);
       setFees(res);
       student_details_fetch(res);
     };
@@ -71,40 +69,49 @@ const FeesScreen = ({navigation}) => {
     getapi(url, headers, onResponse, onCatch);
   };
 
-  const student_details_fetch = async records => {
+  const student_details_fetch = async (records: any[]) => {
+    const Token = await AsyncStorage.getItem("Token");
     const studentIds = [...new Set(records.map(item => item.studentId))];
-
+  
     const studentDetailsResponse = await Promise.all(
       studentIds.map(async studentId => {
         const url = `students/${studentId}`;
         const headers = {
           Accept: 'application/json',
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${Token}`
         };
-        const onResponse = res => {
-          console.log('student response');
-          return {studentId, name: res.firstName + res.lastName};
-        };
-
-        const details = studentDetailsResponse.reduce(
-          (acc, {studentId, name}) => {
-            acc[studentId] = name;
-            return acc;
-          },
-          {},
-        );
-
-        setStudentDetails(details);
-
-        const onCatch = res => {
-          console.log('Error');
-          console.log(res);
-        };
-
-        getapi(url, headers, onResponse, onCatch);
-      }),
+  
+        return new Promise((resolve) => {
+          getapi(
+            url,
+            headers,
+            (res) => {
+              if (res && res.id) {
+                console.log(`Response for ${studentId}:`, res);
+                resolve({ studentId: res.id, name: `${res.firstName} ${res.lastName}` });
+              } else {
+                console.warn(`Invalid response for Student ID ${studentId}:`, res);
+                resolve(null);
+              }
+            },
+            (error) => {
+              console.error(`Error fetching student ${studentId}:`, error);
+              resolve(null);
+            }
+          );
+        });
+      })
     );
+  
+    // Filter out null values
+    const details = studentDetailsResponse.filter(Boolean).reduce((acc, { studentId, name }) => {
+      acc[studentId] = name;
+      return acc;
+    }, {});
+    setStudentDetails(details);
   };
+  
 
   useEffect(() => {
     Fees_fetch();
@@ -118,7 +125,6 @@ const FeesScreen = ({navigation}) => {
   const handleBatchSelect = async batch => {
     await AsyncStorage.removeItem('batch_id');
     setSelectedBatch(batch);
-    console.log(batch.id);
     dispatch(batch_id(batch.id));
     Fees_fetch();
     refRBSheet.current.close();
