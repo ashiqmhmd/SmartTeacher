@@ -14,35 +14,41 @@ import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useDispatch } from 'react-redux';
+import { batch_id } from '../utils/authslice';
 
 const AssignmentsScreen = ({navigation}) => {
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [assignment, setAssignment] = useState([]);
 
-  const [selectedBatch, setSelectedBatch] = useState({
-    subject: 'Algebra',
-    name: 'Math 1012',
-    id: '212e46a9-9a1d-4906-a27e-5ef03e989955',
-  });
-
+  const [selectedBatch, setSelectedBatch] = useState({});
   const refRBSheet = useRef();
+  const dispatch = useDispatch();
 
-  const handleBatchSelect = batch => {
+
+
+
+  const handleBatchSelect = async (batch) => {
+    await AsyncStorage.removeItem('batch_id');
+    dispatch(batch_id(batch.id));
     setSelectedBatch(batch);
+   await Assignment_fetch()
     refRBSheet.current.close();
   };
 
+
+
   const Assignment_fetch = async () => {
     const Token = await AsyncStorage.getItem('Token');
-    const url = 'assignments/batch/550e8400-e29b-41d4-a716-446655440000';
+    const Batch_id = await AsyncStorage.getItem('batch_id');
+    const url = `assignments/batch/${Batch_id}`;
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
       Authorization: `Bearer ${Token}`,
     };
     const onResponse = res => {
-      console.log('assignment response');
-      console.log(res);
       setAssignment(res);
     };
 
@@ -55,8 +61,6 @@ const AssignmentsScreen = ({navigation}) => {
 
   useEffect(() => {
     Assignment_fetch();
-    console.log(assignment);
-    console.log('assignment fetch');
   }, [1]);
 
   const AssignmentCard = ({item}) => (

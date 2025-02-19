@@ -6,13 +6,15 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {notificationz} from '../dumyDb';
+import { getapi } from '../utils/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const NotificationScreen = ({navigation}) => {
-  const [notifications, setNotifications] = useState(notificationz);
+  const [notifications, setNotifications] = useState();
 
   const handleNotificationPress = notification => {
     const updatedNotifications = notifications.map(item =>
@@ -20,6 +22,34 @@ const NotificationScreen = ({navigation}) => {
     );
     setNotifications(updatedNotifications);
   };
+
+  const Notes_fetch = async () => {
+    const Token = await AsyncStorage.getItem('Token');
+    const Teacher_id = await AsyncStorage.getItem('TeacherId');
+
+    const url = `notifications/teachers/${Teacher_id}`;
+    const headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${Token}`,
+    };
+    const onResponse = res => {
+      console.log('hiii');
+      console.log(Teacher_id);
+      setNotifications(res);
+    };
+
+    const onCatch = res => {
+      console.log('Error');
+      console.log(res);
+    };
+    getapi(url, headers, onResponse, onCatch);
+  };
+
+  useEffect(() => {
+    Notes_fetch();
+  }, [1]);
+
 
   const renderNotificationCard = ({item}) => (
     <TouchableOpacity

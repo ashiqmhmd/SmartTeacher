@@ -16,6 +16,8 @@ import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { batch_id } from '../utils/authslice';
+import { useDispatch } from 'react-redux';
 
 const NotesScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,15 +30,24 @@ const NotesScreen = ({navigation}) => {
   });
 
   const refRBSheet = useRef();
+  const dispatch = useDispatch();
 
-  const handleBatchSelect = batch => {
+
+
+
+  const handleBatchSelect = async (batch) => {
+    await AsyncStorage.removeItem('batch_id');
+    dispatch(batch_id(batch.id));
     setSelectedBatch(batch);
+    await Notes_fetch()
     refRBSheet.current.close();
   };
 
   const Notes_fetch = async () => {
     const Token = await AsyncStorage.getItem('Token');
-    const url = '/notes/batch/123e4567-e89b-12d3-a456-426614174000';
+    const Batch_id = await AsyncStorage.getItem('batch_id');
+
+    const url = `/notes/batch/${Batch_id}`;
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
