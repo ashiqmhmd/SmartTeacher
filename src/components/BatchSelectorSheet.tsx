@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,10 +11,12 @@ import RBSheet from 'react-native-raw-bottom-sheet';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {getapi} from '../utils/api';
+import { getapi } from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useDispatch } from 'react-redux';
+import { batch_id, selectBatch } from '../utils/authslice';
 
-const BatchItem = ({item, selectedBatch, onSelect}) => (
+const BatchItem = ({ item, selectedBatch, onSelect }) => (
   <TouchableOpacity
     style={[
       styles.batchItem,
@@ -57,9 +59,11 @@ const BatchItem = ({item, selectedBatch, onSelect}) => (
 );
 
 const BatchSelectorSheet = React.forwardRef(
-  ({selectedBatch, onBatchSelect}, ref) => {
+  ({ selectedBatch, onBatchSelect }, ref) => {
     const [batchs, setBatchs] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const dispatch = useDispatch();
+
 
     const fetch_batchs = async () => {
       const Token = await AsyncStorage.getItem("Token")
@@ -70,8 +74,13 @@ const BatchSelectorSheet = React.forwardRef(
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${Token}`
       };
-      const onResponse = res => {
+      const onResponse = async (res) => {
         setBatchs(res);
+        if (res)
+          dispatch(selectBatch(JSON.stringify(res[0]?res[0]:null))); // Update Redux state
+        await AsyncStorage.removeItem('batch_id');
+        dispatch(batch_id(res[0]?.id)),
+        await AsyncStorage.setItem('batch', JSON.stringify(res[0]?res[0]:null)); // Store full batch object
       };
       const onCatch = res => {
         console.log('Error');
@@ -134,7 +143,7 @@ const BatchSelectorSheet = React.forwardRef(
           </View>
           <FlatList
             data={filteredBatches}
-            renderItem={({item}) => (
+            renderItem={({ item }) => (
               <BatchItem
                 item={item}
                 selectedBatch={selectedBatch}

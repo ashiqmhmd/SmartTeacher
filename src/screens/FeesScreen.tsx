@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   StatusBar,
 } from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, {
@@ -17,11 +17,11 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
-import {getapi, student_details} from '../utils/api';
+import { getapi } from '../utils/api';
 import dateconvert from '../components/moment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useDispatch} from 'react-redux';
-import {batch_id} from '../utils/authslice';
+import { useDispatch, useSelector } from 'react-redux';
+import { batch_id, selectBatch, } from '../utils/authslice';
 
 interface StudentDetails {
   [studentId: string]: string;
@@ -34,17 +34,15 @@ interface Fees {
   status: string;
 }
 
-const FeesScreen = ({navigation}) => {
+const FeesScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('Current Month');
   const [paymentFilter, setPaymentFilter] = useState('All');
   const [studentDetails, setStudentDetails] = useState<StudentDetails>({});
   const [fees, setFees] = useState<Fees[]>([]);
-  const [selectedBatch, setSelectedBatch] = useState({
-    subject: 'Algebra',
-    name: 'Math 1012',
-    id: '212e46a9-9a1d-4906-a27e-5ef03e989955',
-  });
+
+  const selectedBatchString = useSelector((state) => state.auth?.selectBatch);
+
 
   const dispatch = useDispatch();
 
@@ -70,9 +68,10 @@ const FeesScreen = ({navigation}) => {
   };
 
   const student_details_fetch = async (records: any[]) => {
+
     const Token = await AsyncStorage.getItem("Token");
     const studentIds = [...new Set(records.map(item => item.studentId))];
-  
+
     const studentDetailsResponse = await Promise.all(
       studentIds.map(async studentId => {
         const url = `students/${studentId}`;
@@ -81,7 +80,7 @@ const FeesScreen = ({navigation}) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${Token}`
         };
-  
+
         return new Promise((resolve) => {
           getapi(
             url,
@@ -103,7 +102,7 @@ const FeesScreen = ({navigation}) => {
         });
       })
     );
-  
+
     // Filter out null values
     const details = studentDetailsResponse.filter(Boolean).reduce((acc, { studentId, name }) => {
       acc[studentId] = name;
@@ -111,7 +110,11 @@ const FeesScreen = ({navigation}) => {
     }, {});
     setStudentDetails(details);
   };
-  
+  const selectedBatch = useMemo(() => {
+    Fees_fetch();
+    return selectedBatchString ? JSON.parse(selectedBatchString) : null;
+  }, [selectedBatchString]);
+
 
   useEffect(() => {
     Fees_fetch();
@@ -122,17 +125,18 @@ const FeesScreen = ({navigation}) => {
 
   const refRBSheet = useRef();
 
-  const handleBatchSelect = async batch => {
+  const handleBatchSelect = async (batch) => {
     await AsyncStorage.removeItem('batch_id');
-    setSelectedBatch(batch);
-    dispatch(batch_id(batch.id));
+    dispatch(batch_id(batch.id)),
+      await AsyncStorage.setItem('batch', JSON.stringify(batch));
+    refRBSheet.current.close(); // Store full batch object
+    dispatch(selectBatch(JSON.stringify(batch))); // Update Redux state
     Fees_fetch();
-    refRBSheet.current.close();
   };
 
-  const FeeCard = ({record}) => (
+  const FeeCard = ({ record }) => (
     <TouchableOpacity
-      onPress={() => navigation.navigate('FeeDetails', {feeRecord: record})}
+      onPress={() => navigation.navigate('FeeDetails', { feeRecord: record })}
       style={styles.feeCard}>
       <View style={styles.feeCardHeader}>
         <Text style={styles.studentName}>
@@ -142,7 +146,7 @@ const FeesScreen = ({navigation}) => {
         <Text
           style={[
             styles.status,
-            {color: record.status === 'Paid' ? '#43A047' : '#E53935'},
+            { color: record.status === 'Paid' ? '#43A047' : '#E53935' },
           ]}>
           {record.status}
         </Text>
@@ -198,15 +202,15 @@ const FeesScreen = ({navigation}) => {
             borderWidth: 1,
             borderColor: '#e0e0e0',
           }}>
-          <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
-            {selectedBatch.name}
+          <Text style={{ color: '#001d3d', fontWeight: 'bold', fontSize: 16 }}>
+            {selectedBatch ? selectedBatch.name : 'Select a Batch'}
           </Text>
 
           <MaterialIcons
             name="keyboard-arrow-down"
             size={20}
             color="#001d3d"
-            style={{paddingLeft: 5}}
+            style={{ paddingLeft: 5 }}
           />
         </TouchableOpacity>
       </View>
@@ -215,8 +219,8 @@ const FeesScreen = ({navigation}) => {
         <View style={styles.feesummeryCard}>
           <LinearGradient
             colors={['rgb(255,255,255)', 'rgb(229,235,252)']}
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 1}}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={styles.card}>
             <BackgroundGraph />
             <View style={styles.summaryContent}>
@@ -227,14 +231,14 @@ const FeesScreen = ({navigation}) => {
               <View style={styles.divider} />
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Received</Text>
-                <Text style={[styles.summaryAmount, {color: '#43A047'}]}>
+                <Text style={[styles.summaryAmount, { color: '#43A047' }]}>
                   ₹35,000
                 </Text>
               </View>
               <View style={styles.divider} />
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Balance</Text>
-                <Text style={[styles.summaryAmount, {color: '#E53935'}]}>
+                <Text style={[styles.summaryAmount, { color: '#E53935' }]}>
                   ₹15,000
                 </Text>
               </View>
@@ -375,7 +379,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(255,255,255)',
     borderRadius: 10,
     shadowColor: '#1D49A7',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 15,
@@ -468,7 +472,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 15,
     shadowColor: '#1D49A7',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,

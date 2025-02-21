@@ -4,11 +4,10 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
   isLoggedIn: false,
   token: null,
-  batch_id:null,
-  Teacher_id:null
+  batch_id: null,
+  Teacher_id: null,
+  selectBatch: null
 };
-
-console.log(initialState.batch_id)
 
 const authSlice = createSlice({
   name: 'auth',
@@ -25,12 +24,16 @@ const authSlice = createSlice({
       state.isLoggedIn = false;
       state.token = null;
     },
-    batch_id: (state,action) => {
+    batch_id: (state, action) => {
       state.batch_id = action.payload
       AsyncStorage.setItem("batch_id", action.payload)
+    },
+    selectBatch: (state, action) => {
+      state.selectBatch = action.payload; // Store full batch object
+      AsyncStorage.setItem("selectedBatch", JSON.stringify(action.payload));
     }
   },
 });
 
-export const { login, logout,batch_id } = authSlice.actions;
+export const { login, logout, batch_id, selectBatch } = authSlice.actions;
 export default authSlice.reducer;

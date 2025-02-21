@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -20,21 +20,20 @@ import RBSheet from 'react-native-raw-bottom-sheet';
 import { getapi } from '../utils/api';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
 import { useDispatch, useSelector } from 'react-redux';
-import { batch_id, logout } from '../utils/authslice';
+import { batch_id, logout, selectBatch, } from '../utils/authslice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HomeScreen = ({ navigation }) => {
   const refRBSheet = useRef();
-  const Batch_id = useSelector(state => state.auth.batch_id);
-  const [selectedBatch, setSelectedBatch] = useState({});
+  const selectedBatchString = useSelector((state) => state.auth?.selectBatch);
+  const selectedBatch_id = useSelector((state) => state.auth?.batch_id);
   const [students, setStudents] = useState([]);
-  // var codesPostal: CodePostal[] = []
   const dispatch = useDispatch();
 
   const students_fetch = async () => {
     const Token = await AsyncStorage.getItem("Token")
     const Batch_id = await AsyncStorage.getItem("batch_id")
-    const url = `students/batch/${Batch_id}`;
+    const url = `students/batch/${Batch_id ? Batch_id : selectedBatch_id}`;
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
@@ -56,6 +55,12 @@ const HomeScreen = ({ navigation }) => {
     navigation.replace('Login');
   };
 
+  const selectedBatch = useMemo(() => {
+    students_fetch();
+      return selectedBatchString ? JSON.parse(selectedBatchString) : null;
+    }, [selectedBatchString]);
+  
+  
   useEffect(() => {
     students_fetch();
   }, [1]);
@@ -101,9 +106,10 @@ const HomeScreen = ({ navigation }) => {
 
   const handleBatchSelect = async (batch) => {
     await AsyncStorage.removeItem('batch_id');
-    setSelectedBatch(batch);
     dispatch(batch_id(batch.id)),
-      refRBSheet.current.close();
+    await AsyncStorage.setItem('batch', JSON.stringify(batch)); // Store full batch object
+    dispatch(selectBatch(JSON.stringify(batch))); // Update Redux state
+    refRBSheet.current.close();
     await students_fetch()
   };
 
@@ -151,9 +157,9 @@ const HomeScreen = ({ navigation }) => {
                 />
               </LinearGradient>
             </TouchableOpacity>
-            <Text style={styles.batchCardTitle}>{selectedBatch.name}</Text>
+            <Text style={styles.batchCardTitle}>{selectedBatch?.name}</Text>
             <Text style={styles.batchCardSubtitle}>
-              {selectedBatch.subject}
+              {selectedBatch?.subject}
             </Text>
             <Text style={styles.batchCardCount}>{students.length}</Text>
             <View style={styles.createBatch}>

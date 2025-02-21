@@ -8,7 +8,7 @@ import {
   StatusBar,
   FlatList,
 } from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -16,19 +16,14 @@ import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { batch_id } from '../utils/authslice';
-import { useDispatch } from 'react-redux';
+import { batch_id, selectBatch } from '../utils/authslice';
+import { useDispatch, useSelector } from 'react-redux';
+
 
 const NotesScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [notes, setNotes] = useState([]);
-
-  const [selectedBatch, setSelectedBatch] = useState({
-    subject: 'Algebra',
-    name: 'Math 1012',
-    id: '212e46a9-9a1d-4906-a27e-5ef03e989955',
-  });
-
+  const selectedBatchString = useSelector((state) => state.auth?.selectBatch);
   const refRBSheet = useRef();
   const dispatch = useDispatch();
 
@@ -37,10 +32,11 @@ const NotesScreen = ({navigation}) => {
 
   const handleBatchSelect = async (batch) => {
     await AsyncStorage.removeItem('batch_id');
-    dispatch(batch_id(batch.id));
-    setSelectedBatch(batch);
+    dispatch(batch_id(batch.id)),
+    await AsyncStorage.setItem('batch', JSON.stringify(batch));
+    refRBSheet.current.close(); // Store full batch object
+    dispatch(selectBatch(JSON.stringify(batch))); // Update Redux state
     await Notes_fetch()
-    refRBSheet.current.close();
   };
 
   const Notes_fetch = async () => {
@@ -71,6 +67,11 @@ const NotesScreen = ({navigation}) => {
     console.log(notes);
     console.log('notes fetch');
   }, [1]);
+
+  const selectedBatch  = useMemo(() => {
+     Notes_fetch();
+    return selectedBatchString ? JSON.parse(selectedBatchString) : null;
+  }, [selectedBatchString]);  
 
   const NoteCard = ({item}) => (
     <TouchableOpacity
@@ -113,7 +114,7 @@ const NotesScreen = ({navigation}) => {
             borderColor: '#e0e0e0',
           }}>
           <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
-            {selectedBatch.name}
+            {selectedBatch?.name}
           </Text>
 
           <MaterialIcons

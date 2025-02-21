@@ -8,21 +8,20 @@ import {
   StatusBar,
   FlatList,
 } from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useDispatch } from 'react-redux';
-import { batch_id } from '../utils/authslice';
+import { useDispatch, useSelector } from 'react-redux';
+import { batch_id, selectBatch } from '../utils/authslice';
 
 const AssignmentsScreen = ({navigation}) => {
   
   const [searchQuery, setSearchQuery] = useState('');
   const [assignment, setAssignment] = useState([]);
-
-  const [selectedBatch, setSelectedBatch] = useState({});
+  const selectedBatchString = useSelector((state) => state.auth?.selectBatch);
   const refRBSheet = useRef();
   const dispatch = useDispatch();
 
@@ -31,10 +30,11 @@ const AssignmentsScreen = ({navigation}) => {
 
   const handleBatchSelect = async (batch) => {
     await AsyncStorage.removeItem('batch_id');
-    dispatch(batch_id(batch.id));
-    setSelectedBatch(batch);
+    dispatch(batch_id(batch.id)),
+    await AsyncStorage.setItem('batch', JSON.stringify(batch));
+    refRBSheet.current.close(); // Store full batch object
+    dispatch(selectBatch(JSON.stringify(batch))); // Update Redux state
    await Assignment_fetch()
-    refRBSheet.current.close();
   };
 
 
@@ -58,6 +58,11 @@ const AssignmentsScreen = ({navigation}) => {
     };
     getapi(url, headers, onResponse, onCatch);
   };
+
+   const selectedBatch  = useMemo(() => {
+    Assignment_fetch();
+      return selectedBatchString ? JSON.parse(selectedBatchString) : null;
+    }, [selectedBatchString]);  
 
   useEffect(() => {
     Assignment_fetch();
@@ -123,7 +128,7 @@ const AssignmentsScreen = ({navigation}) => {
             borderColor: '#e0e0e0',
           }}>
           <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
-            {selectedBatch.name}
+            {selectedBatch?.name}
           </Text>
 
           <MaterialIcons
