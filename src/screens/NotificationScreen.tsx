@@ -9,8 +9,9 @@ import {
 import React, {useEffect, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {notificationz} from '../dumyDb';
-import { getapi } from '../utils/api';
+import {getapi} from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const NotificationScreen = ({navigation}) => {
@@ -50,7 +51,6 @@ const NotificationScreen = ({navigation}) => {
     Notes_fetch();
   }, [1]);
 
-
   const renderNotificationCard = ({item}) => (
     <TouchableOpacity
       style={[
@@ -63,14 +63,30 @@ const NotificationScreen = ({navigation}) => {
           styles.iconContainer,
           {backgroundColor: `${item.iconColor}15`},
         ]}>
-        <MaterialIcons name={item.icon} size={24} color={item.iconColor} />
+        {item.type === 'MESSAGE' ? (
+          <MaterialIcons name="message" size={24} color="#4CAF50" />
+        ) : item.type === 'FEE_PAID' ? (
+          <MaterialIcons name="payments" size={24} color="#FF9800" />
+        ) : (
+          <MaterialCommunityIcons
+            name="account-plus-outline"
+            size={24}
+            color="#2196F3"
+          />
+        )}
       </View>
       <View style={styles.notificationContent}>
         <View style={styles.notificationHeader}>
-          <Text style={styles.notificationTitle}>{item.title}</Text>
+          <Text style={styles.notificationTitle}>
+            {item.type === 'MESSAGE'
+              ? 'MESSAGE'
+              : item.type === 'FEE_PAID'
+              ? 'FEE PAID'
+              : 'NEW STUDENT'}
+          </Text>
           <Text style={styles.timeText}>{item.time}</Text>
         </View>
-        <Text style={styles.notificationDescription}>{item.description}</Text>
+        <Text style={styles.notificationDescription}>{item.title}</Text>
       </View>
       {!item.seen && <View style={styles.unreadDot} />}
     </TouchableOpacity>
@@ -130,7 +146,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 12,
   },
   unreadNotification: {
     backgroundColor: '#F8FAFF',
