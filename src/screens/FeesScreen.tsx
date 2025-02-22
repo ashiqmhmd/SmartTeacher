@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   StatusBar,
 } from 'react-native';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, {
@@ -17,11 +17,12 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
-import {getapi} from '../utils/api';
+import { getapi } from '../utils/api';
 import dateconvert from '../components/moment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useDispatch, useSelector} from 'react-redux';
-import {batch_id, selectBatch} from '../utils/authslice';
+import { useDispatch, useSelector } from 'react-redux';
+import { batch_id, selectBatch } from '../utils/authslice';
+import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 
 interface StudentDetails {
   [studentId: string]: string;
@@ -34,7 +35,7 @@ interface Fees {
   status: string;
 }
 
-const FeesScreen = ({navigation}) => {
+const FeesScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('Current Month');
   const [paymentFilter, setPaymentFilter] = useState('All');
@@ -42,12 +43,14 @@ const FeesScreen = ({navigation}) => {
   const [fees, setFees] = useState<Fees[]>([]);
   const [totalFees, setTotalFees] = useState(0);
   const [receivedFees, setReceivedFees] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
 
   const dispatch = useDispatch();
 
   const Fees_fetch = async () => {
+    setLoading(true)
     const Batch_id = await AsyncStorage.getItem('batch_id');
     const Token = await AsyncStorage.getItem('Token');
     const url = `fee-records/batches/${Batch_id}`;
@@ -74,6 +77,7 @@ const FeesScreen = ({navigation}) => {
     const onCatch = res => {
       console.log('Error');
       console.log(res);
+      setLoading(false)
     };
     getapi(url, headers, onResponse, onCatch);
   };
@@ -102,6 +106,7 @@ const FeesScreen = ({navigation}) => {
                   studentId: res.id,
                   name: `${res.firstName} ${res.lastName}`,
                 });
+                setLoading(false)
               } else {
                 console.warn(
                   `Invalid response for Student ID ${studentId}:`,
@@ -121,7 +126,7 @@ const FeesScreen = ({navigation}) => {
 
     const details = studentDetailsResponse
       .filter(Boolean)
-      .reduce((acc, {studentId, name}) => {
+      .reduce((acc, { studentId, name }) => {
         acc[studentId] = name;
         return acc;
       }, {});
@@ -150,9 +155,9 @@ const FeesScreen = ({navigation}) => {
     Fees_fetch();
   };
 
-  const FeeCard = ({record}) => (
+  const FeeCard = ({ record }) => (
     <TouchableOpacity
-      onPress={() => navigation.navigate('Fees_Detail', {feeRecord: record})}
+      onPress={() => navigation.navigate('Fees_Detail', { feeRecord: record, name: studentDetails[record.studentId] })}
       style={styles.feeCard}>
       <View style={styles.feeCardHeader}>
         <Text style={styles.studentName}>
@@ -162,7 +167,7 @@ const FeesScreen = ({navigation}) => {
         <Text
           style={[
             styles.status,
-            {color: record.status === 'paid' ? '#43A047' : '#E53935'},
+            { color: record.status === 'paid' ? '#43A047' : '#E53935' },
           ]}>
           {record.status}
         </Text>
@@ -218,7 +223,7 @@ const FeesScreen = ({navigation}) => {
             borderWidth: 1,
             borderColor: '#e0e0e0',
           }}>
-          <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
+          <Text style={{ color: '#001d3d', fontWeight: 'bold', fontSize: 16 }}>
             {selectedBatch ? selectedBatch.name : 'Select a Batch'}
           </Text>
 
@@ -226,107 +231,138 @@ const FeesScreen = ({navigation}) => {
             name="keyboard-arrow-down"
             size={20}
             color="#001d3d"
-            style={{paddingLeft: 5}}
+            style={{ paddingLeft: 5 }}
           />
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.container}>
-        <View style={styles.feesummeryCard}>
-          <LinearGradient
-            colors={['rgb(255,255,255)', 'rgb(229,235,252)']}
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 1}}
-            style={styles.card}>
-            <BackgroundGraph />
-            <View style={styles.summaryContent}>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Total Expected</Text>
-                <Text style={styles.summaryAmount}>₹{totalFees}</Text>
-              </View>
-              <View style={styles.divider} />
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Received</Text>
-                <Text style={[styles.summaryAmount, {color: '#43A047'}]}>
-                  ₹{receivedFees}
-                </Text>
-              </View>
-              <View style={styles.divider} />
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Balance</Text>
-                <Text style={[styles.summaryAmount, {color: '#E53935'}]}>
-                  ₹{totalFees - receivedFees}
-                </Text>
-              </View>
-            </View>
-          </LinearGradient>
-        </View>
+      {loading ? (
+        <View style={styles.container}>
+          {/* Batch Card Shimmer */}
+          <ShimmerPlaceholder style={styles.feesummeryCard} />
 
-        <View style={styles.filterSection}>
-          <View style={styles.searchBar}>
-            <MaterialIcons name="search" size={24} color="#666" />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search by student name"
-              placeholderTextColor="#666"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
+          {/* Search Bar Shimmer */}
+          <View style={styles.filterSection}>
+            <ShimmerPlaceholder style={styles.searchInput} />
           </View>
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.filterScrollView}>
-            {monthOptions.map(month => (
-              <TouchableOpacity
-                key={month}
-                onPress={() => setSelectedMonth(month)}
-                style={[
-                  styles.filterChip,
-                  selectedMonth === month && styles.selectedChip,
-                ]}>
-                <Text
-                  style={[
-                    styles.filterChipText,
-                    selectedMonth === month && styles.selectedChipText,
-                  ]}>
-                  {month}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.filterScrollView}>
-            {filterOptions.map(option => (
-              <TouchableOpacity
-                key={option}
-                onPress={() => setPaymentFilter(option)}
-                style={[
-                  styles.filterChip,
-                  paymentFilter === option && styles.selectedChip,
-                ]}>
-                <Text
-                  style={[
-                    styles.filterChipText,
-                    paymentFilter === option && styles.selectedChipText,
-                  ]}>
-                  {option}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
-        <View style={styles.feeList}>
-          {fees.map(record => (
-            <FeeCard key={record.id} record={record} />
+          {/* Student List Shimmer */}
+          {[1, 2, 3, 4, 5].map((_, index) => (
+             <View
+             style={styles.feeCard}>
+            <View  key={index} style={styles.feeCardHeader}>
+            <ShimmerPlaceholder style={styles.studentName}/>
+            <ShimmerPlaceholder
+              style={[
+                styles.status,
+              ]}/>
+          </View>
+          <View style={styles.feeCardBody}>
+            <ShimmerPlaceholder style={styles.amount}/>
+            <ShimmerPlaceholder style={styles.date}/>
+          </View>
+          </View>
           ))}
         </View>
-      </ScrollView>
+      ) : (
+
+        <ScrollView style={styles.container}>
+          <View style={styles.feesummeryCard}>
+            <LinearGradient
+              colors={['rgb(255,255,255)', 'rgb(229,235,252)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.card}>
+              <BackgroundGraph />
+              <View style={styles.summaryContent}>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Total Expected</Text>
+                  <Text style={styles.summaryAmount}>₹{totalFees}</Text>
+                </View>
+                <View style={styles.divider} />
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Received</Text>
+                  <Text style={[styles.summaryAmount, { color: '#43A047' }]}>
+                    ₹{receivedFees}
+                  </Text>
+                </View>
+                <View style={styles.divider} />
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Balance</Text>
+                  <Text style={[styles.summaryAmount, { color: '#E53935' }]}>
+                    ₹{totalFees - receivedFees}
+                  </Text>
+                </View>
+              </View>
+            </LinearGradient>
+          </View>
+
+          <View style={styles.filterSection}>
+            <View style={styles.searchBar}>
+              <MaterialIcons name="search" size={24} color="#666" />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search by student name"
+                placeholderTextColor="#666"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.filterScrollView}>
+              {monthOptions.map(month => (
+                <TouchableOpacity
+                  key={month}
+                  onPress={() => setSelectedMonth(month)}
+                  style={[
+                    styles.filterChip,
+                    selectedMonth === month && styles.selectedChip,
+                  ]}>
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      selectedMonth === month && styles.selectedChipText,
+                    ]}>
+                    {month}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.filterScrollView}>
+              {filterOptions.map(option => (
+                <TouchableOpacity
+                  key={option}
+                  onPress={() => setPaymentFilter(option)}
+                  style={[
+                    styles.filterChip,
+                    paymentFilter === option && styles.selectedChip,
+                  ]}>
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      paymentFilter === option && styles.selectedChipText,
+                    ]}>
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          <View style={styles.feeList}>
+            {fees.map(record => (
+              <FeeCard key={record.id} record={record} />
+            ))}
+          </View>
+        </ScrollView>
+      )}
       <BatchSelectorSheet
         ref={refRBSheet}
         selectedBatch={selectedBatch}
@@ -395,7 +431,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(255,255,255)',
     borderRadius: 10,
     shadowColor: '#1D49A7',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 15,
@@ -488,7 +524,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 15,
     shadowColor: '#1D49A7',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
@@ -521,6 +557,16 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 14,
     color: '#666',
+  },
+  shimmerContainer: {
+    padding: 20,
+  },
+  shimmerCard: {
+    height: "100%",
+    width: "100%",
+    borderRadius: 10,
+    marginBottom: 15,
+    backgroundColor: '#e0e0e0',
   },
 });
 

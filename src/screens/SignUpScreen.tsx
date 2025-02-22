@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -13,37 +13,105 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
-import {postApi} from '../utils/api';
+import { postApi } from '../utils/api';
 
-const TrendySignupScreen = ({navigation}) => {
+const TrendySignupScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [createId, setcreateId] = useState("");
+  const [errors, setErrors] = useState({
+    username: '',
+    password: '',
+    email: '',
+  });
+
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = {
+      username: '',
+      password: '',
+      email: '',
+    };
+
+
+
+    if (!username.trim()) {
+      newErrors.username = 'Username is required';
+      isValid = false;
+    }
+    if (!password) {
+      newErrors.password = 'Password is required';
+      isValid = false;
+    }
+    if (password !== confirmPassword) {
+      newErrors.password = 'Passwords are do not matching';
+      isValid = false;
+    }
+    if (!validateEmail(email)) {
+      newErrors.email = "Invalid email format"
+      isValid = false
+    }
+
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+
+  const handle_navigation = (id: any) => {
+    navigation.navigate('Update_Profile', { userId: id })
+  }
 
   const Teacher_signup = () => {
-    const url = 'login/teacher';
-    const headers = {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    };
-    const body = {
-      userName: username,
-      email: email,
-      password: password,
-    };
-    const onResponse = res => {
-      console.log('created succesfully');
-    };
 
-    const onCatch = res => {
-      console.log('Error');
-      console.log(res);
-    };
+    // if (!validateForm()) {
+    //   return;
+    // }
 
-    postApi(url, headers, body, onResponse, onCatch);
+    // setErrors({ ...errors });
+    // const url = 'teachers'
+    // const headers = {
+    //   Accept: 'application/json',
+    //   'Content-Type': 'application/json',
+    // };
+    // const body = {
+    //   userName: username,
+    //   email: email,
+    //   password: password,
+    // };
+    // const onResponse = (res: { id: React.SetStateAction<string>; }) => {
+    //   console.log('created succesfully');
+    //   console.log(res.id)
+    //   setcreateId(res.id)
+    //   handle_navigation(createId ? createId : res.id)
+
+
+    // };
+
+    // const onCatch = (res: any) => {
+    //   console.log('Error');
+    //   console.log(res);
+    // };
+
+    // postApi(url, headers, body, onResponse, onCatch);
+
+    handle_navigation(createId)
+  };
+
+  const renderError = (error: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined) => {
+    if (!error) return null;
+    return <Text style={styles.errorText}>{error}</Text>;
   };
 
   return (
@@ -81,6 +149,7 @@ const TrendySignupScreen = ({navigation}) => {
                 keyboardType="email-address"
               />
             </View>
+            {renderError(errors.email)}
 
             <View style={styles.inputContainer}>
               <Feather
@@ -97,6 +166,7 @@ const TrendySignupScreen = ({navigation}) => {
                 onChangeText={setUsername}
               />
             </View>
+            {renderError(errors.username)}
 
             <View style={styles.inputContainer}>
               <Feather
@@ -149,9 +219,12 @@ const TrendySignupScreen = ({navigation}) => {
                 />
               </TouchableOpacity>
             </View>
+            {renderError(errors.password)}
 
             <TouchableOpacity
-              onPress={() => navigation.navigate('Update_Profile')}
+              onPress={() =>
+                Teacher_signup()
+              }
               style={styles.signupButton}>
               <Text style={styles.signupButtonText}>Sign Up</Text>
             </TouchableOpacity>
@@ -203,7 +276,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 30,
     shadowColor: '#1D49A7',
-    shadowOffset: {width: 0, height: 10},
+    shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 20,
@@ -234,6 +307,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderWidth: 1,
     borderColor: '#ddd',
+  },
+  errorText: {
+    color: '#dc3545',
+    fontSize: 12,
+    marginBottom: 10,
+    marginLeft: 5,
   },
   inputIcon: {
     marginRight: 10,

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -34,7 +34,7 @@ const UpdateProfileScreen = ({navigation, route}) => {
   });
 
   const [profileImage, setProfileImage] = useState(null);
-
+  const { userId } = route.params;
   const handleInputChange = (field, value) => {
     setProfileData(prev => ({
       ...prev,
@@ -53,8 +53,12 @@ const UpdateProfileScreen = ({navigation, route}) => {
     }
   };
 
+  useEffect(() => {
+    console.log(userId)
+  },[1])
+
   const handleSubmit = () => {
-    const url = 'teachers/id';
+    const url = `teachers/${userId}`;
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
@@ -67,7 +71,7 @@ const UpdateProfileScreen = ({navigation, route}) => {
 
     const onResponse = res => {
       console.log('Profile updated successfully');
-      navigation.replace('Home');
+      navigation.navigate('Tabs')
     };
 
     const onCatch = err => {
@@ -143,8 +147,8 @@ const UpdateProfileScreen = ({navigation, route}) => {
           </View>
 
           <TouchableOpacity
-            //   onPress={handleSubmit}
-            onPress={() => navigation.navigate('Tabs')}
+              onPress={handleSubmit}
+            // onPress={() => navigation.navigate('Tabs')}
             style={styles.submitButton}>
             <Text style={styles.submitButtonText}>Save Profile</Text>
           </TouchableOpacity>

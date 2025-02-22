@@ -16,7 +16,7 @@ import {getapi, postapi} from '../utils/api';
 import dateconvert from '../components/moment';
 
 const FeePaymentDetailsScreen = ({route, navigation}) => {
-  const {feeRecord} = route.params;
+  const {feeRecord,name} = route.params;
   const [loading, setLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -37,7 +37,7 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
   const handleNotify = async () => {
     try {
       const message = `${
-        feeRecord.studentName
+        name
       }'s fee payment is pending for month ${dateconvert(
         feeRecord.dueDate,
       )}. Please pay it asap. Ignore if already paid.`;
@@ -51,7 +51,7 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Fee Payment Details for ${feeRecord.studentName}`,
+        message: `Fee Payment Details for ${name}`,
         title: 'Fee Payment Details',
       });
     } catch (error) {
@@ -121,7 +121,7 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
 
           <View style={styles.detailRow}>
             <Text style={styles.label}>Student Name</Text>
-            <Text style={styles.value}>{feeRecord.studentName}</Text>
+            <Text style={styles.value}>{name}</Text>
           </View>
 
           <View style={styles.detailRow}>

@@ -22,15 +22,20 @@ import BatchSelectorSheet from '../components/BatchSelectorSheet';
 import {useDispatch, useSelector} from 'react-redux';
 import {batch_id, logout, selectBatch} from '../utils/authslice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 
 const HomeScreen = ({navigation}) => {
   const refRBSheet = useRef();
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
+  const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState([]);
   const dispatch = useDispatch();
 
+
+  
   const students_fetch = async () => {
+    setLoading(true)
     const Token = await AsyncStorage.getItem('Token');
     const Batch_id = await AsyncStorage.getItem('batch_id');
     const url = `students/batch/${Batch_id ? Batch_id : selectedBatch_id}`;
@@ -41,11 +46,13 @@ const HomeScreen = ({navigation}) => {
     };
     const onResponse = res => {
       setStudents(res);
+      setLoading(false)
     };
 
     const onCatch = res => {
       console.log('Error');
       console.log(res);
+      setLoading(false)
     };
     getapi(url, headers, onResponse, onCatch);
   };
@@ -134,6 +141,30 @@ const HomeScreen = ({navigation}) => {
           </View>
         </TouchableOpacity>
       </View>
+      {loading ? (
+        <View style={styles.container}>
+          {/* Batch Card Shimmer */}
+          <ShimmerPlaceholder style={styles.batchCard} />
+
+          {/* Search Bar Shimmer */}
+          <View style={styles.searchContainer}>
+            <ShimmerPlaceholder style={styles.searchInput} />
+            <ShimmerPlaceholder style={styles.addButton} />
+          </View>
+
+          {/* Student List Shimmer */}
+          {[1, 2, 3, 4, 5].map((_, index) => (
+            <View key={index} style={styles.listCard}>
+              <View style={styles.profilePicPlaceholder} />
+              <View>
+                <ShimmerPlaceholder style={styles.studentName} />
+                <ShimmerPlaceholder style={styles.parentDetail} />
+              </View>
+            </View>
+          ))}
+        </View>
+      ) : (
+
       <View style={styles.container}>
         <View style={styles.batchCard}>
           <LinearGradient
@@ -171,6 +202,7 @@ const HomeScreen = ({navigation}) => {
             </View>
           </LinearGradient>
         </View>
+
         <View style={styles.header}>
           <View style={styles.searchBar}>
             <Ionicons name="search" size={24} color="#666" />
@@ -188,14 +220,16 @@ const HomeScreen = ({navigation}) => {
           </TouchableOpacity>
         </View>
         {/* <Text style={styles.listTitle}>Students In Batch</Text> */}
-
-        <FlatList
-          data={students}
-          renderItem={renderStudentCard}
-          keyExtractor={item => item.firstName}
-          contentContainerStyle={styles.list}
-        />
+      
+          <FlatList
+            data={students}
+            renderItem={renderStudentCard}
+            keyExtractor={(item) => item.firstName}
+            contentContainerStyle={styles.list}
+          />
+      
       </View>
+)}
       <BatchSelectorSheet
         ref={refRBSheet}
         selectedBatch={selectedBatch}
@@ -436,4 +470,23 @@ const styles = StyleSheet.create({
   actionButton: {
     marginLeft: 12,
   },
+  searchContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  addButton: {
+    width: 1000 * 0.3,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#E5EBFC',
+  },
+  profilePicPlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#E5EBFC',
+    marginRight: 16,
+  },
+  parentDetail: {width: 80, height: 12, backgroundColor: '#E5EBFC'},
 });

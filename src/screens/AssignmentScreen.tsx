@@ -16,10 +16,12 @@ import BatchSelectorSheet from '../components/BatchSelectorSheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useDispatch, useSelector} from 'react-redux';
 import {batch_id, selectBatch} from '../utils/authslice';
+import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 
 const AssignmentsScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [assignment, setAssignment] = useState([]);
+    const [loading, setLoading] = useState(true);
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
   const refRBSheet = useRef();
   const dispatch = useDispatch();
@@ -34,6 +36,7 @@ const AssignmentsScreen = ({navigation}) => {
   };
 
   const Assignment_fetch = async () => {
+    setLoading(true)
     const Token = await AsyncStorage.getItem('Token');
     const Batch_id = await AsyncStorage.getItem('batch_id');
     const url = `assignments/batch/${Batch_id}`;
@@ -44,11 +47,13 @@ const AssignmentsScreen = ({navigation}) => {
     };
     const onResponse = res => {
       setAssignment(res);
+      setLoading(false)
     };
 
     const onCatch = res => {
       console.log('Error');
       console.log(res);
+      setLoading(false)
     };
     getapi(url, headers, onResponse, onCatch);
   };
@@ -135,7 +140,30 @@ const AssignmentsScreen = ({navigation}) => {
           />
         </TouchableOpacity>
       </View>
+      {loading ? (
+        <View style={styles.container}>
 
+          {/* Search Bar Shimmer */}
+          <View style={styles.searchSection}>
+            <ShimmerPlaceholder style={styles.searchBar} />
+          </View>
+
+          {/* Student List Shimmer */}
+          {[1, 2, 3, 4, 5].map((_, index) => (
+             <View
+             style={styles.assignmentCard}>
+            <View  key={index} style={styles.assignmentHeader}>
+            <ShimmerPlaceholder style={styles.assignmentTitle}/>
+        
+          </View>
+          <View style={styles.assignmentDetails}>
+            <ShimmerPlaceholder style={styles.detailItem}/>
+            <ShimmerPlaceholder style={styles.detailItem}/>
+          </View>
+          </View>
+          ))}
+        </View>
+      ) : (
       <ScrollView style={styles.container}>
         <View style={styles.searchSection}>
           <View style={styles.searchBar}>
@@ -162,6 +190,7 @@ const AssignmentsScreen = ({navigation}) => {
           style={styles.assignmentsList}
         />
       </ScrollView>
+      )}
       <BatchSelectorSheet
         ref={refRBSheet}
         selectedBatch={selectedBatch}

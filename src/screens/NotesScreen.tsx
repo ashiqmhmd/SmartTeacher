@@ -18,10 +18,12 @@ import BatchSelectorSheet from '../components/BatchSelectorSheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {batch_id, selectBatch} from '../utils/authslice';
 import {useDispatch, useSelector} from 'react-redux';
+import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 
 const NotesScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [notes, setNotes] = useState([]);
+  const [loading, setLoading] = useState(true);
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
   const refRBSheet = useRef();
   const dispatch = useDispatch();
@@ -36,6 +38,7 @@ const NotesScreen = ({navigation}) => {
   };
 
   const Notes_fetch = async () => {
+    setLoading(true)
     const Token = await AsyncStorage.getItem('Token');
     const Batch_id = await AsyncStorage.getItem('batch_id');
 
@@ -49,11 +52,13 @@ const NotesScreen = ({navigation}) => {
       console.log('hiii');
       console.log(res);
       setNotes(res);
+      setLoading(false)
     };
 
     const onCatch = res => {
       console.log('Error');
       console.log(res);
+      setLoading(false)
     };
     getapi(url, headers, onResponse, onCatch);
   };
@@ -121,6 +126,30 @@ const NotesScreen = ({navigation}) => {
           />
         </TouchableOpacity>
       </View>
+      {loading ? (
+        <View style={styles.container}>
+
+          {/* Search Bar Shimmer */}
+          <View style={styles.searchSection}>
+            <ShimmerPlaceholder style={styles.searchBar} />
+          </View>
+
+          {/* Student List Shimmer */}
+          {[1, 2, 3, 4, 5].map((_, index) => (
+             <View
+             style={styles.noteCard}>
+            <View  key={index} style={styles.noteDetailsContainer}>
+            <ShimmerPlaceholder style={styles.noteTitle}/>
+        
+          </View>
+          <View style={styles.noteDetails}>
+            <ShimmerPlaceholder style={styles.noteContent}/>
+            <ShimmerPlaceholder style={styles.notesList}/>
+          </View>
+          </View>
+          ))}
+        </View>
+      ) : (
 
       <ScrollView style={styles.container}>
         <View style={styles.searchSection}>
@@ -148,6 +177,7 @@ const NotesScreen = ({navigation}) => {
           style={styles.notesList}
         />
       </ScrollView>
+      )}
       <BatchSelectorSheet
         ref={refRBSheet}
         selectedBatch={selectedBatch}
