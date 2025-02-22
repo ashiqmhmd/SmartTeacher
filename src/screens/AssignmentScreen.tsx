@@ -14,30 +14,24 @@ import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useDispatch, useSelector } from 'react-redux';
-import { batch_id, selectBatch } from '../utils/authslice';
+import {useDispatch, useSelector} from 'react-redux';
+import {batch_id, selectBatch} from '../utils/authslice';
 
 const AssignmentsScreen = ({navigation}) => {
-  
   const [searchQuery, setSearchQuery] = useState('');
   const [assignment, setAssignment] = useState([]);
-  const selectedBatchString = useSelector((state) => state.auth?.selectBatch);
+  const selectedBatchString = useSelector(state => state.auth?.selectBatch);
   const refRBSheet = useRef();
   const dispatch = useDispatch();
 
-
-
-
-  const handleBatchSelect = async (batch) => {
+  const handleBatchSelect = async batch => {
     await AsyncStorage.removeItem('batch_id');
     dispatch(batch_id(batch.id)),
-    await AsyncStorage.setItem('batch', JSON.stringify(batch));
+      await AsyncStorage.setItem('batch', JSON.stringify(batch));
     refRBSheet.current.close(); // Store full batch object
     dispatch(selectBatch(JSON.stringify(batch))); // Update Redux state
-   await Assignment_fetch()
+    await Assignment_fetch();
   };
-
-
 
   const Assignment_fetch = async () => {
     const Token = await AsyncStorage.getItem('Token');
@@ -59,17 +53,19 @@ const AssignmentsScreen = ({navigation}) => {
     getapi(url, headers, onResponse, onCatch);
   };
 
-   const selectedBatch  = useMemo(() => {
+  const selectedBatch = useMemo(() => {
     Assignment_fetch();
-      return selectedBatchString ? JSON.parse(selectedBatchString) : null;
-    }, [selectedBatchString]);  
+    return selectedBatchString ? JSON.parse(selectedBatchString) : null;
+  }, [selectedBatchString]);
 
   useEffect(() => {
     Assignment_fetch();
   }, [1]);
 
   const AssignmentCard = ({item}) => (
-    <TouchableOpacity style={styles.assignmentCard}>
+    <TouchableOpacity
+      onPress={() => navigation.Navigator('Assignment_Detail')}
+      style={styles.assignmentCard}>
       <View style={styles.assignmentHeader}>
         <Text style={styles.assignmentTitle}>{item.title}</Text>
         <View
