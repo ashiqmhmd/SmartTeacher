@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   StatusBar,
 } from 'react-native';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, {
@@ -17,11 +17,11 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
-import { getapi } from '../utils/api';
+import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useDispatch, useSelector } from 'react-redux';
-import { batch_id, selectBatch, } from '../utils/authslice';
+import {useDispatch, useSelector} from 'react-redux';
+import {batch_id, selectBatch} from '../utils/authslice';
 
 interface StudentDetails {
   [studentId: string]: string;
@@ -34,15 +34,16 @@ interface Fees {
   status: string;
 }
 
-const FeesScreen = ({ navigation }) => {
+const FeesScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('Current Month');
   const [paymentFilter, setPaymentFilter] = useState('All');
   const [studentDetails, setStudentDetails] = useState<StudentDetails>({});
   const [fees, setFees] = useState<Fees[]>([]);
+  const [totalFees, setTotalFees] = useState(0);
+  const [receivedFees, setReceivedFees] = useState(0);
 
-  const selectedBatchString = useSelector((state) => state.auth?.selectBatch);
-
+  const selectedBatchString = useSelector(state => state.auth?.selectBatch);
 
   const dispatch = useDispatch();
 
@@ -58,6 +59,12 @@ const FeesScreen = ({ navigation }) => {
     const onResponse = res => {
       setFees(res);
       student_details_fetch(res);
+
+      res.forEach(record => {
+        const value = totalFees + record.amount;
+        console.log(value);
+        setTotalFees(value);
+      });
     };
 
     const onCatch = res => {
@@ -68,8 +75,7 @@ const FeesScreen = ({ navigation }) => {
   };
 
   const student_details_fetch = async (records: any[]) => {
-
-    const Token = await AsyncStorage.getItem("Token");
+    const Token = await AsyncStorage.getItem('Token');
     const studentIds = [...new Set(records.map(item => item.studentId))];
 
     const studentDetailsResponse = await Promise.all(
@@ -78,43 +84,49 @@ const FeesScreen = ({ navigation }) => {
         const headers = {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${Token}`
+          Authorization: `Bearer ${Token}`,
         };
 
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
           getapi(
             url,
             headers,
-            (res) => {
+            res => {
               if (res && res.id) {
                 console.log(`Response for ${studentId}:`, res);
-                resolve({ studentId: res.id, name: `${res.firstName} ${res.lastName}` });
+                resolve({
+                  studentId: res.id,
+                  name: `${res.firstName} ${res.lastName}`,
+                });
               } else {
-                console.warn(`Invalid response for Student ID ${studentId}:`, res);
+                console.warn(
+                  `Invalid response for Student ID ${studentId}:`,
+                  res,
+                );
                 resolve(null);
               }
             },
-            (error) => {
+            error => {
               console.error(`Error fetching student ${studentId}:`, error);
               resolve(null);
-            }
+            },
           );
         });
-      })
+      }),
     );
 
-    // Filter out null values
-    const details = studentDetailsResponse.filter(Boolean).reduce((acc, { studentId, name }) => {
-      acc[studentId] = name;
-      return acc;
-    }, {});
+    const details = studentDetailsResponse
+      .filter(Boolean)
+      .reduce((acc, {studentId, name}) => {
+        acc[studentId] = name;
+        return acc;
+      }, {});
     setStudentDetails(details);
   };
   const selectedBatch = useMemo(() => {
     Fees_fetch();
     return selectedBatchString ? JSON.parse(selectedBatchString) : null;
   }, [selectedBatchString]);
-
 
   useEffect(() => {
     Fees_fetch();
@@ -125,18 +137,18 @@ const FeesScreen = ({ navigation }) => {
 
   const refRBSheet = useRef();
 
-  const handleBatchSelect = async (batch) => {
+  const handleBatchSelect = async batch => {
     await AsyncStorage.removeItem('batch_id');
     dispatch(batch_id(batch.id)),
       await AsyncStorage.setItem('batch', JSON.stringify(batch));
-    refRBSheet.current.close(); // Store full batch object
-    dispatch(selectBatch(JSON.stringify(batch))); // Update Redux state
+    refRBSheet.current.close();
+    dispatch(selectBatch(JSON.stringify(batch)));
     Fees_fetch();
   };
 
-  const FeeCard = ({ record }) => (
+  const FeeCard = ({record}) => (
     <TouchableOpacity
-      onPress={() => navigation.navigate('FeeDetails', { feeRecord: record })}
+      onPress={() => navigation.navigate('Fees_Detail', {feeRecord: record})}
       style={styles.feeCard}>
       <View style={styles.feeCardHeader}>
         <Text style={styles.studentName}>
@@ -146,7 +158,7 @@ const FeesScreen = ({ navigation }) => {
         <Text
           style={[
             styles.status,
-            { color: record.status === 'Paid' ? '#43A047' : '#E53935' },
+            {color: record.status === 'paid' ? '#43A047' : '#E53935'},
           ]}>
           {record.status}
         </Text>
@@ -154,7 +166,7 @@ const FeesScreen = ({ navigation }) => {
       <View style={styles.feeCardBody}>
         <Text style={styles.amount}>₹{record.amount.toLocaleString()}</Text>
         <Text style={styles.date}>
-          {record.status === 'Paid' ? 'Paid on: ' : 'Due by: '}
+          {record.status === 'paid' ? 'Paid on: ' : 'Due by: '}
           {dateconvert(record.paymentDate || record.dueDate)}
         </Text>
       </View>
@@ -202,7 +214,7 @@ const FeesScreen = ({ navigation }) => {
             borderWidth: 1,
             borderColor: '#e0e0e0',
           }}>
-          <Text style={{ color: '#001d3d', fontWeight: 'bold', fontSize: 16 }}>
+          <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
             {selectedBatch ? selectedBatch.name : 'Select a Batch'}
           </Text>
 
@@ -210,7 +222,7 @@ const FeesScreen = ({ navigation }) => {
             name="keyboard-arrow-down"
             size={20}
             color="#001d3d"
-            style={{ paddingLeft: 5 }}
+            style={{paddingLeft: 5}}
           />
         </TouchableOpacity>
       </View>
@@ -219,26 +231,26 @@ const FeesScreen = ({ navigation }) => {
         <View style={styles.feesummeryCard}>
           <LinearGradient
             colors={['rgb(255,255,255)', 'rgb(229,235,252)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 1}}
             style={styles.card}>
             <BackgroundGraph />
             <View style={styles.summaryContent}>
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Total Expected</Text>
-                <Text style={styles.summaryAmount}>₹50,000</Text>
+                <Text style={styles.summaryAmount}>₹{totalFees}</Text>
               </View>
               <View style={styles.divider} />
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Received</Text>
-                <Text style={[styles.summaryAmount, { color: '#43A047' }]}>
+                <Text style={[styles.summaryAmount, {color: '#43A047'}]}>
                   ₹35,000
                 </Text>
               </View>
               <View style={styles.divider} />
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Balance</Text>
-                <Text style={[styles.summaryAmount, { color: '#E53935' }]}>
+                <Text style={[styles.summaryAmount, {color: '#E53935'}]}>
                   ₹15,000
                 </Text>
               </View>
@@ -379,7 +391,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(255,255,255)',
     borderRadius: 10,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 15,
@@ -472,7 +484,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 15,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
