@@ -16,27 +16,23 @@ import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { batch_id, selectBatch } from '../utils/authslice';
-import { useDispatch, useSelector } from 'react-redux';
-
+import {batch_id, selectBatch} from '../utils/authslice';
+import {useDispatch, useSelector} from 'react-redux';
 
 const NotesScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [notes, setNotes] = useState([]);
-  const selectedBatchString = useSelector((state) => state.auth?.selectBatch);
+  const selectedBatchString = useSelector(state => state.auth?.selectBatch);
   const refRBSheet = useRef();
   const dispatch = useDispatch();
 
-
-
-
-  const handleBatchSelect = async (batch) => {
+  const handleBatchSelect = async batch => {
     await AsyncStorage.removeItem('batch_id');
     dispatch(batch_id(batch.id)),
-    await AsyncStorage.setItem('batch', JSON.stringify(batch));
+      await AsyncStorage.setItem('batch', JSON.stringify(batch));
     refRBSheet.current.close(); // Store full batch object
     dispatch(selectBatch(JSON.stringify(batch))); // Update Redux state
-    await Notes_fetch()
+    await Notes_fetch();
   };
 
   const Notes_fetch = async () => {
@@ -68,14 +64,14 @@ const NotesScreen = ({navigation}) => {
     console.log('notes fetch');
   }, [1]);
 
-  const selectedBatch  = useMemo(() => {
-     Notes_fetch();
+  const selectedBatch = useMemo(() => {
+    Notes_fetch();
     return selectedBatchString ? JSON.parse(selectedBatchString) : null;
-  }, [selectedBatchString]);  
+  }, [selectedBatchString]);
 
   const NoteCard = ({item}) => (
     <TouchableOpacity
-      onPress={() => navigation.navigate('NoteDetails', {note: item})}
+      onPress={() => navigation.navigate('Note_Detail', {note: item})}
       style={styles.noteCard}>
       <View style={styles.noteTypeIcon}>
         <MaterialIcons name="description" size={24} color="#FF9800" />
