@@ -61,9 +61,13 @@ const FeesScreen = ({navigation}) => {
       student_details_fetch(res);
 
       res.forEach(record => {
-        const value = totalFees + record.amount;
-        console.log(value);
-        setTotalFees(value);
+        const totalAmount = totalFees + record.amount;
+
+        const receivedAmount =
+          receivedFees + record.status === 'paid' ? record.amount : 0;
+
+        setTotalFees(totalAmount);
+        setReceivedFees(receivedAmount);
       });
     };
 
@@ -244,14 +248,14 @@ const FeesScreen = ({navigation}) => {
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Received</Text>
                 <Text style={[styles.summaryAmount, {color: '#43A047'}]}>
-                  ₹35,000
+                  ₹{receivedFees}
                 </Text>
               </View>
               <View style={styles.divider} />
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Balance</Text>
                 <Text style={[styles.summaryAmount, {color: '#E53935'}]}>
-                  ₹15,000
+                  ₹{totalFees - receivedFees}
                 </Text>
               </View>
             </View>
