@@ -18,6 +18,7 @@ import StudentDetailsScreen from '../screens/StudentDetailsScreen';
 import FeePaymentDetailsScreen from '../screens/FeePaymentDetailsScreen';
 import AssignmentDetailsScreen from '../screens/AssignmentDetailsScreen';
 import NoteDetailsScreen from '../screens/NoteDetailsScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 // import ConversationScreen from '../screens/ConversationScreen';
 
 type Props = {};
@@ -40,6 +41,7 @@ const Rootnavigator = () => {
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="SignUp" component={SignUpScreen} />
+      <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="Update_Profile" component={UpdateProfileScreen} />
       <Stack.Screen name="Fees" component={FeesScreen} />
       <Stack.Screen name="Fees_Detail" component={FeePaymentDetailsScreen} />
