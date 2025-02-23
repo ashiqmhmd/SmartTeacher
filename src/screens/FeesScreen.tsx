@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   StatusBar,
 } from 'react-native';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, {
@@ -17,11 +17,11 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
-import { getapi } from '../utils/api';
+import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useDispatch, useSelector } from 'react-redux';
-import { batch_id, selectBatch } from '../utils/authslice';
+import {useDispatch, useSelector} from 'react-redux';
+import {batch_id, selectBatch} from '../utils/authslice';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 
 interface StudentDetails {
@@ -35,7 +35,7 @@ interface Fees {
   status: string;
 }
 
-const FeesScreen = ({ navigation }) => {
+const FeesScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('Current Month');
   const [paymentFilter, setPaymentFilter] = useState('All');
@@ -50,7 +50,7 @@ const FeesScreen = ({ navigation }) => {
   const dispatch = useDispatch();
 
   const Fees_fetch = async () => {
-    setLoading(true)
+    setLoading(true);
     const Batch_id = await AsyncStorage.getItem('batch_id');
     const Token = await AsyncStorage.getItem('Token');
     const url = `fee-records/batches/${Batch_id}`;
@@ -63,21 +63,25 @@ const FeesScreen = ({ navigation }) => {
       setFees(res);
       student_details_fetch(res);
 
+      let totalAmount = 0;
+      let receivedAmount = 0;
+
       res.forEach(record => {
-        const totalAmount = totalFees + record.amount;
+        totalAmount += record.amount;
 
-        const receivedAmount =
-          receivedFees + record.status === 'paid' ? record.amount : 0;
-
-        setTotalFees(totalAmount);
-        setReceivedFees(receivedAmount);
+        if (record.status === 'paid') {
+          receivedAmount += record.amount;
+        }
       });
+
+      setTotalFees(totalAmount);
+      setReceivedFees(receivedAmount);
     };
 
     const onCatch = res => {
       console.log('Error');
       console.log(res);
-      setLoading(false)
+      setLoading(false);
     };
     getapi(url, headers, onResponse, onCatch);
   };
@@ -106,7 +110,7 @@ const FeesScreen = ({ navigation }) => {
                   studentId: res.id,
                   name: `${res.firstName} ${res.lastName}`,
                 });
-                setLoading(false)
+                setLoading(false);
               } else {
                 console.warn(
                   `Invalid response for Student ID ${studentId}:`,
@@ -126,7 +130,7 @@ const FeesScreen = ({ navigation }) => {
 
     const details = studentDetailsResponse
       .filter(Boolean)
-      .reduce((acc, { studentId, name }) => {
+      .reduce((acc, {studentId, name}) => {
         acc[studentId] = name;
         return acc;
       }, {});
@@ -155,9 +159,14 @@ const FeesScreen = ({ navigation }) => {
     Fees_fetch();
   };
 
-  const FeeCard = ({ record }) => (
+  const FeeCard = ({record}) => (
     <TouchableOpacity
-      onPress={() => navigation.navigate('Fees_Detail', { feeRecord: record, name: studentDetails[record.studentId] })}
+      onPress={() =>
+        navigation.navigate('Fees_Detail', {
+          feeRecord: record,
+          name: studentDetails[record.studentId],
+        })
+      }
       style={styles.feeCard}>
       <View style={styles.feeCardHeader}>
         <Text style={styles.studentName}>
@@ -167,7 +176,7 @@ const FeesScreen = ({ navigation }) => {
         <Text
           style={[
             styles.status,
-            { color: record.status === 'paid' ? '#43A047' : '#E53935' },
+            {color: record.status === 'paid' ? '#43A047' : '#E53935'},
           ]}>
           {record.status}
         </Text>
@@ -223,7 +232,7 @@ const FeesScreen = ({ navigation }) => {
             borderWidth: 1,
             borderColor: '#e0e0e0',
           }}>
-          <Text style={{ color: '#001d3d', fontWeight: 'bold', fontSize: 16 }}>
+          <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
             {selectedBatch ? selectedBatch.name : 'Select a Batch'}
           </Text>
 
@@ -231,7 +240,7 @@ const FeesScreen = ({ navigation }) => {
             name="keyboard-arrow-down"
             size={20}
             color="#001d3d"
-            style={{ paddingLeft: 5 }}
+            style={{paddingLeft: 5}}
           />
         </TouchableOpacity>
       </View>
@@ -248,30 +257,25 @@ const FeesScreen = ({ navigation }) => {
 
           {/* Student List Shimmer */}
           {[1, 2, 3, 4, 5].map((_, index) => (
-             <View
-             style={styles.feeCard}>
-            <View  key={index} style={styles.feeCardHeader}>
-            <ShimmerPlaceholder style={styles.studentName}/>
-            <ShimmerPlaceholder
-              style={[
-                styles.status,
-              ]}/>
-          </View>
-          <View style={styles.feeCardBody}>
-            <ShimmerPlaceholder style={styles.amount}/>
-            <ShimmerPlaceholder style={styles.date}/>
-          </View>
-          </View>
+            <View style={styles.feeCard}>
+              <View key={index} style={styles.feeCardHeader}>
+                <ShimmerPlaceholder style={styles.studentName} />
+                <ShimmerPlaceholder style={[styles.status]} />
+              </View>
+              <View style={styles.feeCardBody}>
+                <ShimmerPlaceholder style={styles.amount} />
+                <ShimmerPlaceholder style={styles.date} />
+              </View>
+            </View>
           ))}
         </View>
       ) : (
-
         <ScrollView style={styles.container}>
           <View style={styles.feesummeryCard}>
             <LinearGradient
               colors={['rgb(255,255,255)', 'rgb(229,235,252)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 1}}
               style={styles.card}>
               <BackgroundGraph />
               <View style={styles.summaryContent}>
@@ -282,14 +286,14 @@ const FeesScreen = ({ navigation }) => {
                 <View style={styles.divider} />
                 <View style={styles.summaryItem}>
                   <Text style={styles.summaryLabel}>Received</Text>
-                  <Text style={[styles.summaryAmount, { color: '#43A047' }]}>
+                  <Text style={[styles.summaryAmount, {color: '#43A047'}]}>
                     ₹{receivedFees}
                   </Text>
                 </View>
                 <View style={styles.divider} />
                 <View style={styles.summaryItem}>
                   <Text style={styles.summaryLabel}>Balance</Text>
-                  <Text style={[styles.summaryAmount, { color: '#E53935' }]}>
+                  <Text style={[styles.summaryAmount, {color: '#E53935'}]}>
                     ₹{totalFees - receivedFees}
                   </Text>
                 </View>
@@ -431,7 +435,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(255,255,255)',
     borderRadius: 10,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 15,
@@ -524,7 +528,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 15,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
@@ -562,8 +566,8 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   shimmerCard: {
-    height: "100%",
-    width: "100%",
+    height: '100%',
+    width: '100%',
     borderRadius: 10,
     marginBottom: 15,
     backgroundColor: '#e0e0e0',
