@@ -21,7 +21,7 @@ import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 const AssignmentsScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [assignment, setAssignment] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
   const refRBSheet = useRef();
   const dispatch = useDispatch();
@@ -36,7 +36,7 @@ const AssignmentsScreen = ({navigation}) => {
   };
 
   const Assignment_fetch = async () => {
-    setLoading(true)
+    setLoading(true);
     const Token = await AsyncStorage.getItem('Token');
     const Batch_id = await AsyncStorage.getItem('batch_id');
     const url = `assignments/batch/${Batch_id}`;
@@ -47,13 +47,13 @@ const AssignmentsScreen = ({navigation}) => {
     };
     const onResponse = res => {
       setAssignment(res);
-      setLoading(false)
+      setLoading(false);
     };
 
     const onCatch = res => {
       console.log('Error');
       console.log(res);
-      setLoading(false)
+      setLoading(false);
     };
     getapi(url, headers, onResponse, onCatch);
   };
@@ -69,7 +69,9 @@ const AssignmentsScreen = ({navigation}) => {
 
   const AssignmentCard = ({item}) => (
     <TouchableOpacity
-      onPress={() => navigation.Navigator('Assignment_Detail')}
+      onPress={() =>
+        navigation.navigate('Assignment_Detail', {assignment: item})
+      }
       style={styles.assignmentCard}>
       <View style={styles.assignmentHeader}>
         <Text style={styles.assignmentTitle}>{item.title}</Text>
@@ -142,7 +144,6 @@ const AssignmentsScreen = ({navigation}) => {
       </View>
       {loading ? (
         <View style={styles.container}>
-
           {/* Search Bar Shimmer */}
           <View style={styles.searchSection}>
             <ShimmerPlaceholder style={styles.searchBar} />
@@ -150,46 +151,44 @@ const AssignmentsScreen = ({navigation}) => {
 
           {/* Student List Shimmer */}
           {[1, 2, 3, 4, 5].map((_, index) => (
-             <View
-             style={styles.assignmentCard}>
-            <View  key={index} style={styles.assignmentHeader}>
-            <ShimmerPlaceholder style={styles.assignmentTitle}/>
-        
-          </View>
-          <View style={styles.assignmentDetails}>
-            <ShimmerPlaceholder style={styles.detailItem}/>
-            <ShimmerPlaceholder style={styles.detailItem}/>
-          </View>
-          </View>
+            <View style={styles.assignmentCard}>
+              <View key={index} style={styles.assignmentHeader}>
+                <ShimmerPlaceholder style={styles.assignmentTitle} />
+              </View>
+              <View style={styles.assignmentDetails}>
+                <ShimmerPlaceholder style={styles.detailItem} />
+                <ShimmerPlaceholder style={styles.detailItem} />
+              </View>
+            </View>
           ))}
         </View>
       ) : (
-      <ScrollView style={styles.container}>
-        <View style={styles.searchSection}>
-          <View style={styles.searchBar}>
-            <MaterialIcons name="search" size={24} color="#666" />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search assignments"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
+        <ScrollView style={styles.container}>
+          <View style={styles.searchSection}>
+            <View style={styles.searchBar}>
+              <MaterialIcons name="search" size={24} color="#666" />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search assignments"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+            </View>
+            <TouchableOpacity
+              style={styles.createButton}
+              onPress={() => navigation.navigate('Assignment_Creation')}>
+              <Text style={styles.createButtonText}>Create</Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={styles.createButton}
-            onPress={() => navigation.navigate('Assignment_Creation')}>
-            <Text style={styles.createButtonText}>Create</Text>
-          </TouchableOpacity>
-        </View>
 
-        <FlatList
-          data={assignment}
-          renderItem={({item}) => <AssignmentCard item={item} />}
-          keyExtractor={item => item.id.toString()}
-          scrollEnabled={false}
-          style={styles.assignmentsList}
-        />
-      </ScrollView>
+          <FlatList
+            data={assignment}
+            renderItem={({item}) => <AssignmentCard item={item} />}
+            keyExtractor={item => item.id.toString()}
+            scrollEnabled={false}
+            style={styles.assignmentsList}
+          />
+        </ScrollView>
       )}
       <BatchSelectorSheet
         ref={refRBSheet}
