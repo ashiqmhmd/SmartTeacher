@@ -98,3 +98,52 @@ export const getapi = async (
     return null; 
   }
 };
+
+export const putapi = async (
+  url: string = '',
+  header: Record<string, string> = {},
+  body: Record<string, any> = {},
+  onResponse: Callback | null = null,
+  onCatch: Callback | null = null,
+): Promise<any> => {
+  const headers = {
+    'Content-Type': 'application/json',
+    ...header,
+  };
+  console.log(body);
+
+  fetch(base_url + url, {
+    method: 'PUT',
+    headers: headers,
+    body: JSON.stringify(body),
+  });
+  fetch(base_url + url, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify(body),
+  })
+    .then(async response => {
+      const text = await response.text();
+      console.log('Raw Response:', text);
+
+      try {
+        const fixedText = text.replace(
+          /"token":\s*([^"{\[][^,}\]]*)/g,
+          '"token": "$1"',
+        );
+
+        return JSON.parse(fixedText);
+      } catch (error) {
+        console.error('JSON Parse Error:', error);
+        throw new Error(`Invalid JSON response: ${text}`);
+      }
+    })
+    .then(responseJson => {
+      console.log('Parsed JSON:', responseJson);
+      onResponse && onResponse(responseJson);
+    })
+    .catch(e => {
+      console.error('Fetch Error:', e);
+      onCatch && onCatch(e);
+    });
+};

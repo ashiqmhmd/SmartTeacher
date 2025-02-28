@@ -14,10 +14,14 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
 import { postApi } from '../utils/api';
+import { getUserId } from '../utils/TokenDecoder';
+import { useDispatch } from 'react-redux';
+import { login } from '../utils/authslice';
 
 const TrendySignupScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [Phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -27,9 +31,10 @@ const TrendySignupScreen = ({ navigation }) => {
     username: '',
     password: '',
     email: '',
+    phone: ''
   });
 
-
+  const dispatch = useDispatch();
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -42,6 +47,7 @@ const TrendySignupScreen = ({ navigation }) => {
       username: '',
       password: '',
       email: '',
+      phone: ''
     };
 
 
@@ -62,6 +68,12 @@ const TrendySignupScreen = ({ navigation }) => {
       newErrors.email = "Invalid email format"
       isValid = false
     }
+    // if(Phone){
+    //   const num = Phone.replace(".", '');
+    //   if(isNaN(num)){
+
+    //   }
+    // }
 
 
     setErrors(newErrors);
@@ -69,177 +81,200 @@ const TrendySignupScreen = ({ navigation }) => {
   };
 
 
-  const handle_navigation = (id: any) => {
+  const handle_navigation = (id: any,) => {
     navigation.navigate('Update_Profile', { userId: id })
   }
 
-  const Teacher_signup = () => {
+  const Teacher_signup = async () => {
 
-    // if (!validateForm()) {
-    //   return;
-    // }
+    if (!validateForm()) {
+      return;
+    }
 
-    // setErrors({ ...errors });
-    // const url = 'teachers'
-    // const headers = {
-    //   Accept: 'application/json',
-    //   'Content-Type': 'application/json',
-    // };
-    // const body = {
-    //   userName: username,
-    //   email: email,
-    //   password: password,
-    // };
-    // const onResponse = (res: { id: React.SetStateAction<string>; }) => {
-    //   console.log('created succesfully');
-    //   console.log(res.id)
-    //   setcreateId(res.id)
-    //   handle_navigation(createId ? createId : res.id)
-
-
-    // };
-
-    // const onCatch = (res: any) => {
-    //   console.log('Error');
-    //   console.log(res);
-    // };
-
-    // postApi(url, headers, body, onResponse, onCatch);
-
-    handle_navigation(createId)
+    setErrors({ ...errors });
+    const url = 'signup/teachers'
+    const headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    };
+    const body = {
+      userName: username,
+      email: email,
+      password: password,
+      phoneNumber: Phone
+    };
+    const onResponse = async (res: { id: React.SetStateAction<string>; }) => {
+      console.log('created succesfully');
+      const Teacherid = await getUserId(res.token)
+      const userData = {
+        token: `${res.token}`,
+        Teacher_id: Teacherid
+      };
+      dispatch(login(userData));
+      setcreateId(Teacherid)
+      handle_navigation(Teacherid && Teacherid )
+    }
+  
+  const onCatch = (res: any) => {
+    console.log('Error');
+    console.log(res);
   };
 
-  const renderError = (error: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined) => {
-    if (!error) return null;
-    return <Text style={styles.errorText}>{error}</Text>;
-  };
+  postApi(url, headers, body, onResponse, onCatch);
+  
+  handle_navigation(Teacherid ? Teacherid :createId  , tokd)
+     const tokd= 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ2ODNmZTFjLTk4MzQtNDRjNC1iMjdkLWJhMTZlNmI1ZTkzMCIsInVzZXJOYW1lIjoiYXNoaXEiLCJlbWFpbCI6ImFzaGlxMTIzQGdtYWlsLmNvbSIsInBob25lTnVtYmVyIjoiMTIzNDU2Nzg5NSIsImlhdCI6MTc0MDU5NDAxOH0.k1dxrdO1Xz7YgsplcMy2Zf1wdjgng2PmRFlmHXfeGNKhqOfvm3kRKwWUPFOVc8C3ye35irTGcIDJKelEkiC114n5m1TLrld2R_x0jUhH-6uyKLJ2zObupcANAOmM_IVXLioGRnF8vhrASdck95usgzbTT5S2zVdUs10de22UHHk1jw1BtCdIUGfqHSCxnB96NEntBJKAJDFJbfb5ARznk5XRkjHUecSA2Ic2d-wZr8IPym15T49JwTkqvFkjaXdu7iD8set_wlQ3Gwafaa5sWri5X5QAGkd0R9meH1ijO26h-7gjpO6gwLCh5CHwToaGPVz4BkwIx6S1oW8CHWgOfg'
+};
 
-  return (
-    <LinearGradient
-      colors={['#1D49A7', '#1D49A7', '#FFF']}
-      style={styles.container}>
-      <StatusBar backgroundColor="#1D49A7" barStyle="light-content" />
-      <View style={styles.logoContainer}>
-        <Image style={styles.logo} source={require('../resources/logo.png')} />
-        <Text style={styles.logotitle}>Smart Teacher</Text>
-      </View>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardContainer}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContainer}
-          keyboardShouldPersistTaps="handled">
-          <View style={styles.glassContainer}>
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>Join Smart Teacher</Text>
+const renderError = (error: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined) => {
+  if (!error) return null;
+  return <Text style={styles.errorText}>{error}</Text>;
+};
 
-            <View style={styles.inputContainer}>
-              <Feather
-                name="mail"
-                size={20}
-                color="#001d3d"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Email"
-                placeholderTextColor="#888"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-              />
-            </View>
-            {renderError(errors.email)}
+return (
+  <LinearGradient
+    colors={['#1D49A7', '#1D49A7', '#FFF']}
+    style={styles.container}>
+    <StatusBar backgroundColor="#1D49A7" barStyle="light-content" />
+    <View style={styles.logoContainer}>
+      <Image style={styles.logo} source={require('../resources/logo.png')} />
+      <Text style={styles.logotitle}>Smart Teacher</Text>
+    </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.keyboardContainer}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled">
+        <View style={styles.glassContainer}>
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>Join Smart Teacher</Text>
 
-            <View style={styles.inputContainer}>
-              <Feather
-                name="user"
-                size={20}
-                color="#001d3d"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="User Name"
-                placeholderTextColor="#888"
-                value={username}
-                onChangeText={setUsername}
-              />
-            </View>
-            {renderError(errors.username)}
-
-            <View style={styles.inputContainer}>
-              <Feather
-                name="lock"
-                size={20}
-                color="#001d3d"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Password"
-                placeholderTextColor="#888"
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={setPassword}
-              />
-              <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
-                style={styles.showPasswordIcon}>
-                <Feather
-                  name={showPassword ? 'eye' : 'eye-off'}
-                  size={20}
-                  color="#001d3d"
-                />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Feather
-                name="lock"
-                size={20}
-                color="#001d3d"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Confirm Password"
-                placeholderTextColor="#888"
-                secureTextEntry={!showConfirmPassword}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-              />
-              <TouchableOpacity
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                style={styles.showPasswordIcon}>
-                <Feather
-                  name={showConfirmPassword ? 'eye' : 'eye-off'}
-                  size={20}
-                  color="#001d3d"
-                />
-              </TouchableOpacity>
-            </View>
-            {renderError(errors.password)}
-
-            <TouchableOpacity
-              onPress={() =>
-                Teacher_signup()
-              }
-              style={styles.signupButton}>
-              <Text style={styles.signupButtonText}>Sign Up</Text>
-            </TouchableOpacity>
-
-            <View style={styles.loginContainer}>
-              <Text style={styles.loginText}>Already have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                <Text style={styles.loginLinkText}>Login</Text>
-              </TouchableOpacity>
-            </View>
+          <View style={styles.inputContainer}>
+            <Feather
+              name="mail"
+              size={20}
+              color="#001d3d"
+              style={styles.inputIcon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor="#888"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+            />
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </LinearGradient>
-  );
+          {renderError(errors.email)}
+
+          <View style={styles.inputContainer}>
+            <Feather
+              name="phone"
+              size={20}
+              color="#001d3d"
+              style={styles.inputIcon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Phone Number"
+              placeholderTextColor="#888"
+              value={Phone}
+              onChangeText={setPhone}
+              keyboardType="numeric"
+            />
+          </View>
+          {/* {renderError(errors.email)} */}
+
+          <View style={styles.inputContainer}>
+            <Feather
+              name="user"
+              size={20}
+              color="#001d3d"
+              style={styles.inputIcon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="User Name"
+              placeholderTextColor="#888"
+              value={username}
+              onChangeText={setUsername}
+            />
+          </View>
+          {renderError(errors.username)}
+
+          <View style={styles.inputContainer}>
+            <Feather
+              name="lock"
+              size={20}
+              color="#001d3d"
+              style={styles.inputIcon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor="#888"
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.showPasswordIcon}>
+              <Feather
+                name={showPassword ? 'eye' : 'eye-off'}
+                size={20}
+                color="#001d3d"
+              />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Feather
+              name="lock"
+              size={20}
+              color="#001d3d"
+              style={styles.inputIcon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Confirm Password"
+              placeholderTextColor="#888"
+              secureTextEntry={!showConfirmPassword}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+            />
+            <TouchableOpacity
+              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              style={styles.showPasswordIcon}>
+              <Feather
+                name={showConfirmPassword ? 'eye' : 'eye-off'}
+                size={20}
+                color="#001d3d"
+              />
+            </TouchableOpacity>
+          </View>
+          {renderError(errors.password)}
+
+          <TouchableOpacity
+            onPress={() =>
+              Teacher_signup()
+            }
+            style={styles.signupButton}>
+            <Text style={styles.signupButtonText}>Sign Up</Text>
+          </TouchableOpacity>
+
+          <View style={styles.loginContainer}>
+            <Text style={styles.loginText}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+              <Text style={styles.loginLinkText}>Login</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  </LinearGradient>
+);
 };
 
 const styles = StyleSheet.create({

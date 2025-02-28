@@ -13,6 +13,9 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import LinearGradient from 'react-native-linear-gradient';
+import { logout } from '../utils/authslice';
+import { useDispatch } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ProfileScreen = ({navigation}) => {
   const [imageError, setImageError] = useState(false);
@@ -36,6 +39,7 @@ const ProfileScreen = ({navigation}) => {
     id: '02fa458b-7d45-4869-bd28-aa8de5fea95c',
     age: 30,
   });
+  const dispatch = useDispatch();
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -47,15 +51,21 @@ const ProfileScreen = ({navigation}) => {
         text: 'Logout',
         onPress: () => {
           // Handle logout logic here
-          navigation.reset({
-            index: 0,
-            routes: [{name: 'Login'}],
-          });
+          logoutbutton_press()
+          
         },
         style: 'destructive',
       },
     ]);
   };
+  const logoutbutton_press = async () => {
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'Login'}],
+    });
+    dispatch(logout())
+    await AsyncStorage.removeItem('Token');
+  }
 
   const InfoSection = ({icon, title, value}) => (
     <View style={styles.infoSection}>

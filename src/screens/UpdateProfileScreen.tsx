@@ -13,7 +13,8 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import {launchImageLibrary} from 'react-native-image-picker';
-import {postApi} from '../utils/api';
+import {postApi, putapi} from '../utils/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const UpdateProfileScreen = ({navigation, route}) => {
   const [profileData, setProfileData] = useState({
@@ -57,11 +58,13 @@ const UpdateProfileScreen = ({navigation, route}) => {
     console.log(userId)
   },[1])
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    const Token = await AsyncStorage.getItem('Token');
     const url = `teachers/${userId}`;
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${Token}`,
     };
 
     const body = {
@@ -70,15 +73,18 @@ const UpdateProfileScreen = ({navigation, route}) => {
     };
 
     const onResponse = res => {
+      console.log(res)
       console.log('Profile updated successfully');
-      navigation.navigate('Tabs')
+      console.log(Token)
+      navigation.replace('Tabs');
+      
     };
 
     const onCatch = err => {
       console.log('Error updating profile:', err);
     };
 
-    postApi(url, headers, body, onResponse, onCatch);
+    putapi(url, headers, body, onResponse, onCatch);
   };
 
   const renderInput = (icon, placeholder, field, keyboardType = 'default') => (
