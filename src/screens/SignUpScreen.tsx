@@ -46,7 +46,6 @@ const TrendySignupScreen = ({ navigation }) => {
     const newErrors = {
       username: '',
       password: '',
-      email: '',
       phone: ''
     };
 
@@ -64,10 +63,7 @@ const TrendySignupScreen = ({ navigation }) => {
       newErrors.password = 'Passwords are do not matching';
       isValid = false;
     }
-    if (!validateEmail(email)) {
-      newErrors.email = "Invalid email format"
-      isValid = false
-    }
+ 
     // if(Phone){
     //   const num = Phone.replace(".", '');
     //   if(isNaN(num)){
@@ -99,7 +95,6 @@ const TrendySignupScreen = ({ navigation }) => {
     };
     const body = {
       userName: username,
-      email: email,
       password: password,
       phoneNumber: Phone
     };
@@ -122,8 +117,7 @@ const TrendySignupScreen = ({ navigation }) => {
 
   postApi(url, headers, body, onResponse, onCatch);
   
-  handle_navigation(Teacherid ? Teacherid :createId  , tokd)
-     const tokd= 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ2ODNmZTFjLTk4MzQtNDRjNC1iMjdkLWJhMTZlNmI1ZTkzMCIsInVzZXJOYW1lIjoiYXNoaXEiLCJlbWFpbCI6ImFzaGlxMTIzQGdtYWlsLmNvbSIsInBob25lTnVtYmVyIjoiMTIzNDU2Nzg5NSIsImlhdCI6MTc0MDU5NDAxOH0.k1dxrdO1Xz7YgsplcMy2Zf1wdjgng2PmRFlmHXfeGNKhqOfvm3kRKwWUPFOVc8C3ye35irTGcIDJKelEkiC114n5m1TLrld2R_x0jUhH-6uyKLJ2zObupcANAOmM_IVXLioGRnF8vhrASdck95usgzbTT5S2zVdUs10de22UHHk1jw1BtCdIUGfqHSCxnB96NEntBJKAJDFJbfb5ARznk5XRkjHUecSA2Ic2d-wZr8IPym15T49JwTkqvFkjaXdu7iD8set_wlQ3Gwafaa5sWri5X5QAGkd0R9meH1ijO26h-7gjpO6gwLCh5CHwToaGPVz4BkwIx6S1oW8CHWgOfg'
+
 };
 
 const renderError = (error: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined) => {
@@ -149,7 +143,7 @@ return (
         <View style={styles.glassContainer}>
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>Join Smart Teacher</Text>
-
+{/* 
           <View style={styles.inputContainer}>
             <Feather
               name="mail"
@@ -165,8 +159,7 @@ return (
               onChangeText={setEmail}
               keyboardType="email-address"
             />
-          </View>
-          {renderError(errors.email)}
+          </View> */}
 
           <View style={styles.inputContainer}>
             <Feather

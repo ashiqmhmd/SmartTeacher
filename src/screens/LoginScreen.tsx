@@ -77,6 +77,7 @@ const LoginScreen = ({ navigation }) => {
           token: `${res.token}`,
           Teacher_id: Teacherid
         };
+        console.log('usedata',userData)
         dispatch(login(userData));
         navigation.replace('Tabs');
       } else if (res.error) {

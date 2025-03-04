@@ -49,6 +49,15 @@ const HomeScreen = ({navigation}) => {
       setLoading(false)
     };
 
+    // const response = await fetch(`https://zkbsgdbbhc.execute-api.us-east-1.amazonaws.com/Dev/${url}`, { method: "GET", headers });
+
+    // const responseText = await response.text();
+    // console.log("Raw API Response:", responseText,headers,url);
+    
+    // if (!response.ok) {
+    //   throw new Error(`HTTP Error: ${response.status} - ${responseText}`);
+    // }
+
     const onCatch = res => {
       console.log('Error');
       console.log(res);

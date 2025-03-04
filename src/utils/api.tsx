@@ -90,6 +90,7 @@ export const getapi = async (
     return responseJson; 
   } catch (error) {
     console.error('API Fetch Error:', error);
+    console.log(...header)
 
     if (onCatch) {
       onCatch(error);
@@ -114,11 +115,6 @@ export const putapi = async (
 
   fetch(base_url + url, {
     method: 'PUT',
-    headers: headers,
-    body: JSON.stringify(body),
-  });
-  fetch(base_url + url, {
-    method: 'POST',
     headers: headers,
     body: JSON.stringify(body),
   })
