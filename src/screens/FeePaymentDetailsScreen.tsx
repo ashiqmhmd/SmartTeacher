@@ -7,7 +7,8 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
-  Share,
+  Image,
+  Linking,
 } from 'react-native';
 import React, {useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -16,15 +17,15 @@ import {getapi, postapi} from '../utils/api';
 import dateconvert from '../components/moment';
 
 const FeePaymentDetailsScreen = ({route, navigation}) => {
-  const {feeRecord,name} = route.params;
+  const {feeRecord, name} = route.params;
   const [loading, setLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleMarkAsReceived = async () => {
     setIsSaving(true);
     try {
-      // API call would go here
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating API call
+      // API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       Alert.alert('Success', 'Fee payment marked as received');
       navigation.goBack();
     } catch (error) {
@@ -34,59 +35,62 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
     }
   };
 
-  const handleNotify = async () => {
-    try {
-      const message = `${
-        name
-      }'s fee payment is pending for month ${dateconvert(
-        feeRecord.dueDate,
-      )}. Please pay it asap. Ignore if already paid.`;
-      // API call to send notification would go here
-      Alert.alert('Success', 'Notification sent successfully');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to send notification');
-    }
-  };
-
-  const handleShare = async () => {
-    try {
-      await Share.share({
-        message: `Fee Payment Details for ${name}`,
-        title: 'Fee Payment Details',
-      });
-    } catch (error) {
-      Alert.alert('Error', 'Failed to share');
-    }
-  };
-
-  const handleDelete = () => {
-    Alert.alert(
-      'Delete Fee Record',
-      'Do you really want to delete?',
-      [
-        {
-          text: 'No',
-          style: 'cancel',
-        },
-        {
-          text: 'Yes',
-          style: 'destructive',
-          onPress: async () => {
-            setLoading(true);
-            try {
-              // API call would go here
-              await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating API call
-              navigation.goBack();
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete fee record');
-            } finally {
-              setLoading(false);
-            }
-          },
-        },
-      ],
-      {cancelable: true},
+  const isImageFile = url => {
+    if (!url) return false;
+    const lowerCaseUrl = url.toLowerCase();
+    return (
+      lowerCaseUrl.endsWith('.jpg') ||
+      lowerCaseUrl.endsWith('.jpeg') ||
+      lowerCaseUrl.endsWith('.png') ||
+      lowerCaseUrl.endsWith('.gif')
     );
+  };
+
+  const isPdfFile = url => {
+    if (!url) return false;
+    return url.toLowerCase().endsWith('.pdf');
+  };
+
+  const openPdfFile = url => {
+    Linking.openURL(url);
+  };
+
+  const renderAttachment = () => {
+    if (!feeRecord.attachmentUrl) {
+      return (
+        <Text style={styles.noAttachmentText}>No payment proof available</Text>
+      );
+    }
+
+    if (isImageFile(feeRecord.attachmentUrl)) {
+      return (
+        <View style={styles.imageContainer}>
+          <Image
+            source={{uri: feeRecord.attachmentUrl}}
+            style={styles.paymentProofImage}
+            resizeMode="contain"
+          />
+        </View>
+      );
+    } else if (isPdfFile(feeRecord.attachmentUrl)) {
+      return (
+        <TouchableOpacity
+          style={styles.pdfContainer}
+          onPress={() => openPdfFile(feeRecord.attachmentUrl)}>
+          <MaterialIcons name="picture-as-pdf" size={38} color="#E53935" />
+          <Text style={styles.pdfText}>View PDF Document</Text>
+        </TouchableOpacity>
+      );
+    } else {
+      return (
+        <TouchableOpacity
+          style={styles.unknownFileContainer}
+          onPress={() => Linking.openURL(feeRecord.attachmentUrl)}>
+          <MaterialIcons name="insert-drive-file" size={48} color="#001d3d" />
+          <Text style={styles.fileText}>View Attachment</Text>
+        </TouchableOpacity>
+      );
+    }
   };
 
   return (
@@ -101,9 +105,8 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
             <MaterialIcons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Fee Payment Details</Text>
-          <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
-            <MaterialIcons name="share" size={24} color="#fff" />
-          </TouchableOpacity>
+
+          <View style={styles.emptyView} />
         </View>
       </LinearGradient>
 
@@ -137,21 +140,20 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
           </View>
 
           {feeRecord.status === 'paid' && (
-            <View style={styles.detailRow}>
-              <Text style={styles.label}>Payment Date</Text>
-              <Text style={styles.value}>
-                {dateconvert(feeRecord.paymentDate)}
-              </Text>
-            </View>
-          )}
+            <>
+              <View style={styles.detailRow}>
+                <Text style={styles.label}>Payment Date</Text>
+                <Text style={styles.value}>
+                  {dateconvert(feeRecord.paymentDate)}
+                </Text>
+              </View>
 
-          <View style={styles.attachmentSection}>
-            <Text style={styles.attachmentTitle}>Attachments</Text>
-            <TouchableOpacity style={styles.attachmentButton}>
-              <MaterialIcons name="attach-file" size={24} color="#001d3d" />
-              <Text style={styles.attachmentButtonText}>Add Attachment</Text>
-            </TouchableOpacity>
-          </View>
+              <View style={styles.attachmentSection}>
+                <Text style={styles.attachmentTitle}>Payment Proof</Text>
+                {renderAttachment()}
+              </View>
+            </>
+          )}
         </View>
 
         <View style={styles.actionButtons}>
@@ -170,27 +172,6 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
               )}
             </TouchableOpacity>
           )}
-
-          <TouchableOpacity
-            style={[styles.button, styles.notifyButton]}
-            onPress={handleNotify}>
-            <MaterialIcons name="notifications" size={24} color="#fff" />
-            <Text style={styles.buttonText}>Send Reminder</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.button, styles.deleteButton]}
-            onPress={handleDelete}
-            disabled={loading}>
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <>
-                <MaterialIcons name="delete" size={24} color="#fff" />
-                <Text style={styles.buttonText}>Delete Record</Text>
-              </>
-            )}
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
@@ -219,16 +200,24 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
+    textAlign: 'center',
+    flex: 1,
   },
   backButton: {
     padding: 8,
     borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  shareButton: {
+  emptyView: {
     padding: 8,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+
+    width: 40,
+    height: 40,
   },
   container: {
     flex: 1,
@@ -282,18 +271,52 @@ const styles = StyleSheet.create({
     color: '#001d3d',
     marginBottom: 12,
   },
-  attachmentButton: {
+  imageContainer: {
+    width: '100%',
+    borderRadius: 8,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#eee',
+  },
+  paymentProofImage: {
+    width: '100%',
+    height: 200,
+    backgroundColor: '#f5f5f5',
+  },
+  pdfContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
-    padding: 12,
+    padding: 16,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#eee',
   },
-  attachmentButtonText: {
-    marginLeft: 8,
+  pdfText: {
+    fontSize: 16,
     color: '#001d3d',
-    fontSize: 14,
     fontWeight: '500',
+    marginLeft: 16,
+  },
+  unknownFileContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#eee',
+  },
+  fileText: {
+    fontSize: 16,
+    color: '#001d3d',
+    fontWeight: '500',
+    marginLeft: 16,
+  },
+  noAttachmentText: {
+    color: '#666',
+    fontStyle: 'italic',
+    padding: 12,
   },
   actionButtons: {
     gap: 12,
@@ -308,12 +331,6 @@ const styles = StyleSheet.create({
   },
   receiveButton: {
     backgroundColor: '#43A047',
-  },
-  notifyButton: {
-    backgroundColor: '#1976D2',
-  },
-  deleteButton: {
-    backgroundColor: '#E53935',
   },
   buttonText: {
     color: '#fff',
