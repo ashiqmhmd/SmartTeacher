@@ -11,10 +11,8 @@ import {
 import React, {useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import LinearGradient from 'react-native-linear-gradient';
-import { logout } from '../utils/authslice';
-import { useDispatch } from 'react-redux';
+import {logout} from '../utils/authslice';
+import {useDispatch} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ProfileScreen = ({navigation}) => {
@@ -51,8 +49,7 @@ const ProfileScreen = ({navigation}) => {
         text: 'Logout',
         onPress: () => {
           // Handle logout logic here
-          logoutbutton_press()
-          
+          logoutbutton_press();
         },
         style: 'destructive',
       },
@@ -63,9 +60,9 @@ const ProfileScreen = ({navigation}) => {
       index: 0,
       routes: [{name: 'Login'}],
     });
-    dispatch(logout())
+    dispatch(logout());
     await AsyncStorage.removeItem('Token');
-  }
+  };
 
   const InfoSection = ({icon, title, value}) => (
     <View style={styles.infoSection}>
@@ -88,7 +85,6 @@ const ProfileScreen = ({navigation}) => {
 
   return (
     <View style={styles.screen}>
-      {/* App Bar */}
       <View style={styles.appBar}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="rgb(0,0,0)" />
@@ -101,7 +97,6 @@ const ProfileScreen = ({navigation}) => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Profile Header */}
         <View style={styles.profileHeader}>
           <View style={styles.profileImageContainer}>
             <Image
@@ -123,23 +118,13 @@ const ProfileScreen = ({navigation}) => {
           <Text style={styles.profileUsername}>@{teacher.userName}</Text>
         </View>
 
-        {/* Quick Actions */}
-        <View style={styles.quickActions}>
-          <TouchableOpacity style={styles.actionButton}>
-            <MaterialIcons name="message" size={24} color="#0F1F4B" />
-            <Text style={styles.actionText}>Messages</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
-            <MaterialIcons name="analytics" size={24} color="#0F1F4B" />
-            <Text style={styles.actionText}>Stats</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
-            <MaterialIcons name="payments" size={24} color="#0F1F4B" />
-            <Text style={styles.actionText}>Earnings</Text>
-          </TouchableOpacity>
-        </View>
+        <View
+          style={{
+            borderBottomWidth: 1,
+            borderColor: '#E5E7EB',
+            marginBottom: 20,
+          }}></View>
 
-        {/* Personal Information */}
         <Section title="Personal Information">
           <InfoSection icon="phone" title="Phone" value={teacher.phoneNumber} />
           <InfoSection icon="email" title="Email" value={teacher.email} />
@@ -147,7 +132,6 @@ const ProfileScreen = ({navigation}) => {
           <InfoSection icon="cake" title="Age" value={teacher.age.toString()} />
         </Section>
 
-        {/* Address */}
         <Section title="Address">
           <InfoSection
             icon="home"
@@ -167,7 +151,6 @@ const ProfileScreen = ({navigation}) => {
           />
         </Section>
 
-        {/* Bank Details */}
         <Section title="Payment Information">
           <InfoSection
             icon="account-balance"
@@ -256,23 +239,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
   },
-  quickActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 20,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#E5E7EB',
-    marginBottom: 20,
-  },
-  actionButton: {
-    alignItems: 'center',
-  },
-  actionText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: '#0F1F4B',
-  },
   section: {
     paddingHorizontal: 20,
     marginBottom: 20,
@@ -291,15 +257,15 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 8,
   },
-  infoSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
+  // infoSection: {
+  //   flexDirection: 'row',
+  //   alignItems: 'center',
+  //   paddingVertical: 8,
+  //   borderBottomWidth: 1,
+  //   borderBottomColor: '#E5E7EB',
+  // },
   infoSection: {
     flexDirection: 'row',
     alignItems: 'center',
