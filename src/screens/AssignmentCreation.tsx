@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -14,19 +14,28 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {pick} from '@react-native-documents/picker';
+import { pick } from '@react-native-documents/picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { base_url } from '../utils/store';
+import { postApi } from '../utils/api';
+import { currentdate } from '../components/moment';
+import moment from 'moment';
 
-const CreateAssignment = ({navigation}) => {
+
+const CreateAssignment = ({ navigation }) => {
   const [assignment, setAssignment] = useState({
+    publishDate : currentdate(),
     title: '',
     submissionDate: new Date(),
-    description: '',
+    details: '',
     attachments: [],
   });
-
+  const [submissionDate,setSubmitdate]  = useState(new Date())
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [formdatas, setformdata] = useState()
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
 
@@ -72,7 +81,7 @@ const CreateAssignment = ({navigation}) => {
     if (!validateForm()) return;
 
     setIsSaving(true);
-    // API call
+    fileupload()
     await new Promise(resolve => setTimeout(resolve, 1500));
     setIsSaving(false);
     setShowSuccessMessage(true);
@@ -97,12 +106,117 @@ const CreateAssignment = ({navigation}) => {
             ...(Array.isArray(result) ? result : [result]),
           ],
         }));
-        attachmentValidation(size);
+        
+      attachmentValidation(size);
+        const fileData = {
+          uri: Platform.OS === 'android' ? result[0].uri : result[0].uri.replace('file://', ''),
+          type: result[0].type || 'image/jpeg',
+          name: result[0].name || 'file.jpg',
+        };
+
+        console.log("File Data Before Append:", fileData);
+
+        // Create FormData
+        const formData = new FormData();
+        formData.append('file', fileData);
+
+        console.log("FormData Object:", formData);
+
+        // Save Image & FormData
+        setformdata(formData); // Store FormData directly, NOT as JSON!
       }
+
     } catch (error) {
       console.error('Document Picker Error:', error);
     }
   };
+
+  const fileupload = async () => {
+    console.log("setted datas")
+    console.log(assignment)
+    // try {
+    //   const Token = await AsyncStorage.getItem('Token');
+
+    //   if (!formdatas) {
+    //     console.log("No file selected for upload!");
+    //     return;
+    //   }
+
+    //   // Replace with the actual API base URL
+    //   const url = `${base_url}uploads`;
+
+    //   console.log("Uploading file to:", url);
+    //   console.log("FormData Before Upload:", formdatas);
+
+    //   const response = await fetch(url, {
+    //     method: "POST",
+    //     headers: {
+    //       Authorization: `Bearer ${Token}`,
+    //       "Content-Type": "multipart/form-data", // Required for FormData uploads
+    //     },
+    //     body: formdatas, // Sending FormData directly
+    //   });
+
+    //   console.log("Status Code:", response.status);
+
+    //   const textResponse = await response.text(); // Read raw response first
+    //   console.log("Raw Response:", textResponse);
+
+    //   // Parse JSON only if response is valid
+    //   let responseData;
+    //   try {
+    //     responseData = JSON.parse(textResponse);
+    //   } catch (error) {
+    //     console.error("Error parsing JSON response:", error);
+    //     responseData = { message: "Invalid JSON response from server" };
+    //   }
+
+    //   console.log("Parsed Response:", responseData);
+
+    //   if (!response.ok) {
+    //     throw new Error(`Upload failed: ${responseData.message || "Unknown error"}`);
+    //   }
+
+
+    //   console.log("Upload Successful!", responseData.url);
+    //   setUploadedFile(responseData.url)
+    //   Assignment_Submit(responseData.url)
+    //   return responseData.url;
+
+    // } catch (error) {
+    //   console.error("Error uploading file:");
+    // }
+  };
+
+  // const Assignment_Submit = async (url) => {
+  //   setLoading(true);
+  //   const Token = await AsyncStorage.getItem('Token');
+  //   const Batch_id = await AsyncStorage.getItem('batch_id');
+   
+  //   const url = `assignments`;
+  //   const headers = {
+  //     Accept: 'application/json',
+  //     'Content-Type': 'application/json',
+  //     Authorization: `Bearer ${Token}`,
+  //   };
+
+  //   const body = {
+  //     publishDate:currentdte,
+  //     submissionDate:
+  //   }
+  //   const onResponse = res => {
+  //     setAssignment(res);
+  //     setLoading(false);
+  //   };
+
+  //   const onCatch = res => {
+  //     console.log('Error');
+  //     console.log(res);
+  //     setLoading(false);
+  //   };
+  //   postApi(url, headers,body, onResponse, onCatch);
+  // };
+
 
   const renderAttachmentItem = (item, index) => (
     <View style={styles.attachmentItem} key={index}>
@@ -115,7 +229,7 @@ const CreateAssignment = ({navigation}) => {
           const newErrors = {};
           const newAttachments = [...assignment.attachments];
           newAttachments.splice(index, 1);
-          setAssignment(prev => ({...prev, attachments: newAttachments}));
+          setAssignment(prev => ({ ...prev, attachments: newAttachments }));
           setErrors(newErrors);
         }}
         style={styles.removeAttachment}>
@@ -132,7 +246,7 @@ const CreateAssignment = ({navigation}) => {
           <MaterialIcons name="arrow-back" size={24} color="#001d3d" />
         </TouchableOpacity>
         <Text style={styles.appBarTitle}>Create Assignment</Text>
-        <View style={{width: 24}} />
+        <View style={{ width: 24 }} />
       </View>
 
       <KeyboardAvoidingView
@@ -140,7 +254,7 @@ const CreateAssignment = ({navigation}) => {
         style={styles.container}>
         <ScrollView style={styles.scrollView}>
           {showSuccessMessage && (
-            <Animated.View style={[styles.successMessage, {opacity: fadeAnim}]}>
+            <Animated.View style={[styles.successMessage, { opacity: fadeAnim }]}>
               <MaterialIcons name="check-circle" size={24} color="#059669" />
               <Text style={styles.successText}>
                 Assignment saved successfully
@@ -155,9 +269,9 @@ const CreateAssignment = ({navigation}) => {
                 style={[styles.input, errors.title && styles.inputError]}
                 value={assignment.title}
                 onChangeText={text => {
-                  setAssignment(prev => ({...prev, title: text}));
+                  setAssignment(prev => ({ ...prev, title: text }));
                   if (errors.title)
-                    setErrors(prev => ({...prev, title: undefined}));
+                    setErrors(prev => ({ ...prev, title: undefined }));
                 }}
                 placeholder="Enter assignment title"
                 placeholderTextColor="#9CA3AF"
@@ -173,7 +287,7 @@ const CreateAssignment = ({navigation}) => {
                 style={styles.dateInput}
                 onPress={() => setShowDatePicker(true)}>
                 <Text style={styles.dateText}>
-                  {assignment.submissionDate.toLocaleDateString()}
+                  {submissionDate.toLocaleDateString()}
                 </Text>
                 <MaterialIcons
                   name="calendar-today"
@@ -192,7 +306,7 @@ const CreateAssignment = ({navigation}) => {
                 style={[styles.input, styles.textArea]}
                 value={assignment.description}
                 onChangeText={text =>
-                  setAssignment(prev => ({...prev, description: text}))
+                  setAssignment(prev => ({ ...prev, description: text }))
                 }
                 placeholder="Enter assignment description"
                 placeholderTextColor="#9CA3AF"
@@ -248,11 +362,18 @@ const CreateAssignment = ({navigation}) => {
             display="default"
             onChange={(event, selectedDate) => {
               setShowDatePicker(false);
+              const formattedDate = moment(selectedDate)
+              .utc()
+              .set({ hour: 23, minute: 59, second: 59, millisecond: 999 })
+              .format("YYYY-MM-DDTHH:mm:ss.SSS[Z]");
+      
               if (selectedDate) {
                 setAssignment(prev => ({
                   ...prev,
-                  submissionDate: selectedDate,
+                  submissionDate: formattedDate,
                 }));
+                setSubmitdate(selectedDate)
+                console.log(selectedDate.toLocaleDateString())
               }
             }}
           />
@@ -380,7 +501,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: -2},
+    shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 5,
@@ -404,7 +525,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#001d3d',
     shadowColor: '#001d3d',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,

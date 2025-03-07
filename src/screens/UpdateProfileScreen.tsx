@@ -28,12 +28,12 @@ const UpdateProfileScreen = ({ navigation, route }) => {
     addressCity: '',
     addressState: '',
     pinCode: '',
-    profilePicUrl: "ashiqprofile.png",
+    profilePicUrl: '',
     phoneNumber: '',
-    // upiId: '',
-    // accountNumber: '',
-    // accountName: '',
-    // ifscCode: '',
+    upiId: '',
+    accountNumber: '',
+    accountName: '',
+    ifscCode: '',
   });
 
   const [profileImage, setProfileImage] = useState();
