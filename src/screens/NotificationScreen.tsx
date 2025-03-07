@@ -79,7 +79,7 @@ const NotificationScreen = ({navigation}) => {
         <View style={styles.notificationHeader}>
           <Text style={styles.notificationTitle}>
             {item.type === 'MESSAGE'
-              ? 'MESSAGE'
+              ? 'NEW MESSAGE'
               : item.type === 'FEE_PAID'
               ? 'FEE PAID'
               : 'NEW STUDENT'}
