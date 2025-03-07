@@ -126,21 +126,16 @@ const StudentDetailsScreen = ({route, navigation}) => {
           <Text style={styles.sectionTitle}>Enrolled Batches</Text>
           <View style={styles.batchList}>
             {student.batches.map((batchId, index) => (
-              <TouchableOpacity key={index} style={styles.batchCard}>
+              <View key={index} style={styles.batchCard}>
                 <LinearGradient
                   colors={['#f8f9ff', '#ffffff']}
                   style={styles.batchContent}>
                   <View style={styles.batchInfo}>
                     <Text style={styles.batchName}>Batch {index + 1}</Text>
-                    <Text style={styles.batchId}>{batchId.slice(0, 8)}</Text>
+                    <Text style={styles.batchId}>{batchId}</Text>
                   </View>
-                  <MaterialIcons
-                    name="chevron-right"
-                    size={24}
-                    color="#001d3d"
-                  />
                 </LinearGradient>
-              </TouchableOpacity>
+              </View>
             ))}
           </View>
         </View>
