@@ -140,24 +140,31 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
           </View>
 
           {feeRecord.status === 'paid' && (
-            <>
-              <View style={styles.detailRow}>
-                <Text style={styles.label}>Payment Date</Text>
-                <Text style={styles.value}>
-                  {dateconvert(feeRecord.paymentDate)}
-                </Text>
-              </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Payment Date</Text>
+              <Text style={styles.value}>
+                {dateconvert(feeRecord.paymentDate)}
+              </Text>
+            </View>
+          )}
 
-              <View style={styles.attachmentSection}>
-                <Text style={styles.attachmentTitle}>Payment Proof</Text>
-                {renderAttachment()}
-              </View>
-            </>
+          {feeRecord.notes && (
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Notes</Text>
+              <Text style={styles.value}>{feeRecord.notes}</Text>
+            </View>
+          )}
+
+          {feeRecord.status === 'paid' && (
+            <View style={styles.attachmentSection}>
+              <Text style={styles.attachmentTitle}>Payment Proof</Text>
+              {renderAttachment()}
+            </View>
           )}
         </View>
 
         <View style={styles.actionButtons}>
-          {feeRecord.status !== 'paid' && (
+          {feeRecord.status !== 'paid' && !feeRecord.teacherAcknowledgement && (
             <TouchableOpacity
               style={[styles.button, styles.receiveButton]}
               onPress={handleMarkAsReceived}
@@ -171,6 +178,13 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
                 </>
               )}
             </TouchableOpacity>
+          )}
+
+          {feeRecord.status === 'paid' && feeRecord.teacherAcknowledgement && (
+            <View style={styles.acknowledgedContainer}>
+              <MaterialIcons name="verified" size={24} color="#43A047" />
+              <Text style={styles.acknowledgedText}>Payment Acknowledged</Text>
+            </View>
           )}
         </View>
       </ScrollView>
@@ -215,7 +229,6 @@ const styles = StyleSheet.create({
   emptyView: {
     padding: 8,
     borderRadius: 12,
-
     width: 40,
     height: 40,
   },
@@ -320,6 +333,7 @@ const styles = StyleSheet.create({
   },
   actionButtons: {
     gap: 12,
+    marginBottom: 24,
   },
   button: {
     flexDirection: 'row',
@@ -334,6 +348,22 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  acknowledgedContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: '#f1f8e9',
+    borderWidth: 1,
+    borderColor: '#c5e1a5',
+    gap: 8,
+  },
+  acknowledgedText: {
+    color: '#43A047',
     fontSize: 16,
     fontWeight: '600',
   },
