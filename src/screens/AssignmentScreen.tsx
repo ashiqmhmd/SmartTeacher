@@ -8,7 +8,7 @@ import {
   StatusBar,
   FlatList,
 } from 'react-native';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
@@ -17,7 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useDispatch, useSelector} from 'react-redux';
 import {batch_id, selectBatch} from '../utils/authslice';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
-
+import { useFocusEffect } from '@react-navigation/native';
 const AssignmentsScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [assignment, setAssignment] = useState([]);
@@ -67,6 +67,19 @@ const AssignmentsScreen = ({navigation}) => {
     Assignment_fetch();
   }, [1]);
 
+  useFocusEffect(
+    useCallback(() => {
+      console.log('Screen is focused');
+      Assignment_fetch();
+
+      // Optional cleanup function
+      return () => {
+        console.log('Screen is unfocused');
+      };
+    }, []) // Empty dependency array ensures this runs only when screen gains focus
+  );
+
+  
   const AssignmentCard = ({item}) => (
     <TouchableOpacity
       onPress={() =>

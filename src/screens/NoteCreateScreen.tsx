@@ -14,18 +14,26 @@ import {
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {pick} from '@react-native-documents/picker';
+import { currentdate } from '../components/moment';
+import { base_url } from '../utils/store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { postApi } from '../utils/api';
 
 const NoteCreateScreen = ({navigation}) => {
   const [note, setNote] = useState({
     title: '',
-    description: '',
-    attachments: [],
+    publishDate: currentdate(),
+    content: '',
+    listUrls: [],
+    batchId:''
   });
 
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
+   const [formdatas, setformdata] = useState()
+    const [attachmentList, setAttachmentList] = useState([]);
 
   const animateSuccess = () => {
     Animated.sequence([
@@ -69,7 +77,9 @@ const NoteCreateScreen = ({navigation}) => {
     if (!validateForm()) return;
 
     setIsSaving(true);
-    // API call
+    fileupload()
+    
+
     await new Promise(resolve => setTimeout(resolve, 1500));
     setIsSaving(false);
     setShowSuccessMessage(true);
@@ -80,34 +90,156 @@ const NoteCreateScreen = ({navigation}) => {
     }, 2000);
   };
 
-  const handleAttachments = async () => {
-    try {
-      const result = await pick({
-        allowMultiSelection: true,
-        type: ['*/*'],
-      });
-
-      if (result) {
-        console.log('Document selected:', result);
-        let size = result[0].size;
-        attachmentValidation(size);
-
-        setNote(prev => ({
-          ...prev,
-          attachments: [
-            ...(prev.attachments || []),
+    const handleAttachments = async () => {
+      try {
+        const result = await pick({
+          allowMultiSelection: false,
+          type: ['*/*'],
+        });
+  
+        if (result) {
+          console.log('Document selected:', result);
+          let size = result[0].size;
+          // setAttachmentList(prev => ({
+          //   ...prev,
+          //   attachments: [
+          //     ...(prev.attachments || []),
+          //     ...(Array.isArray(result) ? result : [result]),
+          //   ],
+          // }));
+  
+          setAttachmentList(prev => [
+            ...prev,
             ...(Array.isArray(result) ? result : [result]),
-          ],
-        }));
-      }
-    } catch (error) {
-      if (error.message === 'User canceled') {
-        console.log('User canceled the picker');
-      } else {
+          ]);
+          
+        attachmentValidation(size);
+          const fileData = {
+            uri: Platform.OS === 'android' ? result[0].uri : result[0].uri.replace('file://', ''),
+            type: result[0].type || ' application/pdf',
+            name: result[0].name || 'file.pdf',
+          };
+  
+          console.log("File Data Before Append:", fileData);
+  
+          // Create FormData
+          const formData = new FormData();
+          formData.append('file', fileData);
+  
+          console.log("FormData Object:", formData);
+  
+          // Save Image & FormData
+          setformdata(formData); // Store FormData directly, NOT as JSON!
+        }
+  
+      } catch (error) {
         console.error('Document Picker Error:', error);
       }
-    }
-  };
+    };
+
+
+    const fileupload = async () => {
+      try {
+        console.log("Uploading file...");
+    
+        const Batch_id = await AsyncStorage.getItem('batch_id');
+        const Token = await AsyncStorage.getItem('Token');
+    
+        if (!formdatas) {
+          console.warn("No file selected for upload!");
+          return;
+        }
+console.log("batchid", Batch_id)
+        if(Batch_id) {
+          setNote(prev =>({
+            ...prev,
+            batchId: Batch_id,
+          }))
+        }
+    
+        const url = `${base_url}uploads`;
+    
+        console.log("Uploading Image to:", url);
+        console.log("FormData Before Upload:", formdatas);
+    
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${Token}`,
+            "Content-Type": "multipart/form-data",
+          },
+          body: formdatas,
+        });
+    
+        console.log("Status Code:", response.status);
+    
+        const textResponse = await response.text();
+        console.log("Raw Response:", textResponse);
+    
+        let responseData;
+        try {
+          responseData = JSON.parse(textResponse);
+        } catch (error) {
+          console.error("Error parsing JSON response:", error);
+          throw new Error("Invalid JSON response from the server");
+        }
+    
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${responseData.message || "Unknown error"}`);
+        }
+    
+        console.log("Batch_id:", Batch_id);
+        console.log("Upload Successful!", responseData.url);
+    
+        // ✅ Update assignment state (attachments → attachmentUrls)
+        setNote(prev => ({
+          ...prev,
+          batchId:Batch_id,
+          listUrls: [
+            ...(prev.listUrls || []),
+            ...(Array.isArray(responseData.url) ? responseData.url : [responseData.url]),
+          ],
+        }));
+    
+        // ✅ Trigger assignment submission
+        Note_Submit(responseData.url);
+    
+        return responseData.url;
+      } catch (error) {
+        console.error("Error during file upload:", error.message);
+      }
+    };
+  
+
+    const Note_Submit = async (fileurl) => {
+
+      const Token = await AsyncStorage.getItem('Token');
+    
+     
+      const url = `notes`;
+      const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Token}`,
+      };
+  
+      const body = {
+      ...note,
+      }
+      const onResponse = res => {
+        setNote(res);
+         navigation.goBack()
+  
+      };
+  
+      const onCatch = res => {
+        console.log('Error');
+        console.log(res);
+  
+      };
+      postApi(url, headers,body, onResponse, onCatch);
+      console.log(body)
+    };
 
   const renderAttachment = (item, index) => {
     const isPDF = item.type === 'application/pdf';
@@ -123,13 +255,21 @@ const NoteCreateScreen = ({navigation}) => {
           {item.name}
         </Text>
         <TouchableOpacity
+      
+
           onPress={() => {
             const newErrors = {};
-            const newAttachments = [...note.attachments];
-            newAttachments.splice(index, 1);
-            setNote(prev => ({...prev, attachments: newAttachments}));
+          
+            // Create a new array without the item at 'index'
+            const newAttachments = attachmentList.filter((_, i) => i !== index);
+          
+            // Update the attachmentList with the modified array
+            setAttachmentList(newAttachments);
+          
+            // Optionally reset errors
             setErrors(newErrors);
           }}
+
           style={styles.removeAttachment}>
           <MaterialIcons name="close" size={20} color="#EF4444" />
         </TouchableOpacity>
@@ -183,9 +323,9 @@ const NoteCreateScreen = ({navigation}) => {
               <Text style={styles.label}>Description</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
-                value={note.description}
+                value={note.content}
                 onChangeText={text =>
-                  setNote(prev => ({...prev, description: text}))
+                  setNote(prev => ({...prev, content: text}))
                 }
                 placeholder="Enter note description"
                 placeholderTextColor="#9CA3AF"
@@ -206,7 +346,7 @@ const NoteCreateScreen = ({navigation}) => {
                 </Text>
               </TouchableOpacity>
 
-              {note.attachments.map((item, index) =>
+              {attachmentList.map((item, index) =>
                 renderAttachment(item, index),
               )}
 

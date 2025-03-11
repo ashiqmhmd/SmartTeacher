@@ -8,36 +8,86 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {logout} from '../utils/authslice';
-import {useDispatch} from 'react-redux';
+import { logout } from '../utils/authslice';
+import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getapi } from '../utils/api';
+import { getUserId } from '../utils/TokenDecoder';
 
-const ProfileScreen = ({navigation}) => {
+const ProfileScreen = ({ navigation, item }) => {
   const [imageError, setImageError] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const defaultTeacher = {
+    id: '',
+    firstName: '',
+    lastName: '',
+    userName: '',
+    email: '',
+    phoneNumber: '',
+    gender: '',
+    age: 0, // Assuming it's a number
+    addressLine1: '',
+    addressCity: '',
+    addressState: '',
+    pinCode: '',
+    accountName: '',
+    accountNumber: '',
+    ifscCode: '',
+    upiId: '',
+    profilePicUrl: 'https://via.placeholder.com/150', // Use a proper placeholder
+  };
 
-  const [teacher, setTeacher] = useState({
-    phoneNumber: '1234567890',
-    addressState: 'Anystate',
-    lastName: 'S',
-    userName: 'krithi',
-    email: 'john.doe@example.com',
-    addressCity: 'Anytown',
-    accountNumber: '1234567890',
-    gender: 'male',
-    firstName: 'Kirthi2',
-    ifscCode: 'IFSC0001234',
-    upiId: 'john@upi',
-    profilePicUrl: 'http://example.com/profile.jpg',
-    pinCode: 123456,
-    accountName: 'John Doe',
-    addressLine1: '123 Main St',
-    id: '02fa458b-7d45-4869-bd28-aa8de5fea95c',
-    age: 30,
-  });
+  const [teacher, setTeacher] = useState(defaultTeacher);
+
   const dispatch = useDispatch();
+
+
+  const TeacherDetails = async () => {
+    try {
+      setLoading(true);
+
+      const Token = await AsyncStorage.getItem('Token');
+      if (!Token) {
+        throw new Error('No token found, authentication required');
+      }
+
+      const Teacherid = await getUserId(Token);
+      if (!Teacherid) {
+        throw new Error('Failed to fetch Teacher ID');
+      }
+
+      const url = `teachers/${Teacherid}`;
+      const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Token}`,
+      };
+
+      const onResponse = (res) => {
+        if (res) {
+          setTeacher((prevTeacher) => ({
+            ...prevTeacher,
+            ...res, // Merging API data into existing state
+          }));
+        }
+        setLoading(false);
+      };
+
+      const onCatch = (error) => {
+        console.error('API Error:', error);
+        setLoading(false);
+      };
+
+      getapi(url, headers, onResponse, onCatch);
+    } catch (error) {
+      console.error('TeacherDetails Error:', error.message);
+      setLoading(false);
+    }
+  };
+
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -58,13 +108,17 @@ const ProfileScreen = ({navigation}) => {
   const logoutbutton_press = async () => {
     navigation.reset({
       index: 0,
-      routes: [{name: 'Login'}],
+      routes: [{ name: 'Login' }],
     });
     dispatch(logout());
     await AsyncStorage.removeItem('Token');
   };
 
-  const InfoSection = ({icon, title, value}) => (
+  useEffect(() => {
+    TeacherDetails()
+  }, [1])
+
+  const InfoSection = ({ icon, title, value }) => (
     <View style={styles.infoSection}>
       <View style={styles.infoIcon}>
         <MaterialIcons name={icon} size={20} color="#0F1F4B" />
@@ -76,7 +130,7 @@ const ProfileScreen = ({navigation}) => {
     </View>
   );
 
-  const Section = ({title, children}) => (
+  const Section = ({ title, children }) => (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
       <View style={styles.sectionContent}>{children}</View>
@@ -91,7 +145,7 @@ const ProfileScreen = ({navigation}) => {
         </TouchableOpacity>
         <Text style={styles.appBarTitle}>Profile</Text>
         <TouchableOpacity
-          onPress={() => navigation.navigate('EditProfile', {teacher})}>
+          onPress={() => navigation.navigate('EditProfile', { teacher })}>
           <MaterialIcons name="edit" size={24} color="#0F1F4B" />
         </TouchableOpacity>
       </View>
@@ -103,7 +157,7 @@ const ProfileScreen = ({navigation}) => {
               source={
                 imageError
                   ? require('../resources/logo.png')
-                  : {uri: teacher.profilePicUrl}
+                  : { uri: teacher.profilePicUrl }
               }
               style={styles.profileImage}
               onError={() => setImageError(true)}
@@ -254,7 +308,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     shadowColor: 'rgb(105, 144, 252)',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 8,

@@ -8,7 +8,7 @@ import {
   StatusBar,
   FlatList,
 } from 'react-native';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -19,6 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {batch_id, selectBatch} from '../utils/authslice';
 import {useDispatch, useSelector} from 'react-redux';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
+import { useFocusEffect } from '@react-navigation/core';
 
 const NotesScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -68,6 +69,20 @@ const NotesScreen = ({navigation}) => {
     console.log(notes);
     console.log('notes fetch');
   }, [1]);
+
+
+   useFocusEffect(
+      useCallback(() => {
+        console.log('Screen is focused');
+        Notes_fetch();
+  
+        // Optional cleanup function
+        return () => {
+          console.log('Screen is unfocused');
+        };
+      }, []) // Empty dependency array ensures this runs only when screen gains focus
+    );
+
 
   const selectedBatch = useMemo(() => {
     Notes_fetch();

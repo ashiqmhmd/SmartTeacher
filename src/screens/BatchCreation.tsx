@@ -11,8 +11,14 @@ import {
   Animated,
   KeyboardAvoidingView,
   StatusBar,
+  Modal,
+  Alert,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { getUserId } from '../utils/TokenDecoder';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { postApi } from '../utils/api';
 
 const BatchCreation = ({navigation}) => {
   const [batch, setBatch] = useState({
@@ -29,8 +35,9 @@ const BatchCreation = ({navigation}) => {
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
+  const [showFrequencyDropdown, setShowFrequencyDropdown] = useState(false);
 
-  const paymentFrequencies = ['Weekly', 'Monthly', 'Quarterly', 'Yearly'];
+  const paymentFrequencies = ['Monthly', 'Onetime'];
 
   const animateSuccess = () => {
     Animated.sequence([
@@ -54,14 +61,17 @@ const BatchCreation = ({navigation}) => {
     if (!batch.name.trim()) newErrors.name = 'Batch name is required';
     if (!batch.course.trim()) newErrors.course = 'Course is required';
     if (!batch.subject.trim()) newErrors.subject = 'Subject is required';
+    if (!batch.paymentFrequency) newErrors.paymentFrequency = 'Payment frequency is required';
     if (!batch.paymentAmount || isNaN(batch.paymentAmount)) {
       newErrors.paymentAmount = 'Valid payment amount is required';
     }
-    if (
-      !batch.paymentDayOfMonth ||
+    
+    // Only validate paymentDayOfMonth if frequency is Monthly
+    if (batch.paymentFrequency === 'Monthly' && 
+      (!batch.paymentDayOfMonth ||
       isNaN(batch.paymentDayOfMonth) ||
       batch.paymentDayOfMonth < 1 ||
-      batch.paymentDayOfMonth > 31
+      batch.paymentDayOfMonth > 31)
     ) {
       newErrors.paymentDayOfMonth = 'Valid day of month (1-31) is required';
     }
@@ -74,7 +84,7 @@ const BatchCreation = ({navigation}) => {
     if (!validateForm()) return;
 
     setIsSaving(true);
-    // API call
+    Batch_Creation();
     await new Promise(resolve => setTimeout(resolve, 1500));
     setIsSaving(false);
     setShowSuccessMessage(true);
@@ -84,6 +94,74 @@ const BatchCreation = ({navigation}) => {
       navigation.goBack();
     }, 2000);
   };
+
+  const handleSelectFrequency = (frequency) => {
+    setBatch(prev => ({...prev, paymentFrequency: frequency}));
+    if (errors.paymentFrequency) setErrors(prev => ({...prev, paymentFrequency: undefined}));
+    setShowFrequencyDropdown(false);
+  };
+
+
+
+  const Batch_Creation = async () => {
+    try {
+      const Token = await AsyncStorage.getItem('Token');
+      if (!Token) {
+        throw new Error('No token found, authentication required');
+      }
+  
+      const Teacherid = await getUserId(Token);
+      if (!Teacherid) {
+        throw new Error('Failed to fetch Teacher ID');
+      }
+  
+      const url = 'batches';
+      const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Token}`,
+      };
+  
+      const body = {
+        ...batch,
+        teacherId: Teacherid,
+      };
+  
+      const onResponse = async (res) => {
+        // Show Toast Message
+        Toast.show({
+          type: 'success',
+          text1: 'Batch Created',
+          text2: 'Batch has been successfully created!',
+          position: 'top',
+          visibilityTime: 3000, // 3 seconds
+          autoHide: true,
+        });
+  
+        // Wait 3 seconds before navigating back
+        setTimeout(() => {
+          navigation.goBack();
+        }, 3000);
+      };
+  
+      const onCatch = (error) => {
+        console.error('Batch Creation Failed:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Failed to create batch!',
+          position: 'top',
+        });
+      };
+  
+      await postApi(url, headers, body, onResponse, onCatch);
+    } catch (error) {
+      console.error('Batch_Creation Error:', error.message);
+      Alert.alert('Error', error.message);
+    }
+  };
+
+
 
   const inputField = (
     field,
@@ -157,9 +235,22 @@ const BatchCreation = ({navigation}) => {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Payment Frequency *</Text>
-              <View style={[styles.input, styles.pickerContainer]}>
-                {/* Frequency Picker */}
-              </View>
+              <TouchableOpacity 
+                style={[
+                  styles.input, 
+                  styles.dropdownButton,
+                  errors.paymentFrequency && styles.inputError
+                ]}
+                onPress={() => setShowFrequencyDropdown(true)}
+              >
+                <Text style={batch.paymentFrequency ? styles.dropdownSelectedText : styles.dropdownPlaceholder}>
+                  {batch.paymentFrequency || 'Select payment frequency'}
+                </Text>
+                <MaterialIcons name="arrow-drop-down" size={24} color="#6B7280" />
+              </TouchableOpacity>
+              {errors.paymentFrequency && (
+                <Text style={styles.errorText}>{errors.paymentFrequency}</Text>
+              )}
             </View>
 
             {inputField(
@@ -169,12 +260,14 @@ const BatchCreation = ({navigation}) => {
               'decimal-pad',
             )}
 
-            {inputField(
-              'paymentDayOfMonth',
-              'Payment Day of Month',
-              'Enter day (1-31)',
-              'numeric',
-            )}
+            {batch.paymentFrequency === 'Monthly' && 
+              inputField(
+                'paymentDayOfMonth',
+                'Payment Day of Month',
+                'Enter day (1-31)',
+                'numeric',
+              )
+            }
           </View>
         </ScrollView>
 
@@ -197,6 +290,35 @@ const BatchCreation = ({navigation}) => {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Dropdown Modal */}
+      <Modal
+        visible={showFrequencyDropdown}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowFrequencyDropdown(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowFrequencyDropdown(false)}
+        >
+          <View style={styles.dropdownModal}>
+            {paymentFrequencies.map((frequency) => (
+              <TouchableOpacity
+                key={frequency}
+                style={styles.dropdownItem}
+                onPress={() => handleSelectFrequency(frequency)}
+              >
+                <Text style={styles.dropdownItemText}>{frequency}</Text>
+                {batch.paymentFrequency === frequency && (
+                  <MaterialIcons name="check" size={20} color="#001d3d" />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
@@ -261,13 +383,48 @@ const styles = StyleSheet.create({
     height: 120,
     textAlignVertical: 'top',
   },
-  pickerContainer: {
-    padding: 0,
+  dropdownButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     height: 56,
   },
-  picker: {
-    height: 56,
-    width: '100%',
+  dropdownPlaceholder: {
+    color: '#9CA3AF',
+    fontSize: 16,
+  },
+  dropdownSelectedText: {
+    color: '#1F2937',
+    fontSize: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dropdownModal: {
+    width: '80%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    overflow: 'hidden',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  dropdownItemText: {
+    fontSize: 16,
+    color: '#1F2937',
   },
   sectionHeader: {
     marginBottom: 16,

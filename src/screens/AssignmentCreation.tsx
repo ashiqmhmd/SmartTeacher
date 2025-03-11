@@ -20,6 +20,7 @@ import { base_url } from '../utils/store';
 import { postApi } from '../utils/api';
 import { currentdate } from '../components/moment';
 import moment from 'moment';
+import { batch_id } from '../utils/authslice';
 
 
 const CreateAssignment = ({ navigation }) => {
@@ -27,9 +28,12 @@ const CreateAssignment = ({ navigation }) => {
     publishDate : currentdate(),
     title: '',
     submissionDate: new Date(),
-    details: '',
-    attachments: [],
+    attachmentUrls: [],
+    batchId:'',
+    details:''
   });
+
+  
   const [submissionDate,setSubmitdate]  = useState(new Date())
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
@@ -38,6 +42,7 @@ const CreateAssignment = ({ navigation }) => {
   const [formdatas, setformdata] = useState()
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
+  const [attachmentList, setAttachmentList] = useState([]);
 
   const animateSuccess = () => {
     Animated.sequence([
@@ -78,15 +83,16 @@ const CreateAssignment = ({ navigation }) => {
   };
 
   const handleSave = async () => {
-    if (!validateForm()) return;
-
-    setIsSaving(true);
     fileupload()
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsSaving(false);
-    setShowSuccessMessage(true);
-    animateSuccess();
-    setTimeout(() => setShowSuccessMessage(false), 3000);
+    // if (!validateForm()) return;
+
+    // setIsSaving(true);
+    // fileupload()
+    // await new Promise(resolve => setTimeout(resolve, 1500));
+    // setIsSaving(false);
+    // setShowSuccessMessage(true);
+    // animateSuccess();
+    // setTimeout(() => setShowSuccessMessage(false), 3000);
   };
 
   const handleAttachments = async () => {
@@ -99,19 +105,24 @@ const CreateAssignment = ({ navigation }) => {
       if (result) {
         console.log('Document selected:', result);
         let size = result[0].size;
-        setAssignment(prev => ({
+        // setAttachmentList(prev => ({
+        //   ...prev,
+        //   attachments: [
+        //     ...(prev.attachments || []),
+        //     ...(Array.isArray(result) ? result : [result]),
+        //   ],
+        // }));
+
+        setAttachmentList(prev => [
           ...prev,
-          attachments: [
-            ...(prev.attachments || []),
-            ...(Array.isArray(result) ? result : [result]),
-          ],
-        }));
+          ...(Array.isArray(result) ? result : [result]),
+        ]);
         
       attachmentValidation(size);
         const fileData = {
           uri: Platform.OS === 'android' ? result[0].uri : result[0].uri.replace('file://', ''),
-          type: result[0].type || 'image/jpeg',
-          name: result[0].name || 'file.jpg',
+          type: result[0].type || ' application/pdf',
+          name: result[0].name || 'file.pdf',
         };
 
         console.log("File Data Before Append:", fileData);
@@ -130,92 +141,110 @@ const CreateAssignment = ({ navigation }) => {
       console.error('Document Picker Error:', error);
     }
   };
+  
 
-  const fileupload = async () => {
-    console.log("setted datas")
-    console.log(assignment)
-    // try {
-    //   const Token = await AsyncStorage.getItem('Token');
+    const fileupload = async () => {
+      try {
+        console.log("Uploading file...");
+    
+        const Batch_id = await AsyncStorage.getItem('batch_id');
+        const Token = await AsyncStorage.getItem('Token');
+    
+        if (!formdatas) {
+          console.warn("No file selected for upload!");
+          return;
+        }
 
-    //   if (!formdatas) {
-    //     console.log("No file selected for upload!");
-    //     return;
-    //   }
+        if(Batch_id) {
+          setAssignment(prev =>({
+            ...prev,
+            batchId: Batch_id,
+          }))
+        }
+    
+        const url = `${base_url}uploads`;
+    
+        console.log("Uploading Image to:", url);
+        console.log("FormData Before Upload:", formdatas);
+    
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${Token}`,
+            "Content-Type": "multipart/form-data",
+          },
+          body: formdatas,
+        });
+    
+        console.log("Status Code:", response.status);
+    
+        const textResponse = await response.text();
+        console.log("Raw Response:", textResponse);
+    
+        let responseData;
+        try {
+          responseData = JSON.parse(textResponse);
+        } catch (error) {
+          console.error("Error parsing JSON response:", error);
+          throw new Error("Invalid JSON response from the server");
+        }
+    
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${responseData.message || "Unknown error"}`);
+        }
+    
+        console.log("Batch_id:", Batch_id);
+        console.log("Upload Successful!", responseData.url);
+    
+        // ✅ Update assignment state (attachments → attachmentUrls)
+        setAssignment(prev => ({
+          ...prev,
+          batchId:Batch_id,
+          attachmentUrls: [
+            ...(prev.attachmentUrls || []),
+            ...(Array.isArray(responseData.url) ? responseData.url : [responseData.url]),
+          ],
+        }));
+    
+        // ✅ Trigger assignment submission
+        Assignment_Submit(responseData.url);
+    
+        return responseData.url;
+      } catch (error) {
+        console.error("Error during file upload:", error.message);
+      }
+    };
+  
 
-    //   // Replace with the actual API base URL
-    //   const url = `${base_url}uploads`;
+  const Assignment_Submit = async (fileurl) => {
 
-    //   console.log("Uploading file to:", url);
-    //   console.log("FormData Before Upload:", formdatas);
-
-    //   const response = await fetch(url, {
-    //     method: "POST",
-    //     headers: {
-    //       Authorization: `Bearer ${Token}`,
-    //       "Content-Type": "multipart/form-data", // Required for FormData uploads
-    //     },
-    //     body: formdatas, // Sending FormData directly
-    //   });
-
-    //   console.log("Status Code:", response.status);
-
-    //   const textResponse = await response.text(); // Read raw response first
-    //   console.log("Raw Response:", textResponse);
-
-    //   // Parse JSON only if response is valid
-    //   let responseData;
-    //   try {
-    //     responseData = JSON.parse(textResponse);
-    //   } catch (error) {
-    //     console.error("Error parsing JSON response:", error);
-    //     responseData = { message: "Invalid JSON response from server" };
-    //   }
-
-    //   console.log("Parsed Response:", responseData);
-
-    //   if (!response.ok) {
-    //     throw new Error(`Upload failed: ${responseData.message || "Unknown error"}`);
-    //   }
-
-
-    //   console.log("Upload Successful!", responseData.url);
-    //   setUploadedFile(responseData.url)
-    //   Assignment_Submit(responseData.url)
-    //   return responseData.url;
-
-    // } catch (error) {
-    //   console.error("Error uploading file:");
-    // }
-  };
-
-  // const Assignment_Submit = async (url) => {
-  //   setLoading(true);
-  //   const Token = await AsyncStorage.getItem('Token');
-  //   const Batch_id = await AsyncStorage.getItem('batch_id');
+    const Token = await AsyncStorage.getItem('Token');
+  
    
-  //   const url = `assignments`;
-  //   const headers = {
-  //     Accept: 'application/json',
-  //     'Content-Type': 'application/json',
-  //     Authorization: `Bearer ${Token}`,
-  //   };
+    const url = `assignments`;
+    const headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${Token}`,
+    };
 
-  //   const body = {
-  //     publishDate:currentdte,
-  //     submissionDate:
-  //   }
-  //   const onResponse = res => {
-  //     setAssignment(res);
-  //     setLoading(false);
-  //   };
+    const body = {
+    ...assignment,
+    }
+    const onResponse = res => {
+      setAssignment(res);
+       navigation.goBack()
 
-  //   const onCatch = res => {
-  //     console.log('Error');
-  //     console.log(res);
-  //     setLoading(false);
-  //   };
-  //   postApi(url, headers,body, onResponse, onCatch);
-  // };
+    };
+
+    const onCatch = res => {
+      console.log('Error');
+      console.log(res);
+
+    };
+    postApi(url, headers,body, onResponse, onCatch);
+    console.log(body)
+  };
 
 
   const renderAttachmentItem = (item, index) => (
@@ -225,13 +254,19 @@ const CreateAssignment = ({ navigation }) => {
         {item.name}
       </Text>
       <TouchableOpacity
-        onPress={() => {
-          const newErrors = {};
-          const newAttachments = [...assignment.attachments];
-          newAttachments.splice(index, 1);
-          setAssignment(prev => ({ ...prev, attachments: newAttachments }));
-          setErrors(newErrors);
-        }}
+     onPress={() => {
+      const newErrors = {};
+    
+      // Create a new array without the item at 'index'
+      const newAttachments = attachmentList.filter((_, i) => i !== index);
+    
+      // Update the attachmentList with the modified array
+      setAttachmentList(newAttachments);
+    
+      // Optionally reset errors
+      setErrors(newErrors);
+    }}
+    
         style={styles.removeAttachment}>
         <MaterialIcons name="close" size={20} color="#EF4444" />
       </TouchableOpacity>
@@ -304,9 +339,9 @@ const CreateAssignment = ({ navigation }) => {
               <Text style={styles.label}>Description</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
-                value={assignment.description}
+                value={assignment.details}
                 onChangeText={text =>
-                  setAssignment(prev => ({ ...prev, description: text }))
+                  setAssignment(prev => ({ ...prev, details: text }))
                 }
                 placeholder="Enter assignment description"
                 placeholderTextColor="#9CA3AF"
@@ -325,7 +360,7 @@ const CreateAssignment = ({ navigation }) => {
                 <Text style={styles.attachmentButtonText}>Add Attachments</Text>
               </TouchableOpacity>
               <View style={styles.attachmentsList}>
-                {assignment.attachments.map((item, index) =>
+                {attachmentList.map((item, index) =>
                   renderAttachmentItem(item, index),
                 )}
                 {errors.attachment && (
