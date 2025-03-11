@@ -33,6 +33,7 @@ interface Fees {
   studentId: string;
   amount: number;
   status: string;
+  teacherAcknowledgement?: boolean;
 }
 
 const FeesScreen = ({navigation}) => {
@@ -136,6 +137,7 @@ const FeesScreen = ({navigation}) => {
       }, {});
     setStudentDetails(details);
   };
+
   const selectedBatch = useMemo(() => {
     Fees_fetch();
     return selectedBatchString ? JSON.parse(selectedBatchString) : null;
@@ -159,6 +161,29 @@ const FeesScreen = ({navigation}) => {
     Fees_fetch();
   };
 
+  // Filter fees based on search query and selected filters
+  const filteredFees = useMemo(() => {
+    return fees.filter(record => {
+      // Filter by search query
+      const studentName = studentDetails[record.studentId] || '';
+      const matchesSearch =
+        searchQuery === '' ||
+        studentName.toLowerCase().includes(searchQuery.toLowerCase());
+
+      // Filter by payment status
+      const matchesPaymentFilter =
+        paymentFilter === 'All' ||
+        (paymentFilter === 'Paid' && record.status === 'paid') ||
+        (paymentFilter === 'Unpaid' && record.status !== 'paid');
+
+      // Filter by month (this would need to be implemented based on your date format)
+      // This is a simplified example assuming the month filter works
+      const matchesMonth = selectedMonth === 'Current Month' || true;
+
+      return matchesSearch && matchesPaymentFilter && matchesMonth;
+    });
+  }, [fees, searchQuery, paymentFilter, selectedMonth, studentDetails]);
+
   const FeeCard = ({record}) => (
     <TouchableOpacity
       onPress={() =>
@@ -173,13 +198,28 @@ const FeesScreen = ({navigation}) => {
           {studentDetails[record.studentId] || 'Loading...'}
         </Text>
 
-        <Text
-          style={[
-            styles.status,
-            {color: record.status === 'paid' ? '#43A047' : '#E53935'},
-          ]}>
-          {record.status}
-        </Text>
+        <View style={styles.statusContainer}>
+          <Text
+            style={[
+              styles.status,
+              {color: record.status === 'paid' ? '#43A047' : '#E53935'},
+            ]}>
+            {record.status}
+          </Text>
+
+          {record.status === 'paid' && (
+            <Text
+              style={[
+                styles.acknowledgement,
+                {
+                  color: record.teacherAcknowledgement ? '#43A047' : '#FFA000',
+                  marginLeft: 5,
+                },
+              ]}>
+              {record.teacherAcknowledgement ? 'Approved' : 'Pending'}
+            </Text>
+          )}
+        </View>
       </View>
       <View style={styles.feeCardBody}>
         <Text style={styles.amount}>₹{record.amount.toLocaleString()}</Text>
@@ -257,8 +297,8 @@ const FeesScreen = ({navigation}) => {
 
           {/* Student List Shimmer */}
           {[1, 2, 3, 4, 5].map((_, index) => (
-            <View style={styles.feeCard}>
-              <View key={index} style={styles.feeCardHeader}>
+            <View key={index} style={styles.feeCard}>
+              <View style={styles.feeCardHeader}>
                 <ShimmerPlaceholder style={styles.studentName} />
                 <ShimmerPlaceholder style={[styles.status]} />
               </View>
@@ -361,9 +401,18 @@ const FeesScreen = ({navigation}) => {
           </View>
 
           <View style={styles.feeList}>
-            {fees.map(record => (
-              <FeeCard key={record.id} record={record} />
-            ))}
+            {filteredFees.length > 0 ? (
+              filteredFees.map(record => (
+                <FeeCard key={record.id} record={record} />
+              ))
+            ) : (
+              <View style={styles.noResultsContainer}>
+                <MaterialIcons name="search-off" size={48} color="#ccc" />
+                <Text style={styles.noResultsText}>
+                  No matching records found
+                </Text>
+              </View>
+            )}
           </View>
         </ScrollView>
       )}
@@ -539,13 +588,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   studentName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#001d3d',
+    flex: 1,
   },
   status: {
     fontSize: 14,
+    fontWeight: '500',
+  },
+  acknowledgement: {
+    fontSize: 12,
     fontWeight: '500',
   },
   feeCardBody: {
@@ -571,6 +629,16 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 15,
     backgroundColor: '#e0e0e0',
+  },
+  noResultsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 30,
+  },
+  noResultsText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 10,
   },
 });
 
