@@ -139,13 +139,13 @@ const FeesScreen = ({navigation}) => {
   };
 
   const selectedBatch = useMemo(() => {
-    Fees_fetch();
+    // Fees_fetch();
     return selectedBatchString ? JSON.parse(selectedBatchString) : null;
   }, [selectedBatchString]);
 
   useEffect(() => {
     Fees_fetch();
-  }, [1]);
+  }, [selectedBatchString]);
 
   const monthOptions = ['Current Month', 'January', 'February', 'March'];
   const filterOptions = ['All', 'Paid', 'Unpaid'];
