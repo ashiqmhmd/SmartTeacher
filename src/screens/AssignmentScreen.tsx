@@ -17,7 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useDispatch, useSelector} from 'react-redux';
 import {batch_id, selectBatch} from '../utils/authslice';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
-import { useFocusEffect } from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 const AssignmentsScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [assignment, setAssignment] = useState([]);
@@ -59,13 +59,13 @@ const AssignmentsScreen = ({navigation}) => {
   };
 
   const selectedBatch = useMemo(() => {
-    Assignment_fetch();
+    // Assignment_fetch();
     return selectedBatchString ? JSON.parse(selectedBatchString) : null;
   }, [selectedBatchString]);
 
   useEffect(() => {
     Assignment_fetch();
-  }, [1]);
+  }, [selectedBatchString]);
 
   useFocusEffect(
     useCallback(() => {
@@ -76,10 +76,9 @@ const AssignmentsScreen = ({navigation}) => {
       return () => {
         console.log('Screen is unfocused');
       };
-    }, []) // Empty dependency array ensures this runs only when screen gains focus
+    }, []), // Empty dependency array ensures this runs only when screen gains focus
   );
 
-  
   const AssignmentCard = ({item}) => (
     <TouchableOpacity
       onPress={() =>
