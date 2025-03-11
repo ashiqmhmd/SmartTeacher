@@ -19,7 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {batch_id, selectBatch} from '../utils/authslice';
 import {useDispatch, useSelector} from 'react-redux';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
-import { useFocusEffect } from '@react-navigation/core';
+import {useFocusEffect} from '@react-navigation/core';
 
 const NotesScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,7 +39,7 @@ const NotesScreen = ({navigation}) => {
   };
 
   const Notes_fetch = async () => {
-    setLoading(true)
+    setLoading(true);
     const Token = await AsyncStorage.getItem('Token');
     const Batch_id = await AsyncStorage.getItem('batch_id');
 
@@ -53,13 +53,13 @@ const NotesScreen = ({navigation}) => {
       console.log('hiii');
       console.log(res);
       setNotes(res);
-      setLoading(false)
+      setLoading(false);
     };
 
     const onCatch = res => {
       console.log('Error');
       console.log(res);
-      setLoading(false)
+      setLoading(false);
     };
     getapi(url, headers, onResponse, onCatch);
   };
@@ -68,24 +68,22 @@ const NotesScreen = ({navigation}) => {
     Notes_fetch();
     console.log(notes);
     console.log('notes fetch');
-  }, [1]);
+  }, [selectedBatchString]);
 
+  useFocusEffect(
+    useCallback(() => {
+      console.log('Screen is focused');
+      Notes_fetch();
 
-   useFocusEffect(
-      useCallback(() => {
-        console.log('Screen is focused');
-        Notes_fetch();
-  
-        // Optional cleanup function
-        return () => {
-          console.log('Screen is unfocused');
-        };
-      }, []) // Empty dependency array ensures this runs only when screen gains focus
-    );
-
+      // Optional cleanup function
+      return () => {
+        console.log('Screen is unfocused');
+      };
+    }, []), // Empty dependency array ensures this runs only when screen gains focus
+  );
 
   const selectedBatch = useMemo(() => {
-    Notes_fetch();
+    // Notes_fetch();
     return selectedBatchString ? JSON.parse(selectedBatchString) : null;
   }, [selectedBatchString]);
 
@@ -143,7 +141,6 @@ const NotesScreen = ({navigation}) => {
       </View>
       {loading ? (
         <View style={styles.container}>
-
           {/* Search Bar Shimmer */}
           <View style={styles.searchSection}>
             <ShimmerPlaceholder style={styles.searchBar} />
@@ -151,47 +148,44 @@ const NotesScreen = ({navigation}) => {
 
           {/* Student List Shimmer */}
           {[1, 2, 3, 4, 5].map((_, index) => (
-             <View
-             style={styles.noteCard}>
-            <View  key={index} style={styles.noteDetailsContainer}>
-            <ShimmerPlaceholder style={styles.noteTitle}/>
-        
-          </View>
-          <View style={styles.noteDetails}>
-            <ShimmerPlaceholder style={styles.noteContent}/>
-            <ShimmerPlaceholder style={styles.notesList}/>
-          </View>
-          </View>
+            <View style={styles.noteCard}>
+              <View key={index} style={styles.noteDetailsContainer}>
+                <ShimmerPlaceholder style={styles.noteTitle} />
+              </View>
+              <View style={styles.noteDetails}>
+                <ShimmerPlaceholder style={styles.noteContent} />
+                <ShimmerPlaceholder style={styles.notesList} />
+              </View>
+            </View>
           ))}
         </View>
       ) : (
-
-      <ScrollView style={styles.container}>
-        <View style={styles.searchSection}>
-          <View style={styles.searchBar}>
-            <MaterialIcons name="search" size={24} color="#666" />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search notes"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
+        <ScrollView style={styles.container}>
+          <View style={styles.searchSection}>
+            <View style={styles.searchBar}>
+              <MaterialIcons name="search" size={24} color="#666" />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search notes"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+            </View>
+            <TouchableOpacity
+              style={styles.createButton}
+              onPress={() => navigation.navigate('Note_Create')}>
+              <Text style={styles.createButtonText}>Create</Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={styles.createButton}
-            onPress={() => navigation.navigate('Note_Create')}>
-            <Text style={styles.createButtonText}>Create</Text>
-          </TouchableOpacity>
-        </View>
 
-        <FlatList
-          data={notes}
-          renderItem={({item}) => <NoteCard item={item} />}
-          keyExtractor={item => item.id.toString()}
-          scrollEnabled={false}
-          style={styles.notesList}
-        />
-      </ScrollView>
+          <FlatList
+            data={notes}
+            renderItem={({item}) => <NoteCard item={item} />}
+            keyExtractor={item => item.id.toString()}
+            scrollEnabled={false}
+            style={styles.notesList}
+          />
+        </ScrollView>
       )}
       <BatchSelectorSheet
         ref={refRBSheet}
