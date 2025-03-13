@@ -56,7 +56,6 @@
 
 //     if (!result.didCancel && result.assets?.[0]?.uri) {
 
-
 //       const profileImage = result?.assets?.length ? result.assets[0] : null;
 
 //       if (!profileImage || !profileImage.uri) {
@@ -83,14 +82,11 @@
 //       setformdata(formData); // Store FormData directly, NOT as JSON!
 //     }
 
-
 //   };
-  
 
 //   useEffect(() => {
 //     console.log(userId)
 //   }, [1])
-
 
 //   const profilephoto_upload = async () => {
 //     try {
@@ -136,7 +132,6 @@
 //         throw new Error(`Upload failed: ${responseData.message || "Unknown error"}`);
 //       }
 
-
 //       console.log("Upload Successful!", responseData.url);
 //       setUploadedProfileImage(responseData.url)
 //       submitButton(responseData.url)
@@ -147,8 +142,6 @@
 //     }
 //   };
 
-
-
 //   const handleSubmit = async () => {
 
 //     profileImage ?
@@ -158,7 +151,6 @@
 //       submitButton()
 
 //   }
-
 
 //   const submitButton = async (profilePicUrl: any) => {
 //     const Token = await AsyncStorage.getItem('Token');
@@ -194,8 +186,6 @@
 
 //     putapi(url, headers, body, onResponse, onCatch);
 //   };
-
-
 
 //   const renderInput = (icon: string, placeholder: string | undefined, field: string, keyboardType = 'default') => (
 //     <View style={styles.inputContainer}>
@@ -363,7 +353,7 @@
 
 // export default UpdateProfileScreen;
 
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -377,13 +367,12 @@ import {
   StatusBar,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
-import { launchImageLibrary } from 'react-native-image-picker';
-import { postApi, putapi } from '../utils/api';
+import {launchImageLibrary} from 'react-native-image-picker';
+import {postApi, putapi} from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { base_url } from '../utils/store';
+import {base_url} from '../utils/store';
 
-const UpdateProfileScreen = ({ navigation, route }) => {
-
+const UpdateProfileScreen = ({navigation, route}) => {
   const [profileData, setProfileData] = useState({
     firstName: '',
     lastName: '',
@@ -404,8 +393,8 @@ const UpdateProfileScreen = ({ navigation, route }) => {
   const [profileImage, setProfileImage] = useState();
   const [uploadedprofileImage, setUploadedProfileImage] = useState('');
 
-  const [formdatas, setformdata] = useState()
-  const { userId } = route.params;
+  const [formdatas, setformdata] = useState();
+  const {userId} = route.params;
   const handleInputChange = (field: any, value: string) => {
     setProfileData(prev => ({
       ...prev,
@@ -414,10 +403,10 @@ const UpdateProfileScreen = ({ navigation, route }) => {
   };
 
   // Gender options
-  const genderOptions = ['Male', 'Female', 'Other'];
+  const genderOptions = ['male', 'female', 'Other'];
 
   // Handle gender selection
-  const handleGenderSelect = (value) => {
+  const handleGenderSelect = value => {
     setProfileData(prev => ({
       ...prev,
       gender: value,
@@ -431,110 +420,98 @@ const UpdateProfileScreen = ({ navigation, route }) => {
     });
 
     if (!result.didCancel && result.assets?.[0]?.uri) {
-
-
       const profileImage = result?.assets?.length ? result.assets[0] : null;
 
       if (!profileImage || !profileImage.uri) {
-        console.log("No valid image selected!");
+        console.log('No valid image selected!');
         return;
       }
 
       const fileData = {
-        uri: Platform.OS === 'android' ? profileImage.uri : profileImage.uri.replace('file://', ''),
+        uri:
+          Platform.OS === 'android'
+            ? profileImage.uri
+            : profileImage.uri.replace('file://', ''),
         type: profileImage.type || 'image/jpeg',
         name: profileImage.fileName || 'file.jpg',
       };
 
-      console.log("File Data Before Append:", fileData);
+      console.log('File Data Before Append:', fileData);
 
       // Create FormData
       const formData = new FormData();
       formData.append('file', fileData);
 
-      console.log("FormData Object:", formData);
+      console.log('FormData Object:', formData);
 
       // Save Image & FormData
       setProfileImage(fileData.uri);
       setformdata(formData); // Store FormData directly, NOT as JSON!
     }
-
-
   };
-  
 
   useEffect(() => {
-    console.log(userId)
-  }, [1])
-
+    console.log(userId);
+  }, [1]);
 
   const profilephoto_upload = async () => {
     try {
       const Token = await AsyncStorage.getItem('Token');
 
       if (!formdatas) {
-        console.log("No image selected for upload!");
+        console.log('No image selected for upload!');
         return;
       }
 
       // Replace with the actual API base URL
       const url = `${base_url}uploads`;
 
-      console.log("Uploading Image to:", url);
-      console.log("FormData Before Upload:", formdatas);
+      console.log('Uploading Image to:', url);
+      console.log('FormData Before Upload:', formdatas);
 
       const response = await fetch(url, {
-        method: "POST",
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${Token}`,
-          "Content-Type": "multipart/form-data", // Required for FormData uploads
+          'Content-Type': 'multipart/form-data', // Required for FormData uploads
         },
         body: formdatas, // Sending FormData directly
       });
 
-      console.log("Status Code:", response.status);
+      console.log('Status Code:', response.status);
 
       const textResponse = await response.text(); // Read raw response first
-      console.log("Raw Response:", textResponse);
+      console.log('Raw Response:', textResponse);
 
       // Parse JSON only if response is valid
       let responseData;
       try {
         responseData = JSON.parse(textResponse);
       } catch (error) {
-        console.error("Error parsing JSON response:", error);
-        responseData = { message: "Invalid JSON response from server" };
+        console.error('Error parsing JSON response:', error);
+        responseData = {message: 'Invalid JSON response from server'};
       }
 
-      console.log("Parsed Response:", responseData);
+      console.log('Parsed Response:', responseData);
 
       if (!response.ok) {
-        throw new Error(`Upload failed: ${responseData.message || "Unknown error"}`);
+        throw new Error(
+          `Upload failed: ${responseData.message || 'Unknown error'}`,
+        );
       }
 
-
-      console.log("Upload Successful!", responseData.url);
-      setUploadedProfileImage(responseData.url)
-      submitButton(responseData.url)
+      console.log('Upload Successful!', responseData.url);
+      setUploadedProfileImage(responseData.url);
+      submitButton(responseData.url);
       return responseData.url;
-
     } catch (error) {
-      console.error("Error updating profile:", error.message);
+      console.error('Error updating profile:', error.message);
     }
   };
 
-
-
   const handleSubmit = async () => {
-
-    profileImage ?
-      profilephoto_upload()
-
-      :
-      submitButton()
-
-  }
-
+    profileImage ? profilephoto_upload() : submitButton();
+  };
 
   const submitButton = async (profilePicUrl: any) => {
     const Token = await AsyncStorage.getItem('Token');
@@ -545,23 +522,19 @@ const UpdateProfileScreen = ({ navigation, route }) => {
       Authorization: `Bearer ${Token}`,
     };
 
-    const body = profileImage ? {
-      ...profileData,
-      profilePicUrl: profilePicUrl ? profilePicUrl : uploadedprofileImage,
-    }
-
-      :
-      {
-        ...profileData,
-      }
-      ;
-
+    const body = profileImage
+      ? {
+          ...profileData,
+          profilePicUrl: profilePicUrl ? profilePicUrl : uploadedprofileImage,
+        }
+      : {
+          ...profileData,
+        };
     const onResponse = (res: any) => {
-      console.log(res)
+      console.log(res);
       console.log('Profile updated successfully');
-      console.log(Token)
+      console.log(Token);
       navigation.replace('Tabs');
-
     };
 
     const onCatch = (err: any) => {
@@ -571,9 +544,12 @@ const UpdateProfileScreen = ({ navigation, route }) => {
     putapi(url, headers, body, onResponse, onCatch);
   };
 
-
-
-  const renderInput = (icon: string, placeholder: string | undefined, field: string, keyboardType = 'default') => (
+  const renderInput = (
+    icon: string,
+    placeholder: string | undefined,
+    field: string,
+    keyboardType = 'default',
+  ) => (
     <View style={styles.inputContainer}>
       <Feather name={icon} size={20} color="#001d3d" style={styles.inputIcon} />
       <TextInput
@@ -588,7 +564,7 @@ const UpdateProfileScreen = ({ navigation, route }) => {
   );
 
   // Radio button component for gender selection
-  const RadioButton = ({ label, selected, onPress }) => (
+  const RadioButton = ({label, selected, onPress}) => (
     <TouchableOpacity style={styles.radioButtonContainer} onPress={onPress}>
       <View style={styles.radioButton}>
         {selected && <View style={styles.radioButtonSelected} />}
@@ -600,7 +576,12 @@ const UpdateProfileScreen = ({ navigation, route }) => {
   // Render gender selection component
   const renderGenderSelection = () => (
     <View style={styles.genderContainer}>
-      <Feather name="users" size={20} color="#001d3d" style={styles.genderIcon} />
+      <Feather
+        name="users"
+        size={20}
+        color="#001d3d"
+        style={styles.genderIcon}
+      />
       <View style={styles.radioGroup}>
         {genderOptions.map(option => (
           <RadioButton
@@ -629,7 +610,7 @@ const UpdateProfileScreen = ({ navigation, route }) => {
             style={styles.imagePickerContainer}
             onPress={handleImagePicker}>
             {profileImage ? (
-              <Image source={{ uri: profileImage }} style={styles.profileImage} />
+              <Image source={{uri: profileImage}} style={styles.profileImage} />
             ) : (
               <View style={styles.imagePlaceholder}>
                 <Feather name="camera" size={40} color="#001d3d" />
@@ -665,9 +646,7 @@ const UpdateProfileScreen = ({ navigation, route }) => {
             {renderInput('smartphone', 'UPI ID', 'upiId')}
           </View>
 
-          <TouchableOpacity
-            onPress={handleSubmit}
-            style={styles.submitButton}>
+          <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
             <Text style={styles.submitButtonText}>Save Profile</Text>
           </TouchableOpacity>
         </ScrollView>
