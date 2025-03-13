@@ -109,81 +109,81 @@ const StudentCreation = ({navigation}) => {
   };
 
   const handleImagePicker = async () => {
-    try {
-      const result = await launchImageLibrary({
-        mediaType: 'photo',
-        quality: 1,
-      });
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      quality: 1,
+    });
 
-      if (!result.didCancel && result.assets?.[0]?.uri) {
-        const selectedImage = result?.assets?.length ? result.assets[0] : null;
+    if (!result.didCancel && result.assets?.[0]?.uri) {
+      const profileImage = result?.assets?.length ? result.assets[0] : null;
 
-        if (!selectedImage || !selectedImage.uri) {
-          console.log('No valid image selected!');
-          return;
-        }
-
-        const fileData = {
-          uri:
-            Platform.OS === 'android'
-              ? selectedImage.uri
-              : selectedImage.uri.replace('file://', ''),
-          type: selectedImage.type || 'image/jpeg',
-          name: selectedImage.fileName || 'image.jpg',
-        };
-
-        console.log('File Data:', fileData);
-
-        const imageFormData = new FormData();
-        imageFormData.append('file', fileData);
-
-        console.log('FormData created for upload');
-
-        // Save image URI and FormData
-        setProfileImage(fileData.uri);
-        setFormData(imageFormData);
-      }
-    } catch (error) {
-      console.error('Error selecting image:', error);
-      Alert.alert('Error', 'Failed to select image');
-    }
-  };
-
-  const uploadProfileImage = async () => {
-    try {
-      setIsUploading(true);
-      const Token = await AsyncStorage.getItem('Token');
-
-      if (!formData) {
-        console.log('No image selected for upload');
+      if (!profileImage || !profileImage.uri) {
+        console.log('No valid image selected!');
         return;
       }
 
-      console.log('Uploading image to server...');
+      const fileData = {
+        uri:
+          Platform.OS === 'android'
+            ? profileImage.uri
+            : profileImage.uri.replace('file://', ''),
+        type: profileImage.type || 'image/jpeg',
+        name: profileImage.fileName || 'file.jpg',
+      };
 
+      console.log('File Data Before Append:', fileData);
+
+      // Create FormData
+      const formData = new FormData();
+      formData.append('file', fileData);
+
+      console.log('FormData Object:', formData);
+
+      // Save Image & FormData
+      setProfileImage(fileData.uri);
+      setformdata(formData); // Store FormData directly, NOT as JSON!
+    }
+  };
+
+  const profilephoto_upload = async () => {
+    try {
+      const Token = await AsyncStorage.getItem('Token');
+
+      if (!formdatas) {
+        console.log('No image selected for upload!');
+        return;
+      }
+
+      // Replace with the actual API base URL
       const url = `${base_url}uploads`;
+
+      console.log('Uploading Image to:', url);
+      console.log('FormData Before Upload:', formdatas);
 
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${Token}`,
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'multipart/form-data', // Required for FormData uploads
         },
-        body: formData,
+        body: formdatas, // Sending FormData directly
       });
 
-      console.log('Upload response status:', response.status);
+      console.log('Status Code:', response.status);
 
-      const textResponse = await response.text();
-      console.log('Raw response:', textResponse);
+      const textResponse = await response.text(); // Read raw response first
+      console.log('Raw Response:', textResponse);
 
+      // Parse JSON only if response is valid
       let responseData;
       try {
         responseData = JSON.parse(textResponse);
       } catch (error) {
         console.error('Error parsing JSON response:', error);
-        throw new Error('Invalid JSON response from the server');
+        responseData = {message: 'Invalid JSON response from server'};
       }
+
+      console.log('Parsed Response:', responseData);
 
       if (!response.ok) {
         throw new Error(
@@ -191,14 +191,12 @@ const StudentCreation = ({navigation}) => {
         );
       }
 
-      console.log('Upload successful:', responseData.url);
+      console.log('Upload Successful!', responseData.url);
+      // setUploadedProfileImage(responseData.url);
+      // submitButton(responseData.url);
       return responseData.url;
     } catch (error) {
-      console.error('Image upload error:', error);
-      Alert.alert('Upload Failed', 'Failed to upload profile picture');
-      return null;
-    } finally {
-      setIsUploading(false);
+      console.error('Error updating profile:', error.message);
     }
   };
 
@@ -211,7 +209,7 @@ const StudentCreation = ({navigation}) => {
       // Upload image if one was selected
       let profilePicUrl = '';
       if (profileImage && formData) {
-        profilePicUrl = await uploadProfileImage();
+        profilePicUrl = await profilephoto_upload();
         if (!profilePicUrl) {
           setIsSaving(false);
           return;
