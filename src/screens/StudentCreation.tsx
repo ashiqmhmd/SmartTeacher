@@ -15,10 +15,11 @@ import {
   Alert,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import * as ImagePicker from 'react-native-image-picker';
+import {launchImageLibrary} from 'react-native-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {BASE_URL} from '../config/api';
 import {postApi} from '../utils/api';
+import {base_url} from '../utils/store';
 
 const StudentCreation = ({navigation}) => {
   const [student, setStudent] = useState({
@@ -40,8 +41,11 @@ const StudentCreation = ({navigation}) => {
     password: '',
     email: '',
     profilePicUrl: '',
-    profilePic: null,
   });
+
+  // New state for handling image
+  const [profileImage, setProfileImage] = useState(null);
+  const [formData, setFormData] = useState(null);
 
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
@@ -104,38 +108,76 @@ const StudentCreation = ({navigation}) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const uploadImageToS3 = async imageFile => {
+  const handleImagePicker = async () => {
     try {
-      setIsUploading(true);
-
-      const Token = await AsyncStorage.getItem('Token');
-
-      // Create form data for image upload
-      const formData = new FormData();
-      formData.append('file', {
-        uri:
-          Platform.OS === 'android'
-            ? imageFile.uri
-            : imageFile.uri.replace('file://', ''),
-        type: imageFile.type || 'image/jpeg',
-        name: imageFile.fileName || 'profile_image.jpg',
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        quality: 1,
       });
 
-      // Call your S3 upload API using fetch
-      const response = await fetch(`${BASE_URL}uploads`, {
+      if (!result.didCancel && result.assets?.[0]?.uri) {
+        const selectedImage = result?.assets?.length ? result.assets[0] : null;
+
+        if (!selectedImage || !selectedImage.uri) {
+          console.log('No valid image selected!');
+          return;
+        }
+
+        const fileData = {
+          uri:
+            Platform.OS === 'android'
+              ? selectedImage.uri
+              : selectedImage.uri.replace('file://', ''),
+          type: selectedImage.type || 'image/jpeg',
+          name: selectedImage.fileName || 'image.jpg',
+        };
+
+        console.log('File Data:', fileData);
+
+        const imageFormData = new FormData();
+        imageFormData.append('file', fileData);
+
+        console.log('FormData created for upload');
+
+        // Save image URI and FormData
+        setProfileImage(fileData.uri);
+        setFormData(imageFormData);
+      }
+    } catch (error) {
+      console.error('Error selecting image:', error);
+      Alert.alert('Error', 'Failed to select image');
+    }
+  };
+
+  const uploadProfileImage = async () => {
+    try {
+      setIsUploading(true);
+      const Token = await AsyncStorage.getItem('Token');
+
+      if (!formData) {
+        console.log('No image selected for upload');
+        return;
+      }
+
+      console.log('Uploading image to server...');
+
+      const url = `${base_url}uploads`;
+
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${Token}`,
+          'Content-Type': 'multipart/form-data',
         },
         body: formData,
       });
 
-      console.log(response);
+      console.log('Upload response status:', response.status);
 
       const textResponse = await response.text();
-      let responseData;
+      console.log('Raw response:', textResponse);
 
+      let responseData;
       try {
         responseData = JSON.parse(textResponse);
       } catch (error) {
@@ -149,9 +191,7 @@ const StudentCreation = ({navigation}) => {
         );
       }
 
-      console.log('Upload Successful!', responseData.url);
-
-      // Return the S3 URL received from your API
+      console.log('Upload successful:', responseData.url);
       return responseData.url;
     } catch (error) {
       console.error('Image upload error:', error);
@@ -170,8 +210,8 @@ const StudentCreation = ({navigation}) => {
     try {
       // Upload image if one was selected
       let profilePicUrl = '';
-      if (student.profilePic) {
-        profilePicUrl = await uploadImageToS3(student.profilePic);
+      if (profileImage && formData) {
+        profilePicUrl = await uploadProfileImage();
         if (!profilePicUrl) {
           setIsSaving(false);
           return;
@@ -200,7 +240,7 @@ const StudentCreation = ({navigation}) => {
         parent2Email: student.parent2Email || null,
       };
 
-      // Use the postApi function like in the CreateAssignment component
+      // Use the postApi function
       const Token = await AsyncStorage.getItem('Token');
 
       const url = 'students';
@@ -211,7 +251,7 @@ const StudentCreation = ({navigation}) => {
       };
 
       const onResponse = res => {
-        // Show success message and navigate back
+        console.log('Student created successfully:', res);
         setShowSuccessMessage(true);
         animateSuccess();
         setTimeout(() => {
@@ -236,24 +276,6 @@ const StudentCreation = ({navigation}) => {
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const handleImagePicker = () => {
-    ImagePicker.launchImageLibrary(
-      {
-        mediaType: 'photo',
-        quality: 0.8,
-      },
-      response => {
-        if (response.didCancel) return;
-        if (response.assets && response.assets[0]) {
-          setStudent(prev => ({
-            ...prev,
-            profilePic: response.assets[0],
-          }));
-        }
-      },
-    );
   };
 
   const renderInput = (
@@ -315,9 +337,9 @@ const StudentCreation = ({navigation}) => {
                 disabled={isUploading}>
                 {isUploading ? (
                   <ActivityIndicator size="large" color="#001d3d" />
-                ) : student.profilePic ? (
+                ) : profileImage ? (
                   <Image
-                    source={{uri: student.profilePic.uri}}
+                    source={{uri: profileImage}}
                     style={styles.profilePic}
                   />
                 ) : (
