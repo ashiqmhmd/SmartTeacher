@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -19,8 +19,11 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { getUserId } from '../utils/TokenDecoder';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { postApi } from '../utils/api';
+import { useRoute } from '@react-navigation/core';
+import { useDispatch } from 'react-redux';
+import { fetch_batchs, setBatchCreated } from '../utils/authslice';
 
-const BatchCreation = ({navigation}) => {
+const BatchCreation = ({ navigation }) => {
   const [batch, setBatch] = useState({
     name: '',
     course: '',
@@ -30,7 +33,7 @@ const BatchCreation = ({navigation}) => {
     paymentAmount: '',
     paymentDayOfMonth: '',
   });
-
+  const route = useRoute();
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -38,6 +41,7 @@ const BatchCreation = ({navigation}) => {
   const [showFrequencyDropdown, setShowFrequencyDropdown] = useState(false);
 
   const paymentFrequencies = ['Monthly', 'Onetime'];
+  const dispatch = useDispatch();
 
   const animateSuccess = () => {
     Animated.sequence([
@@ -65,13 +69,13 @@ const BatchCreation = ({navigation}) => {
     if (!batch.paymentAmount || isNaN(batch.paymentAmount)) {
       newErrors.paymentAmount = 'Valid payment amount is required';
     }
-    
+
     // Only validate paymentDayOfMonth if frequency is Monthly
-    if (batch.paymentFrequency === 'Monthly' && 
+    if (batch.paymentFrequency === 'Monthly' &&
       (!batch.paymentDayOfMonth ||
-      isNaN(batch.paymentDayOfMonth) ||
-      batch.paymentDayOfMonth < 1 ||
-      batch.paymentDayOfMonth > 31)
+        isNaN(batch.paymentDayOfMonth) ||
+        batch.paymentDayOfMonth < 1 ||
+        batch.paymentDayOfMonth > 31)
     ) {
       newErrors.paymentDayOfMonth = 'Valid day of month (1-31) is required';
     }
@@ -96,8 +100,8 @@ const BatchCreation = ({navigation}) => {
   };
 
   const handleSelectFrequency = (frequency) => {
-    setBatch(prev => ({...prev, paymentFrequency: frequency}));
-    if (errors.paymentFrequency) setErrors(prev => ({...prev, paymentFrequency: undefined}));
+    setBatch(prev => ({ ...prev, paymentFrequency: frequency }));
+    if (errors.paymentFrequency) setErrors(prev => ({ ...prev, paymentFrequency: undefined }));
     setShowFrequencyDropdown(false);
   };
 
@@ -109,24 +113,24 @@ const BatchCreation = ({navigation}) => {
       if (!Token) {
         throw new Error('No token found, authentication required');
       }
-  
+
       const Teacherid = await getUserId(Token);
       if (!Teacherid) {
         throw new Error('Failed to fetch Teacher ID');
       }
-  
+
       const url = 'batches';
       const headers = {
         Accept: 'application/json',
         'Content-Type': 'application/json',
         Authorization: `Bearer ${Token}`,
       };
-  
+
       const body = {
         ...batch,
         teacherId: Teacherid,
       };
-  
+
       const onResponse = async (res) => {
         // Show Toast Message
         Toast.show({
@@ -137,13 +141,13 @@ const BatchCreation = ({navigation}) => {
           visibilityTime: 3000, // 3 seconds
           autoHide: true,
         });
-  
+
         // Wait 3 seconds before navigating back
         setTimeout(() => {
-          navigation.goBack();
+          handleCreateBatch()
         }, 3000);
       };
-  
+
       const onCatch = (error) => {
         console.error('Batch Creation Failed:', error);
         Toast.show({
@@ -153,7 +157,7 @@ const BatchCreation = ({navigation}) => {
           position: 'top',
         });
       };
-  
+
       await postApi(url, headers, body, onResponse, onCatch);
     } catch (error) {
       console.error('Batch_Creation Error:', error.message);
@@ -162,6 +166,16 @@ const BatchCreation = ({navigation}) => {
   };
 
 
+  const handleCreateBatch = async () => {
+    // Your batch creation logic
+    
+    // Set the flag to true
+    dispatch(setBatchCreated(true));
+    await dispatch(fetch_batchs());
+    
+    // Go back
+    navigation.goBack();
+  };
 
   const inputField = (
     field,
@@ -180,8 +194,8 @@ const BatchCreation = ({navigation}) => {
         ]}
         value={batch[field]}
         onChangeText={text => {
-          setBatch(prev => ({...prev, [field]: text}));
-          if (errors[field]) setErrors(prev => ({...prev, [field]: undefined}));
+          setBatch(prev => ({ ...prev, [field]: text }));
+          if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }));
         }}
         placeholder={placeholder}
         placeholderTextColor="#9CA3AF"
@@ -203,7 +217,7 @@ const BatchCreation = ({navigation}) => {
           <MaterialIcons name="arrow-back" size={24} color="#001d3d" />
         </TouchableOpacity>
         <Text style={styles.appBarTitle}>Create New Batch</Text>
-        <View style={{width: 24}} />
+        <View style={{ width: 24 }} />
       </View>
 
       <KeyboardAvoidingView
@@ -211,7 +225,7 @@ const BatchCreation = ({navigation}) => {
         style={styles.container}>
         <ScrollView style={styles.scrollView}>
           {showSuccessMessage && (
-            <Animated.View style={[styles.successMessage, {opacity: fadeAnim}]}>
+            <Animated.View style={[styles.successMessage, { opacity: fadeAnim }]}>
               <MaterialIcons name="check-circle" size={24} color="#059669" />
               <Text style={styles.successText}>Batch created successfully</Text>
             </Animated.View>
@@ -235,9 +249,9 @@ const BatchCreation = ({navigation}) => {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Payment Frequency *</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[
-                  styles.input, 
+                  styles.input,
                   styles.dropdownButton,
                   errors.paymentFrequency && styles.inputError
                 ]}
@@ -260,7 +274,7 @@ const BatchCreation = ({navigation}) => {
               'decimal-pad',
             )}
 
-            {batch.paymentFrequency === 'Monthly' && 
+            {batch.paymentFrequency === 'Monthly' &&
               inputField(
                 'paymentDayOfMonth',
                 'Payment Day of Month',
@@ -298,7 +312,7 @@ const BatchCreation = ({navigation}) => {
         animationType="fade"
         onRequestClose={() => setShowFrequencyDropdown(false)}
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.modalOverlay}
           activeOpacity={1}
           onPress={() => setShowFrequencyDropdown(false)}
@@ -410,7 +424,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     elevation: 5,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
   },
@@ -443,7 +457,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: -2},
+    shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 5,
@@ -466,7 +480,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#001d3d',
     shadowColor: '#001d3d',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,

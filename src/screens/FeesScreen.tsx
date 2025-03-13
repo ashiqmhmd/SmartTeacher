@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   StatusBar,
 } from 'react-native';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, {
@@ -23,6 +23,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useDispatch, useSelector} from 'react-redux';
 import {batch_id, selectBatch} from '../utils/authslice';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
+import { useFocusEffect } from '@react-navigation/core';
 
 interface StudentDetails {
   [studentId: string]: string;
@@ -47,6 +48,7 @@ const FeesScreen = ({navigation}) => {
   const [loading, setLoading] = useState(true);
 
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
+  const selectedBatch_id = useSelector(state => state.auth?.batch_id);
 
   const dispatch = useDispatch();
 
@@ -138,27 +140,44 @@ const FeesScreen = ({navigation}) => {
     setStudentDetails(details);
   };
 
-  const selectedBatch = useMemo(() => {
-    Fees_fetch();
-    return selectedBatchString ? JSON.parse(selectedBatchString) : null;
-  }, [selectedBatchString]);
 
   useEffect(() => {
     Fees_fetch();
   }, [1]);
+
+
+  useFocusEffect(
+      useCallback(() => {
+        console.log('Screen is focused');
+        Fees_fetch();
+  
+        // Optional cleanup function
+        return () => {
+          console.log('Screen is unfocused');
+        };
+      }, []) // Empty dependency array ensures this runs only when screen gains focus
+    );
+  
+
+
 
   const monthOptions = ['Current Month', 'January', 'February', 'March'];
   const filterOptions = ['All', 'Paid', 'Unpaid'];
 
   const refRBSheet = useRef();
 
-  const handleBatchSelect = async batch => {
-    await AsyncStorage.removeItem('batch_id');
-    dispatch(batch_id(batch.id)),
-      await AsyncStorage.setItem('batch', JSON.stringify(batch));
+  const handleBatchSelect = async (batch) => {
+    await AsyncStorage.setItem('batch_id', batch.id.toString());
+    await AsyncStorage.setItem('batch', JSON.stringify(batch));
+    
+    dispatch(batch_id(batch.id));
+    dispatch(selectBatch(batch));
+    
+    // Fetch students for the selected batch
+    await Fees_fetch();
+    
+    // Close the bottom sheet
     refRBSheet.current.close();
-    dispatch(selectBatch(JSON.stringify(batch)));
-    Fees_fetch();
   };
 
   // Filter fees based on search query and selected filters
@@ -273,7 +292,7 @@ const FeesScreen = ({navigation}) => {
             borderColor: '#e0e0e0',
           }}>
           <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
-            {selectedBatch ? selectedBatch.name : 'Select a Batch'}
+            {selectedBatchString ? selectedBatchString.name : 'Select a Batch'}
           </Text>
 
           <MaterialIcons
@@ -418,7 +437,6 @@ const FeesScreen = ({navigation}) => {
       )}
       <BatchSelectorSheet
         ref={refRBSheet}
-        selectedBatch={selectedBatch}
         onBatchSelect={handleBatchSelect}
       />
     </View>

@@ -26,16 +26,22 @@ const NotesScreen = ({navigation}) => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
+  const selectedBatch_id = useSelector(state => state.auth?.batch_id);
   const refRBSheet = useRef();
   const dispatch = useDispatch();
 
-  const handleBatchSelect = async batch => {
-    await AsyncStorage.removeItem('batch_id');
-    dispatch(batch_id(batch.id)),
-      await AsyncStorage.setItem('batch', JSON.stringify(batch));
-    refRBSheet.current.close(); // Store full batch object
-    dispatch(selectBatch(JSON.stringify(batch))); // Update Redux state
+  const handleBatchSelect = async (batch) => {
+    await AsyncStorage.setItem('batch_id', batch.id.toString());
+    await AsyncStorage.setItem('batch', JSON.stringify(batch));
+    
+    dispatch(batch_id(batch.id));
+    dispatch(selectBatch(batch));
+    
+    // Fetch students for the selected batch
     await Notes_fetch();
+    
+    // Close the bottom sheet
+    refRBSheet.current.close();
   };
 
   const Notes_fetch = async () => {
@@ -84,10 +90,6 @@ const NotesScreen = ({navigation}) => {
     );
 
 
-  const selectedBatch = useMemo(() => {
-    Notes_fetch();
-    return selectedBatchString ? JSON.parse(selectedBatchString) : null;
-  }, [selectedBatchString]);
 
   const NoteCard = ({item}) => (
     <TouchableOpacity
@@ -130,7 +132,7 @@ const NotesScreen = ({navigation}) => {
             borderColor: '#e0e0e0',
           }}>
           <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
-            {selectedBatch?.name}
+            {selectedBatchString?.name}
           </Text>
 
           <MaterialIcons
@@ -195,7 +197,6 @@ const NotesScreen = ({navigation}) => {
       )}
       <BatchSelectorSheet
         ref={refRBSheet}
-        selectedBatch={selectedBatch}
         onBatchSelect={handleBatchSelect}
       />
     </View>

@@ -19,13 +19,8 @@ export const postApi = async (
     'Content-Type': 'application/json',
     ...header,
   };
-  console.log(body);
+  console.log('Request Body:', body);
 
-  fetch(base_url + url, {
-    method: 'POST',
-    headers: headers,
-    body: JSON.stringify(body),
-  });
   fetch(base_url + url, {
     method: 'POST',
     headers: headers,
@@ -36,27 +31,28 @@ export const postApi = async (
       console.log('Raw Response:', text);
 
       try {
+        // Fix malformed JSON if necessary
         const fixedText = text.replace(
           /"token":\s*([^"{\[][^,}\]]*)/g,
           '"token": "$1"',
         );
 
-        return JSON.parse(fixedText);
+        const responseJson = JSON.parse(fixedText);
+        console.log('Parsed JSON:', responseJson);
+
+        // Call the onResponse callback if provided
+        onResponse && onResponse(responseJson);
       } catch (error) {
         console.error('JSON Parse Error:', error);
         throw new Error(`Invalid JSON response: ${text}`);
       }
     })
-    .then(responseJson => {
-      console.log('Parsed JSON:', responseJson);
-      onResponse && onResponse(responseJson);
-    })
     .catch(e => {
       console.error('Fetch Error:', e);
+      // Call the onCatch callback if provided
       onCatch && onCatch(e);
     });
 };
-
 export const getapi = async (
   url: string = '',
   header: Record<string, string> = {},
