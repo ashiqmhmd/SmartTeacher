@@ -12,9 +12,12 @@ import {
   KeyboardAvoidingView,
   StatusBar,
   Image,
+  Alert,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import * as ImagePicker from 'react-native-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {postApi} from '../utils/api';
+import {pickAndUploadImage} from '../utils/FileUploadService';
 
 const StudentCreation = ({navigation}) => {
   const [student, setStudent] = useState({
@@ -32,13 +35,19 @@ const StudentCreation = ({navigation}) => {
     parent2Name: '',
     parent2Phone: '',
     parent2Email: '',
-    username: '',
+    userName: '',
     password: '',
-    profilePic: null,
+    email: '',
+    profilePicUrl: '',
   });
+
+  // State for profile image
+  const [profileImage, setProfileImage] = useState(null);
+  const [profileImageUrl, setProfileImageUrl] = useState(null);
 
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
 
@@ -69,66 +78,127 @@ const StudentCreation = ({navigation}) => {
   const validateForm = () => {
     const newErrors = {};
 
+    // Required fields as per API
     if (!student.firstName.trim())
       newErrors.firstName = 'First name is required';
     if (!student.lastName.trim()) newErrors.lastName = 'Last name is required';
-    if (!student.age || isNaN(student.age))
-      newErrors.age = 'Valid age is required';
-    if (!student.addressLine1.trim())
-      newErrors.addressLine1 = 'Address is required';
-    if (!student.addressCity.trim()) newErrors.addressCity = 'City is required';
-    if (!student.addressState.trim())
-      newErrors.addressState = 'State is required';
-    if (!student.pinCode || !/^\d{6}$/.test(student.pinCode))
-      newErrors.pinCode = 'Valid 6-digit pincode required';
-    if (!student.gender) newErrors.gender = 'Gender is required';
-
-    if (!student.parent1Name.trim())
-      newErrors.parent1Name = 'Parent 1 name is required';
-    if (!validatePhone(student.parent1Phone))
-      newErrors.parent1Phone = 'Valid 10-digit phone required';
-    if (!validateEmail(student.parent1Email))
-      newErrors.parent1Email = 'Valid email required';
-
-    if (!student.username.trim()) newErrors.username = 'Username is required';
+    if (!student.userName.trim()) newErrors.userName = 'Username is required';
     if (student.password.length < 6)
       newErrors.password = 'Password must be at least 6 characters';
 
+    // Optional but validated if provided
+    if (student.age && isNaN(student.age))
+      newErrors.age = 'Age must be a number';
+    if (student.email && !validateEmail(student.email))
+      newErrors.email = 'Valid email required';
+    if (student.pinCode && !/^\d{6}$/.test(student.pinCode))
+      newErrors.pinCode = 'Valid 6-digit pincode required';
+    if (student.parent1Phone && !validatePhone(student.parent1Phone))
+      newErrors.parent1Phone = 'Valid 10-digit phone required';
+    if (student.parent1Email && !validateEmail(student.parent1Email))
+      newErrors.parent1Email = 'Valid email required';
+    if (student.parent2Phone && !validatePhone(student.parent2Phone))
+      newErrors.parent2Phone = 'Valid 10-digit phone required';
+    if (student.parent2Email && !validateEmail(student.parent2Email))
+      newErrors.parent2Email = 'Valid email required';
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleImagePicker = async () => {
+    try {
+      setIsUploading(true);
+
+      // Use pickAndUploadImage from FileUploadService
+      const result = await pickAndUploadImage();
+
+      if (result.success) {
+        // Set the image URI for display
+        setProfileImage(result.uri);
+        // Set the uploaded image URL for saving
+        setProfileImageUrl(result.url);
+      } else {
+        // Only show alert for errors that are not cancellation
+        if (result.message !== 'User cancelled image selection') {
+          Alert.alert('Error', result.message || 'Failed to upload image');
+        }
+      }
+    } catch (error) {
+      console.error('Error in image upload process:', error);
+      Alert.alert(
+        'Error',
+        'An unexpected error occurred while uploading image',
+      );
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleSave = async () => {
     if (!validateForm()) return;
 
     setIsSaving(true);
-    // API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsSaving(false);
-    setShowSuccessMessage(true);
-    animateSuccess();
-    setTimeout(() => {
-      setShowSuccessMessage(false);
-      navigation.goBack();
-    }, 2000);
-  };
 
-  const handleImagePicker = () => {
-    ImagePicker.launchImageLibrary(
-      {
-        mediaType: 'photo',
-        quality: 0.8,
-      },
-      response => {
-        if (response.didCancel) return;
-        if (response.assets && response.assets[0]) {
-          setStudent(prev => ({
-            ...prev,
-            profilePic: response.assets[0],
-          }));
-        }
-      },
-    );
+    try {
+      // Prepare API payload
+      const payload = {
+        firstName: student.firstName,
+        lastName: student.lastName,
+        age: student.age ? parseInt(student.age) : null,
+        userName: student.userName,
+        password: student.password,
+        email: student.email || null,
+        addressLine1: student.addressLine1 || null,
+        addressCity: student.addressCity || null,
+        addressState: student.addressState || null,
+        pinCode: student.pinCode ? parseInt(student.pinCode) : null,
+        profilePicUrl: profileImageUrl || null,
+        gender: student.gender || null,
+        parent1Name: student.parent1Name || null,
+        parent1Phone: student.parent1Phone || null,
+        parent1Email: student.parent1Email || null,
+        parent2Name: student.parent2Name || null,
+        parent2Phone: student.parent2Phone || null,
+        parent2Email: student.parent2Email || null,
+      };
+
+      // Use the postApi function
+      const Token = await AsyncStorage.getItem('Token');
+
+      const url = 'students';
+      const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Token}`,
+      };
+
+      const onResponse = res => {
+        console.log('Student created successfully:', res);
+        setShowSuccessMessage(true);
+        animateSuccess();
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+          navigation.goBack();
+        }, 2000);
+      };
+
+      const onCatch = error => {
+        console.error('Error creating student:', error);
+        Alert.alert('Error', 'Failed to create student. Please try again.', [
+          {text: 'OK'},
+        ]);
+      };
+
+      postApi(url, headers, payload, onResponse, onCatch);
+    } catch (error) {
+      console.error('Error creating student:', error);
+      Alert.alert('Error', 'Failed to create student. Please try again.', [
+        {text: 'OK'},
+      ]);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const renderInput = (
@@ -137,14 +207,11 @@ const StudentCreation = ({navigation}) => {
     placeholder,
     keyboardType = 'default',
     isSecure = false,
+    required = false,
   ) => (
     <View style={styles.inputGroup}>
       <Text style={styles.label}>
-        {label}{' '}
-        {field !== 'parent2Name' &&
-          field !== 'parent2Phone' &&
-          field !== 'parent2Email' &&
-          '*'}
+        {label} {required && '*'}
       </Text>
       <TextInput
         style={[styles.input, errors[field] && styles.inputError]}
@@ -189,10 +256,13 @@ const StudentCreation = ({navigation}) => {
             <View style={styles.profilePicContainer}>
               <TouchableOpacity
                 onPress={handleImagePicker}
-                style={styles.profilePicButton}>
-                {student.profilePic ? (
+                style={styles.profilePicButton}
+                disabled={isUploading}>
+                {isUploading ? (
+                  <ActivityIndicator size="large" color="#001d3d" />
+                ) : profileImage ? (
                   <Image
-                    source={{uri: student.profilePic.uri}}
+                    source={{uri: profileImage}}
                     style={styles.profilePic}
                   />
                 ) : (
@@ -210,12 +280,32 @@ const StudentCreation = ({navigation}) => {
               </TouchableOpacity>
             </View>
 
-            {renderInput('firstName', 'First Name', 'Enter first name')}
-            {renderInput('lastName', 'Last Name', 'Enter last name')}
+            {renderInput(
+              'firstName',
+              'First Name',
+              'Enter first name',
+              'default',
+              false,
+              true,
+            )}
+            {renderInput(
+              'lastName',
+              'Last Name',
+              'Enter last name',
+              'default',
+              false,
+              true,
+            )}
             {renderInput('age', 'Age', 'Enter age', 'numeric')}
+            {renderInput(
+              'email',
+              'Email',
+              'Enter email address',
+              'email-address',
+            )}
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Gender *</Text>
+              <Text style={styles.label}>Gender</Text>
               <View style={styles.genderContainer}>
                 {['male', 'female', 'other'].map(gender => (
                   <TouchableOpacity
@@ -290,12 +380,20 @@ const StudentCreation = ({navigation}) => {
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Login Credentials</Text>
             </View>
-            {renderInput('username', 'Username', 'Enter username')}
+            {renderInput(
+              'userName',
+              'Username',
+              'Enter username',
+              'default',
+              false,
+              true,
+            )}
             {renderInput(
               'password',
               'Password',
               'Enter password',
               'default',
+              true,
               true,
             )}
           </View>
@@ -304,14 +402,18 @@ const StudentCreation = ({navigation}) => {
         <View style={styles.actionButtons}>
           <TouchableOpacity
             style={styles.cancelButton}
-            onPress={() => navigation.goBack()}>
+            onPress={() => navigation.goBack()}
+            disabled={isSaving || isUploading}>
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
+            style={[
+              styles.saveButton,
+              (isSaving || isUploading) && styles.saveButtonDisabled,
+            ]}
             onPress={handleSave}
-            disabled={isSaving}>
+            disabled={isSaving || isUploading}>
             {isSaving ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (

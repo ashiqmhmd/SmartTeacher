@@ -67,7 +67,7 @@ const AssignmentsScreen = ({ navigation }) => {
 
   useEffect(() => {
     Assignment_fetch();
-  }, [1]);
+  }, [selectedBatchString]);
 
   useFocusEffect(
     useCallback(() => {
@@ -78,7 +78,7 @@ const AssignmentsScreen = ({ navigation }) => {
       return () => {
         console.log('Screen is unfocused');
       };
-    }, []) // Empty dependency array ensures this runs only when screen gains focus
+    }, []), // Empty dependency array ensures this runs only when screen gains focus
   );
 
 

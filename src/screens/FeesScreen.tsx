@@ -143,7 +143,7 @@ const FeesScreen = ({navigation}) => {
 
   useEffect(() => {
     Fees_fetch();
-  }, [1]);
+  }, [selectedBatchString]);
 
 
   useFocusEffect(
