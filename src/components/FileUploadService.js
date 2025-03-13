@@ -1,7 +1,7 @@
 import {Platform} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {base_url} from './store';
+import {base_url} from '../utils/store';
 
 /**
  * Opens image picker to select an image from the device gallery

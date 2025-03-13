@@ -17,7 +17,7 @@ import {
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {postApi} from '../utils/api';
-import {pickAndUploadImage} from '../utils/FileUploadService';
+import {pickAndUploadImage} from '../components/FileUploadService';
 
 const StudentCreation = ({navigation}) => {
   const [student, setStudent] = useState({

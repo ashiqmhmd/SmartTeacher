@@ -806,7 +806,7 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import {putapi} from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {pickAndUploadImage} from '../utils/FileUploadService';
+import {pickAndUploadImage} from '../components/FileUploadService';
 
 const UpdateProfileScreen = ({navigation, route}) => {
   const [profileData, setProfileData] = useState({
