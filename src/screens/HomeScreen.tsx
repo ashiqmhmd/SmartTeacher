@@ -539,8 +539,7 @@ const HomeScreen = ({navigation}) => {
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState([]);
   const dispatch = useDispatch();
-  const route = useRoute();
-  const newBatchCreated = useSelector(state => state.auth.newBatchCreated);
+
 
   const students_fetch = async () => {
     setLoading(true);

@@ -65,6 +65,17 @@ const AssignmentsScreen = ({ navigation }) => {
     getapi(url, headers, onResponse, onCatch);
   };
 
+
+  const getStatusColor = (submissionDate) => {
+    if (!submissionDate || isNaN(new Date(submissionDate).getTime())) {
+      return '#e53935'; // Red for invalid or missing dates
+    }
+    return new Date() < new Date(submissionDate)
+      ? true // Green if current date is before submissionDate
+      : false; // Red if current date is after or equal to submissionDate
+  };
+
+
   useEffect(() => {
     Assignment_fetch();
   }, [selectedBatchString]);
@@ -93,19 +104,19 @@ const AssignmentsScreen = ({ navigation }) => {
         <View
           style={[
             styles.statusBadge,
-            { backgroundColor: item.status === 'Active' ? '#E8F5E9' : '#ffb5a7' },
+            { backgroundColor: getStatusColor(item.submissionDate) ? '#E8F5E9' : '#ffb5a7' },
           ]}>
           <Text
             style={[
               styles.statusText,
               {
                 color:
-                  Date() < dateconvert(item.submissionDate)
-                    ? '#43A047'
-                    : '#e53935',
-              },
+                   getStatusColor(item.submissionDate)
+                  ? '#43A047'
+                  : '#e53935'
+              }
             ]}>
-            {Date() < dateconvert(item.submissionDate) ? 'Active' : 'Expired'}
+            {new Date() > new Date(item.submissionDate) ? 'Expired' : 'Active'}
           </Text>
         </View>
       </View>

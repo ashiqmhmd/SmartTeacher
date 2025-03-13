@@ -51,7 +51,7 @@ const StudentDetailsScreen = ({route, navigation}) => {
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => navigation.navigate('EditStudent', {student})}
+            onPress={() => navigation.navigate('Student_Create', {student})}
             style={styles.editButton}>
             <MaterialIcons name="edit" size={22} color="#fff" />
           </TouchableOpacity>

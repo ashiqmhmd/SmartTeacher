@@ -19,8 +19,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {postApi} from '../utils/api';
 import {pickAndUploadImage} from '../components/FileUploadService';
 
-const StudentCreation = ({navigation}) => {
-  const [student, setStudent] = useState({
+const StudentCreation = ({navigation,route}) => {
+  const isEditMode = route.params?.student ? true : false;
+
+  const [student, setStudent] = useState(
+    isEditMode
+    ? route.params.student
+    :
+    {
     firstName: '',
     lastName: '',
     age: '',

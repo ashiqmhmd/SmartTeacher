@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -23,18 +23,24 @@ import moment from 'moment';
 import { batch_id } from '../utils/authslice';
 
 
-const CreateAssignment = ({ navigation }) => {
-  const [assignment, setAssignment] = useState({
-    publishDate : currentdate(),
-    title: '',
-    submissionDate: new Date(),
-    attachmentUrls: [],
-    batchId:'',
-    details:''
-  });
+const CreateAssignment = ({ navigation, route }) => {
+  const isEditMode = route.params?.assignment ? true : false;
+  const [assignment, setAssignment] = useState(
+    isEditMode ?
+      route.params.assignment
+      :
+      {
+        publishDate: currentdate(),
+        title: '',
+        submissionDate: new Date(),
+        attachmentUrls: [],
+        batchId: '',
+        details: ''
+      });
 
-  
-  const [submissionDate,setSubmitdate]  = useState(new Date())
+
+
+  const [submissionDate, setSubmitdate] = useState(new Date())
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
   const [uploadedFile, setUploadedFile] = useState('');
@@ -44,6 +50,42 @@ const CreateAssignment = ({ navigation }) => {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [attachmentList, setAttachmentList] = useState([]);
 
+  useEffect(() => {
+    console.log('useEffect triggered:', route?.params?.assignment?.attachmentUrls);
+    const date = route?.params?.assignment?.submissionDate
+ 
+    if (date instanceof Date || typeof date === 'string') {
+      const dateObject = new Date(date); // Convert string to Date
+      if (!isNaN(dateObject.getTime())) {
+        setSubmitdate(dateObject); // Only set the date if it's valid
+      } else {
+        console.error("Invalid date string:", date);
+      }
+    }
+    if (route?.params?.assignment?.attachmentUrls) {
+      const mappedAttachments = route?.params?.assignment?.attachmentUrls.map((url) => ({
+        uri: url,
+        name: url.split('/').pop(),
+        size: 1.5,
+        type: 'application/pdf',
+      }));
+
+     
+  
+      if (JSON.stringify(mappedAttachments) !== JSON.stringify(attachmentList)) {
+        console.log('Updating attachmentList');
+        setAttachmentList(mappedAttachments);
+        const formData = new FormData();
+        formData.append('file', mappedAttachments);
+
+        console.log("FormData Object:", mappedAttachments);
+     
+        // Save Image & FormData
+        setformdata(mappedAttachments); // Store FormData directly, NOT as JSON!
+        // setSubmitdate(date)
+      }
+    }
+  }, [route?.params?.assignment?.attachmentUrls]);
   const animateSuccess = () => {
     Animated.sequence([
       Animated.timing(fadeAnim, {
@@ -59,6 +101,13 @@ const CreateAssignment = ({ navigation }) => {
       }),
     ]).start();
   };
+
+
+  const getDateObject = (date) => {
+    if (!date) return new Date(); // Fallback to current date if null or undefined
+    return typeof date === 'string' ? new Date(date) : date; // Convert string to Date object
+  };
+
 
   const attachmentValidation = size => {
     console.log(size);
@@ -83,16 +132,38 @@ const CreateAssignment = ({ navigation }) => {
   };
 
   const handleSave = async () => {
-    fileupload()
-    // if (!validateForm()) return;
+    try {
+      setIsSaving(true);
 
-    // setIsSaving(true);
-    // fileupload()
-    // await new Promise(resolve => setTimeout(resolve, 1500));
-    // setIsSaving(false);
-    // setShowSuccessMessage(true);
-    // animateSuccess();
-    // setTimeout(() => setShowSuccessMessage(false), 3000);
+      // Fetch Batch_id from AsyncStorage
+      const Batch_id = await AsyncStorage.getItem('batch_id');
+      if (!Batch_id) {
+        console.warn("Batch_id is not available!");
+        setIsSaving(false);
+        return;
+      }
+
+      // Update assignment state with Batch_id
+      await new Promise((resolve) => {
+        setAssignment((prev) => ({
+          ...prev,
+          batchId: Batch_id,
+        }));
+        resolve();
+      });
+
+      // Upload the file
+      await fileupload();
+
+      // Show success message and reset state
+      setIsSaving(false);
+      setShowSuccessMessage(true);
+      animateSuccess();
+      setTimeout(() => setShowSuccessMessage(false), 3000);
+    } catch (error) {
+      console.error("Error during save:", error.message);
+      setIsSaving(false);
+    }
   };
 
   const handleAttachments = async () => {
@@ -117,8 +188,8 @@ const CreateAssignment = ({ navigation }) => {
           ...prev,
           ...(Array.isArray(result) ? result : [result]),
         ]);
-        
-      attachmentValidation(size);
+
+        attachmentValidation(size);
         const fileData = {
           uri: Platform.OS === 'android' ? result[0].uri : result[0].uri.replace('file://', ''),
           type: result[0].type || ' application/pdf',
@@ -141,86 +212,86 @@ const CreateAssignment = ({ navigation }) => {
       console.error('Document Picker Error:', error);
     }
   };
-  
 
-    const fileupload = async () => {
-      try {
-        console.log("Uploading file...");
-    
-        const Batch_id = await AsyncStorage.getItem('batch_id');
-        const Token = await AsyncStorage.getItem('Token');
-    
-        if (!formdatas) {
-          console.warn("No file selected for upload!");
-          return;
-        }
 
-        if(Batch_id) {
-          setAssignment(prev =>({
-            ...prev,
-            batchId: Batch_id,
-          }))
-        }
-    
-        const url = `${base_url}uploads`;
-    
-        console.log("Uploading Image to:", url);
-        console.log("FormData Before Upload:", formdatas);
-    
-        const response = await fetch(url, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${Token}`,
-            "Content-Type": "multipart/form-data",
-          },
-          body: formdatas,
-        });
-    
-        console.log("Status Code:", response.status);
-    
-        const textResponse = await response.text();
-        console.log("Raw Response:", textResponse);
-    
-        let responseData;
-        try {
-          responseData = JSON.parse(textResponse);
-        } catch (error) {
-          console.error("Error parsing JSON response:", error);
-          throw new Error("Invalid JSON response from the server");
-        }
-    
-        if (!response.ok) {
-          throw new Error(`Upload failed: ${responseData.message || "Unknown error"}`);
-        }
-    
-        console.log("Batch_id:", Batch_id);
-        console.log("Upload Successful!", responseData.url);
-    
-        // ✅ Update assignment state (attachments → attachmentUrls)
+  const fileupload = async () => {
+    try {
+      console.log("Uploading file...");
+
+      const Batch_id = await AsyncStorage.getItem('batch_id');
+      const Token = await AsyncStorage.getItem('Token');
+
+      if (!formdatas) {
+        console.warn("No file selected for upload!");
+        return;
+      }
+
+      if (Batch_id) {
         setAssignment(prev => ({
           ...prev,
-          batchId:Batch_id,
-          attachmentUrls: [
-            ...(prev.attachmentUrls || []),
-            ...(Array.isArray(responseData.url) ? responseData.url : [responseData.url]),
-          ],
-        }));
-    
-        // ✅ Trigger assignment submission
-        Assignment_Submit(responseData.url);
-    
-        return responseData.url;
-      } catch (error) {
-        console.error("Error during file upload:", error.message);
+          batchId: Batch_id,
+        }))
       }
-    };
-  
+
+      const url = `${base_url}uploads`;
+
+      console.log("Uploading Image to:", url);
+      console.log("FormData Before Upload:", formdatas);
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${Token}`,
+          "Content-Type": "multipart/form-data",
+        },
+        body: formdatas,
+      });
+
+      console.log("Status Code:", response.status);
+
+      const textResponse = await response.text();
+      console.log("Raw Response:", textResponse);
+
+      let responseData;
+      try {
+        responseData = JSON.parse(textResponse);
+      } catch (error) {
+        console.error("Error parsing JSON response:", error);
+        throw new Error("Invalid JSON response from the server");
+      }
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${responseData.message || "Unknown error"}`);
+      }
+
+      console.log("Batch_id:", Batch_id);
+      console.log("Upload Successful!", responseData.url);
+
+      // ✅ Update assignment state (attachments → attachmentUrls)
+      setAssignment(prev => ({
+        ...prev,
+        batchId: Batch_id,
+        attachmentUrls: [
+          ...(prev.attachmentUrls || []),
+          ...(Array.isArray(responseData.url) ? responseData.url : [responseData.url]),
+        ],
+      }));
+
+      // ✅ Trigger assignment submission
+      Assignment_Submit(responseData.url);
+
+      return responseData.url;
+    } catch (error) {
+      console.error("Error during file upload:", error.message);
+    }
+  };
+
 
   const Assignment_Submit = async (fileurl) => {
 
     const Token = await AsyncStorage.getItem('Token');
-  
-   
+
+
     const url = `assignments`;
     const headers = {
       Accept: 'application/json',
@@ -229,11 +300,11 @@ const CreateAssignment = ({ navigation }) => {
     };
 
     const body = {
-    ...assignment,
+      ...assignment,
     }
     const onResponse = res => {
       setAssignment(res);
-       navigation.goBack()
+      navigation.goBack()
 
     };
 
@@ -242,7 +313,7 @@ const CreateAssignment = ({ navigation }) => {
       console.log(res);
 
     };
-    postApi(url, headers,body, onResponse, onCatch);
+    postApi(url, headers, body, onResponse, onCatch);
     console.log(body)
   };
 
@@ -254,19 +325,19 @@ const CreateAssignment = ({ navigation }) => {
         {item.name}
       </Text>
       <TouchableOpacity
-     onPress={() => {
-      const newErrors = {};
-    
-      // Create a new array without the item at 'index'
-      const newAttachments = attachmentList.filter((_, i) => i !== index);
-    
-      // Update the attachmentList with the modified array
-      setAttachmentList(newAttachments);
-    
-      // Optionally reset errors
-      setErrors(newErrors);
-    }}
-    
+        onPress={() => {
+          const newErrors = {};
+
+          // Create a new array without the item at 'index'
+          const newAttachments = attachmentList.filter((_, i) => i !== index);
+
+          // Update the attachmentList with the modified array
+          setAttachmentList(newAttachments);
+
+          // Optionally reset errors
+          setErrors(newErrors);
+        }}
+
         style={styles.removeAttachment}>
         <MaterialIcons name="close" size={20} color="#EF4444" />
       </TouchableOpacity>
@@ -392,16 +463,16 @@ const CreateAssignment = ({ navigation }) => {
 
         {showDatePicker && (
           <DateTimePicker
-            value={assignment.submissionDate}
+            value={getDateObject(assignment?.submissionDate || submissionDate)}
             mode="date"
             display="default"
             onChange={(event, selectedDate) => {
               setShowDatePicker(false);
-              const formattedDate = moment(selectedDate)
-              .utc()
-              .set({ hour: 23, minute: 59, second: 59, millisecond: 999 })
-              .format("YYYY-MM-DDTHH:mm:ss.SSS[Z]");
-      
+              const formattedDate = moment(selectedDate ? selectedDate : "")
+                .utc()
+                .set({ hour: 23, minute: 59, second: 59, millisecond: 999 })
+                .format("YYYY-MM-DDTHH:mm:ss.SSS[Z]");
+
               if (selectedDate) {
                 setAssignment(prev => ({
                   ...prev,

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -19,9 +19,14 @@ import { base_url } from '../utils/store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { postApi } from '../utils/api';
 
-const NoteCreateScreen = ({navigation}) => {
-  const [note, setNote] = useState({
-    title: '',
+const NoteCreateScreen = ({navigation,route}) => {
+  const isEditMode = route.params?.note ? true : false;
+  const [note, setNote] = useState(
+    isEditMode ?
+    route.params.note
+    :
+    {
+    Title: '',
     publishDate: currentdate(),
     content: '',
     listUrls: [],
@@ -63,7 +68,7 @@ const NoteCreateScreen = ({navigation}) => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!note.title.trim()) {
+    if (!note.Title.trim()) {
       newErrors.title = 'Title is required';
     }
     if (note.attachments && note.attachments.size > 2 * 1024 * 1024) {
@@ -74,20 +79,20 @@ const NoteCreateScreen = ({navigation}) => {
   };
 
   const handleSave = async () => {
-    if (!validateForm()) return;
+    // if (!validateForm()) return;
 
     setIsSaving(true);
     fileupload()
     
 
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsSaving(false);
-    setShowSuccessMessage(true);
-    animateSuccess();
-    setTimeout(() => {
-      setShowSuccessMessage(false);
-      navigation.goBack();
-    }, 2000);
+    // await new Promise(resolve => setTimeout(resolve, 1500));
+    // setIsSaving(false);
+    // setShowSuccessMessage(true);
+    // animateSuccess();
+    // setTimeout(() => {
+    //   setShowSuccessMessage(false);
+    //   navigation.goBack();
+    // }, 2000);
   };
 
     const handleAttachments = async () => {
@@ -137,6 +142,33 @@ const NoteCreateScreen = ({navigation}) => {
       }
     };
 
+
+useEffect(() => {
+  console.log('notess',route?.params?.note )
+    if (route?.params?.note?.listUrls) {
+      const mappedAttachments = route?.params?.note?.listUrls.map((url) => ({
+        uri: url,
+        name: url.split('/').pop(),
+        size: 1.5,
+        type: 'application/pdf',
+      }));
+
+     
+  
+      if (JSON.stringify(mappedAttachments) !== JSON.stringify(attachmentList)) {
+        console.log('Updating attachmentList');
+        setAttachmentList(mappedAttachments);
+        const formData = new FormData();
+        formData.append('file', mappedAttachments);
+
+        console.log("FormData Object:", mappedAttachments);
+     
+        // Save Image & FormData
+        setformdata(mappedAttachments); // Store FormData directly, NOT as JSON!
+        // setSubmitdate(date)
+      }
+    }
+  }, [route?.params?.note?.attachmentUrls]);
 
     const fileupload = async () => {
       try {
@@ -228,13 +260,20 @@ console.log("batchid", Batch_id)
       }
       const onResponse = res => {
         setNote(res);
-         navigation.goBack()
+        setIsSaving(false);
+        setShowSuccessMessage(true);
+        animateSuccess();
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+          navigation.goBack();
+        }, 2000);
   
       };
   
       const onCatch = res => {
         console.log('Error');
         console.log(res);
+        setIsSaving(false);
   
       };
       postApi(url, headers,body, onResponse, onCatch);
@@ -304,9 +343,9 @@ console.log("batchid", Batch_id)
               <Text style={styles.label}>Title *</Text>
               <TextInput
                 style={[styles.input, errors.title && styles.inputError]}
-                value={note.title}
+                value={note.Title}
                 onChangeText={text => {
-                  setNote(prev => ({...prev, title: text}));
+                  setNote(prev => ({...prev, Title: text}));
                   if (errors.title) {
                     setErrors(prev => ({...prev, title: undefined}));
                   }
@@ -350,9 +389,9 @@ console.log("batchid", Batch_id)
                 renderAttachment(item, index),
               )}
 
-              {errors.attachment && (
+              {/* {errors.attachment && (
                 <Text style={styles.errorText}>{errors.attachment}</Text>
-              )}
+              )} */}
             </View>
           </View>
         </ScrollView>
@@ -367,10 +406,8 @@ console.log("batchid", Batch_id)
           <TouchableOpacity
             style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
             onPress={
-              // handleSave
-              () => {
-                console.log(note);
-              }
+              handleSave
+             
             }
             disabled={isSaving}>
             {isSaving ? (
