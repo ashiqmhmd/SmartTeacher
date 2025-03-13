@@ -8,16 +8,16 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { logout } from '../utils/authslice';
-import { useDispatch } from 'react-redux';
+import {logout} from '../utils/authslice';
+import {useDispatch} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getapi } from '../utils/api';
-import { getUserId } from '../utils/TokenDecoder';
+import {getapi} from '../utils/api';
+import {getUserId} from '../utils/TokenDecoder';
 
-const ProfileScreen = ({ navigation, item }) => {
+const ProfileScreen = ({navigation, item}) => {
   const [imageError, setImageError] = useState(false);
   const [loading, setLoading] = useState(true);
   const defaultTeacher = {
@@ -44,7 +44,6 @@ const ProfileScreen = ({ navigation, item }) => {
 
   const dispatch = useDispatch();
 
-
   const TeacherDetails = async () => {
     try {
       setLoading(true);
@@ -66,9 +65,9 @@ const ProfileScreen = ({ navigation, item }) => {
         Authorization: `Bearer ${Token}`,
       };
 
-      const onResponse = (res) => {
+      const onResponse = res => {
         if (res) {
-          setTeacher((prevTeacher) => ({
+          setTeacher(prevTeacher => ({
             ...prevTeacher,
             ...res, // Merging API data into existing state
           }));
@@ -76,7 +75,7 @@ const ProfileScreen = ({ navigation, item }) => {
         setLoading(false);
       };
 
-      const onCatch = (error) => {
+      const onCatch = error => {
         console.error('API Error:', error);
         setLoading(false);
       };
@@ -87,7 +86,6 @@ const ProfileScreen = ({ navigation, item }) => {
       setLoading(false);
     }
   };
-
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -108,17 +106,17 @@ const ProfileScreen = ({ navigation, item }) => {
   const logoutbutton_press = async () => {
     navigation.reset({
       index: 0,
-      routes: [{ name: 'Login' }],
+      routes: [{name: 'Login'}],
     });
     dispatch(logout());
     await AsyncStorage.removeItem('Token');
   };
 
   useEffect(() => {
-    TeacherDetails()
-  }, [1])
+    TeacherDetails();
+  }, [1]);
 
-  const InfoSection = ({ icon, title, value }) => (
+  const InfoSection = ({icon, title, value}) => (
     <View style={styles.infoSection}>
       <View style={styles.infoIcon}>
         <MaterialIcons name={icon} size={20} color="#0F1F4B" />
@@ -130,7 +128,7 @@ const ProfileScreen = ({ navigation, item }) => {
     </View>
   );
 
-  const Section = ({ title, children }) => (
+  const Section = ({title, children}) => (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
       <View style={styles.sectionContent}>{children}</View>
@@ -145,7 +143,7 @@ const ProfileScreen = ({ navigation, item }) => {
         </TouchableOpacity>
         <Text style={styles.appBarTitle}>Profile</Text>
         <TouchableOpacity
-          onPress={() => navigation.navigate('EditProfile', { teacher })}>
+          onPress={() => navigation.navigate('EditProfile', {teacher})}>
           <MaterialIcons name="edit" size={24} color="#0F1F4B" />
         </TouchableOpacity>
       </View>
@@ -155,12 +153,12 @@ const ProfileScreen = ({ navigation, item }) => {
           <View style={styles.profileImageContainer}>
             <Image
               source={
-                imageError
+                !teacher.profilePicUrl
                   ? require('../resources/logo.png')
-                  : { uri: teacher.profilePicUrl }
+                  : {uri: teacher.profilePicUrl}
               }
               style={styles.profileImage}
-              onError={() => setImageError(true)}
+              // onError={() => setImageError(true)}
             />
             <TouchableOpacity style={styles.editImageButton}>
               <MaterialIcons name="camera-alt" size={20} color="#fff" />
@@ -308,7 +306,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     shadowColor: 'rgb(105, 144, 252)',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 8,
