@@ -387,6 +387,7 @@ const ChatsScreen = ({navigation}) => {
     setLoading(true);
     const Token = await AsyncStorage.getItem('Token');
     const Batch_id = await AsyncStorage.getItem('batch_id');
+    const Teacher_id = await AsyncStorage.getItem('TeacherId');
     // const url = `messages/batch/${Batch_id ? Batch_id : selectedBatch_id}`;
     const url = `messages/batch/a8f0c784-687f-4fa3-bd72-2fbdbe89c7d0`;
     const headers = {
