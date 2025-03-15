@@ -161,6 +161,7 @@ let base_url = 'https://zkbsgdbbhc.execute-api.us-east-1.amazonaws.com/Dev/';
 
 // Function to refresh the token
 export const refreshToken = async (): Promise<RefreshTokenResponse | null> => {
+  console.log("entered the refreshtoken function")
   try {
     const refreshToken = await AsyncStorage.getItem('RefreshToken');
     
@@ -172,15 +173,13 @@ export const refreshToken = async (): Promise<RefreshTokenResponse | null> => {
     const url = 'login/refresh'; // Adjust this to your actual refresh endpoint
     const headers = {
       'Content-Type': 'application/json',
+      'refresh-token': refreshToken,
     };
-    const body = {
-      refreshToken: refreshToken,
-    };
+   
 
     const response = await fetch(base_url + url, {
-      method: 'POST',
+      method: 'GET',
       headers: headers,
-      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -201,7 +200,7 @@ export const refreshToken = async (): Promise<RefreshTokenResponse | null> => {
       if (responseJson.token) {
         // Store the new authorization token
         await AsyncStorage.setItem('Token', responseJson.token);
-        
+        console.log("token setted")
         // If a new refresh token is provided, store it as well
         if (responseJson.refreshToken) {
           await AsyncStorage.setItem('RefreshToken', responseJson.refreshToken);
