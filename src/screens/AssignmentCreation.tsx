@@ -17,7 +17,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { pick } from '@react-native-documents/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { base_url } from '../utils/store';
-import { postApi } from '../utils/api';
+import { postApi, putapi } from '../utils/api';
 import { currentdate } from '../components/moment';
 import moment from 'moment';
 import { batch_id } from '../utils/authslice';
@@ -49,11 +49,12 @@ const CreateAssignment = ({ navigation, route }) => {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
   const [attachmentList, setAttachmentList] = useState([]);
-
+  const [update, setUpdate] = useState(false)
+  const [updateAttachment, setUpdateAttachment] = useState(false)
   useEffect(() => {
     console.log('useEffect triggered:', route?.params?.assignment?.attachmentUrls);
     const date = route?.params?.assignment?.submissionDate
- 
+
     if (date instanceof Date || typeof date === 'string') {
       const dateObject = new Date(date); // Convert string to Date
       if (!isNaN(dateObject.getTime())) {
@@ -70,8 +71,8 @@ const CreateAssignment = ({ navigation, route }) => {
         type: 'application/pdf',
       }));
 
-     
-  
+
+
       if (JSON.stringify(mappedAttachments) !== JSON.stringify(attachmentList)) {
         console.log('Updating attachmentList');
         setAttachmentList(mappedAttachments);
@@ -79,7 +80,7 @@ const CreateAssignment = ({ navigation, route }) => {
         formData.append('file', mappedAttachments);
 
         console.log("FormData Object:", mappedAttachments);
-     
+
         // Save Image & FormData
         setformdata(mappedAttachments); // Store FormData directly, NOT as JSON!
         // setSubmitdate(date)
@@ -102,6 +103,9 @@ const CreateAssignment = ({ navigation, route }) => {
     ]).start();
   };
 
+  useEffect(() => {
+    setUpdate(route.params.update)
+  }, [route.params.update])
 
   const getDateObject = (date) => {
     if (!date) return new Date(); // Fallback to current date if null or undefined
@@ -151,9 +155,19 @@ const CreateAssignment = ({ navigation, route }) => {
         }));
         resolve();
       });
+      if (update && updateAttachment) {
+        // Upload the file
+        await fileupload();
+      }
+      else if (!update && updateAttachment) {
+        await fileupload();
 
-      // Upload the file
-      await fileupload();
+      }
+      else if (update) {
+        await Assignment_Update();
+      }
+
+
 
       // Show success message and reset state
       setIsSaving(false);
@@ -167,6 +181,7 @@ const CreateAssignment = ({ navigation, route }) => {
   };
 
   const handleAttachments = async () => {
+
     try {
       const result = await pick({
         allowMultiSelection: false,
@@ -183,6 +198,13 @@ const CreateAssignment = ({ navigation, route }) => {
         //     ...(Array.isArray(result) ? result : [result]),
         //   ],
         // }));
+        if (update) {
+          setUpdateAttachment(true)
+        }
+        else if (!update) {
+          setUpdateAttachment(true)
+
+        }
 
         setAttachmentList(prev => [
           ...prev,
@@ -278,7 +300,10 @@ const CreateAssignment = ({ navigation, route }) => {
       }));
 
       // ✅ Trigger assignment submission
-      Assignment_Submit(responseData.url);
+      update ?
+        Assignment_Update()
+        :
+        Assignment_Submit()
 
       return responseData.url;
     } catch (error) {
@@ -287,7 +312,7 @@ const CreateAssignment = ({ navigation, route }) => {
   };
 
 
-  const Assignment_Submit = async (fileurl) => {
+  const Assignment_Submit = async () => {
 
     const Token = await AsyncStorage.getItem('Token');
 
@@ -315,6 +340,41 @@ const CreateAssignment = ({ navigation, route }) => {
     };
     postApi(url, headers, body, onResponse, onCatch);
     console.log(body)
+  };
+
+  const Assignment_Update = async () => {
+
+    const Token = await AsyncStorage.getItem('Token');
+
+
+    const url = `assignments/${assignment.id}`;
+    const headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${Token}`,
+    };
+
+    const payload = {
+      publishDate: assignment.publishDate,
+      title: assignment.title,
+      submissionDate: assignment.submissionDate,
+      attachmentUrls: assignment.attachmentUrls,
+      batchId: assignment.batchId,
+      details: assignment.details
+    };
+    const onResponse = res => {
+      setAssignment(res);
+      navigation.goBack()
+
+    };
+
+    const onCatch = res => {
+      console.log('Error');
+      console.log(res);
+
+    };
+    putapi(url, headers, payload, onResponse, onCatch);
+    console.log(payload)
   };
 
 

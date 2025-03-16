@@ -54,7 +54,7 @@ const NoteDetailsScreen = ({route, navigation}) => {
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => navigation.navigate('Note_Create', {note})}
+            onPress={() => navigation.navigate('Note_Create', {note,update:true})}
             style={styles.editButton}>
             <MaterialIcons name="edit" size={22} color="#fff" />
           </TouchableOpacity>

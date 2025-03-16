@@ -613,7 +613,7 @@ useEffect(() => {
         ) : (
           <View style={styles.noPicContainer}>
             <Image
-              source={require('../resources/logo.png')}
+              source={require('../resources/user.png')}
               style={styles.noPic}
             />
           </View>
