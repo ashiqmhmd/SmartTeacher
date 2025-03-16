@@ -57,7 +57,7 @@ export const getapi = async (
   url: string = '',
   header: Record<string, string> = {},
   onResponse: ((data: any) => void) | null = null,
-  onCatch: ((error: any) => void) | null = null
+  onCatch: ((error: any) => void) | null = null,
 ): Promise<any> => {
   const headers = {
     'Content-Type': 'application/json',
@@ -83,16 +83,16 @@ export const getapi = async (
       onResponse(responseJson);
     }
 
-    return responseJson; 
+    return responseJson;
   } catch (error) {
     console.error('API Fetch Error:', error);
-    console.log(...header)
+    console.log(...header);
 
     if (onCatch) {
       onCatch(error);
     }
 
-    return null; 
+    return null;
   }
 };
 
@@ -136,6 +136,53 @@ export const putapi = async (
     })
     .catch(e => {
       console.error('Fetch Error:', e);
+      onCatch && onCatch(e);
+    });
+};
+
+export const patchApi = async (
+  url: string = '',
+  header: Record<string, string> = {},
+  body: Record<string, any> | null = null,
+  onResponse: Callback | null = null,
+  onCatch: Callback | null = null,
+): Promise<any> => {
+  const headers = {
+    'Content-Type': 'application/json',
+    ...header,
+  };
+
+  console.log('Request Body:', body);
+
+  fetch(base_url + url, {
+    method: 'PATCH',
+    headers: headers,
+    body: body ? JSON.stringify(body) : null, // Ensure empty body is handled
+  })
+    .then(async response => {
+      const text = await response.text();
+      console.log('Raw Response:', text);
+
+      try {
+        // Fix malformed JSON if necessary
+        const fixedText = text.replace(
+          /"token":\s*([^"{\[][^,}\]]*)/g,
+          '"token": "$1"',
+        );
+
+        const responseJson = JSON.parse(fixedText);
+        console.log('Parsed JSON:', responseJson);
+
+        // Call the onResponse callback if provided
+        onResponse && onResponse(responseJson);
+      } catch (error) {
+        console.error('JSON Parse Error:', error);
+        throw new Error(`Invalid JSON response: ${text}`);
+      }
+    })
+    .catch(e => {
+      console.error('Fetch Error:', e);
+      // Call the onCatch callback if provided
       onCatch && onCatch(e);
     });
 };
