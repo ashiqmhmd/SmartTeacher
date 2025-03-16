@@ -16,10 +16,10 @@ import {
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { postApi, putapi } from '../utils/api';
-import { pickAndUploadImage } from '../components/FileUploadService';
+import {patchApi, postApi} from '../utils/api';
+import {pickAndUploadImage} from '../components/FileUploadService';
 
-const StudentCreation = ({ navigation, route }) => {
+const StudentCreation = ({navigation, route}) => {
   const isEditMode = route.params?.student ? true : false;
 
   const [student, setStudent] = useState(
@@ -249,6 +249,7 @@ const StudentCreation = ({ navigation, route }) => {
       };
 
       const onResponse = res => {
+        addToBatch(res.id);
         console.log('Student created successfully:', res);
         setShowSuccessMessage(true);
         animateSuccess();
@@ -284,6 +285,50 @@ const StudentCreation = ({ navigation, route }) => {
   useEffect(() => {
     setUpdate(route.params.update)
   }, [route.params.update])
+
+  
+  const addToBatch = async student => {
+    try {
+      const Token = await AsyncStorage.getItem('Token');
+      const Batch_id = await AsyncStorage.getItem('batch_id');
+
+      const url = `/batches/${Batch_id}/student/${student}`;
+      const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Token}`,
+      };
+
+      const onResponse = res => {
+        console.log('Student added successfully:', res);
+        setShowSuccessMessage(true);
+        animateSuccess();
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+          navigation.goBack();
+        }, 2000);
+      };
+
+      const onCatch = error => {
+        console.error('Error adding student to batch:', error);
+        Alert.alert(
+          'Error',
+          'Failed to add student to batch. Please try again.',
+          [{text: 'OK'}],
+        );
+      };
+
+      patchApi(url, headers, null, onResponse, onCatch);
+    } catch (error) {
+      console.error('Error adding student to batch:', error);
+      Alert.alert(
+        'Error',
+        'Failed to add student to batch. Please try again.',
+        [{text: 'OK'}],
+      );
+    }
+  };
+
   const renderInput = (
     field,
     label,

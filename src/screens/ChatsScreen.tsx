@@ -1,362 +1,3 @@
-// import React, {useState, useEffect} from 'react';
-// import {
-//   View,
-//   Text,
-//   FlatList,
-//   TouchableOpacity,
-//   StyleSheet,
-//   Image,
-//   StatusBar,
-//   TextInput,
-// } from 'react-native';
-// import Ionicons from 'react-native-vector-icons/Ionicons';
-// import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-// import {getapi} from '../utils/api';
-
-// const ChatsScreen = ({navigation}) => {
-//   const [chats, setChats] = useState([]);
-//   const [searchQuery, setSearchQuery] = useState('');
-//   const [filteredChats, setFilteredChats] = useState([]);
-
-//   useEffect(() => {
-//     fetchChats();
-//   }, []);
-
-//   useEffect(() => {
-//     if (searchQuery.trim() === '') {
-//       setFilteredChats(chats);
-//     } else {
-//       const filtered = chats.filter(
-//         chat =>
-//           chat.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-//           chat.lastMessage.toLowerCase().includes(searchQuery.toLowerCase()),
-//       );
-//       setFilteredChats(filtered);
-//     }
-//   }, [searchQuery, chats]);
-
-//   const fetchChats = () => {
-//     // Mock data - replace with actual API call
-//     const mockChats = [
-//       {
-//         id: '1',
-//         studentId: '101',
-//         studentName: 'Rahul Sharma',
-//         profilePicUrl: null,
-//         lastMessage: 'Sir, I have completed the assignment',
-//         timestamp: new Date(2025, 1, 16, 14, 30),
-//         unreadCount: 2,
-//       },
-//       {
-//         id: '2',
-//         studentId: '102',
-//         studentName: 'Priya Patel',
-//         profilePicUrl: 'https://randomuser.me/api/portraits/women/41.jpg',
-//         lastMessage: 'Thank you for the feedback!',
-//         timestamp: new Date(2025, 1, 16, 10, 15),
-//         unreadCount: 0,
-//       },
-//       {
-//         id: '3',
-//         studentId: '103',
-//         studentName: 'Amit Kumar',
-//         profilePicUrl: null,
-//         lastMessage: 'When is the next class?',
-//         timestamp: new Date(2025, 1, 15, 18, 45),
-//         unreadCount: 1,
-//       },
-//       {
-//         id: '4',
-//         studentId: '104',
-//         studentName: 'Neha Singh',
-//         profilePicUrl: 'https://randomuser.me/api/portraits/women/65.jpg',
-//         lastMessage: "I missed today's class due to illness",
-//         timestamp: new Date(2025, 1, 15, 9, 20),
-//         unreadCount: 0,
-//       },
-//       {
-//         id: '5',
-//         studentId: '105',
-//         studentName: 'Vikram Mehta',
-//         profilePicUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
-//         lastMessage: 'Can you share the notes for today?',
-//         timestamp: new Date(2025, 1, 14, 19, 10),
-//         unreadCount: 3,
-//       },
-//     ];
-
-//     setChats(mockChats);
-//     setFilteredChats(mockChats);
-//   };
-
-//   const formatTimestamp = timestamp => {
-//     const now = new Date();
-//     const messageDate = new Date(timestamp);
-
-//     const isToday =
-//       messageDate.getDate() === now.getDate() &&
-//       messageDate.getMonth() === now.getMonth() &&
-//       messageDate.getFullYear() === now.getFullYear();
-
-//     if (isToday) {
-//       return messageDate.toLocaleTimeString([], {
-//         hour: '2-digit',
-//         minute: '2-digit',
-//       });
-//     } else {
-//       return messageDate.toLocaleDateString([], {
-//         month: 'short',
-//         day: 'numeric',
-//       });
-//     }
-//   };
-
-//   const renderChatItem = ({item}) => (
-//     <TouchableOpacity
-//       style={styles.chatItem}
-//       onPress={() =>
-//         navigation.navigate('Chat', {
-//           studentId: item.studentId,
-//           studentName: item.studentName,
-//           profilePicUrl: item.profilePicUrl,
-//         })
-//       }>
-//       <View style={styles.profileContainer}>
-//         {item.profilePicUrl ? (
-//           <Image source={{uri: item.profilePicUrl}} style={styles.profilePic} />
-//         ) : (
-//           <View style={styles.defaultProfilePic}>
-//             <Text style={styles.profileInitial}>
-//               {item.studentName.charAt(0).toUpperCase()}
-//             </Text>
-//           </View>
-//         )}
-//         {item.unreadCount > 0 && (
-//           <View style={styles.unreadBadge}>
-//             <Text style={styles.unreadCount}>{item.unreadCount}</Text>
-//           </View>
-//         )}
-//       </View>
-
-//       <View style={styles.chatInfo}>
-//         <View style={styles.nameTimeRow}>
-//           <Text style={styles.studentName} numberOfLines={1}>
-//             {item.studentName}
-//           </Text>
-//           <Text style={styles.timestamp}>
-//             {formatTimestamp(item.timestamp)}
-//           </Text>
-//         </View>
-//         <View style={styles.messageRow}>
-//           <Text
-//             style={[
-//               styles.lastMessage,
-//               item.unreadCount > 0 ? styles.unreadMessage : null,
-//             ]}
-//             numberOfLines={1}>
-//             {item.lastMessage}
-//           </Text>
-//           {item.unreadCount > 0 ? (
-//             <MaterialIcons name="done" size={16} color="#8696a0" />
-//           ) : (
-//             <MaterialIcons name="done-all" size={16} color="#53bdeb" />
-//           )}
-//         </View>
-//       </View>
-//     </TouchableOpacity>
-//   );
-
-//   return (
-//     <View style={styles.screen}>
-//       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-
-//       <View style={styles.header}>
-//         <Text style={styles.headerTitle}>Chats</Text>
-//         <TouchableOpacity onPress={() => navigation.navigate('NewChat')}>
-//           <MaterialIcons name="message" size={24} color="#001d3d" />
-//         </TouchableOpacity>
-//       </View>
-
-//       <View style={styles.searchSection}>
-//         <View style={styles.searchBar}>
-//           <Ionicons name="search" size={20} color="#666" />
-//           <TextInput
-//             style={styles.searchInput}
-//             placeholder="Search chats"
-//             value={searchQuery}
-//             onChangeText={setSearchQuery}
-//             placeholderTextColor="#666"
-//           />
-//         </View>
-//       </View>
-
-//       {filteredChats.length > 0 ? (
-//         <FlatList
-//           data={filteredChats}
-//           renderItem={renderChatItem}
-//           keyExtractor={item => item.id}
-//           contentContainerStyle={styles.chatList}
-//         />
-//       ) : (
-//         <View style={styles.emptyChats}>
-//           <MaterialIcons name="chat-bubble-outline" size={60} color="#ccc" />
-//           <Text style={styles.emptyChatsText}>No chats found</Text>
-//           <Text style={styles.emptyChatsSubText}>
-//             Start a new conversation by tapping the message icon above
-//           </Text>
-//         </View>
-//       )}
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   screen: {
-//     flex: 1,
-//     backgroundColor: '#fff',
-//   },
-//   header: {
-//     paddingTop: 10,
-//     paddingBottom: 15,
-//     paddingHorizontal: 20,
-//     backgroundColor: '#fff',
-//     borderBottomWidth: 1,
-//     borderBottomColor: '#f0f0f0',
-//     flexDirection: 'row',
-//     justifyContent: 'space-between',
-//     alignItems: 'center',
-//   },
-//   headerTitle: {
-//     fontSize: 24,
-//     fontWeight: '700',
-//     color: '#001d3d',
-//   },
-//   searchSection: {
-//     paddingHorizontal: 16,
-//     paddingVertical: 10,
-//     borderBottomWidth: 1,
-//     borderBottomColor: '#f0f0f0',
-//   },
-//   searchBar: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     backgroundColor: '#f8f9fa',
-//     borderColor: '#e0e0e0',
-//     borderWidth: 1,
-//     borderRadius: 20,
-//     paddingHorizontal: 12,
-//     paddingVertical: 8,
-//   },
-//   searchInput: {
-//     flex: 1,
-//     marginLeft: 8,
-//     fontSize: 16,
-//     color: '#333',
-//   },
-//   chatList: {
-//     paddingVertical: 8,
-//   },
-//   chatItem: {
-//     flexDirection: 'row',
-//     padding: 12,
-//     borderBottomWidth: 1,
-//     borderBottomColor: '#f0f0f0',
-//   },
-//   profileContainer: {
-//     position: 'relative',
-//     marginRight: 12,
-//   },
-//   profilePic: {
-//     width: 50,
-//     height: 50,
-//     borderRadius: 25,
-//   },
-//   defaultProfilePic: {
-//     width: 50,
-//     height: 50,
-//     borderRadius: 25,
-//     backgroundColor: '#128C7E',
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//   },
-//   profileInitial: {
-//     color: '#fff',
-//     fontSize: 22,
-//     fontWeight: 'bold',
-//   },
-//   unreadBadge: {
-//     position: 'absolute',
-//     top: -5,
-//     right: -5,
-//     backgroundColor: '#25D366',
-//     width: 20,
-//     height: 20,
-//     borderRadius: 10,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//   },
-//   unreadCount: {
-//     color: '#fff',
-//     fontSize: 12,
-//     fontWeight: 'bold',
-//   },
-//   chatInfo: {
-//     flex: 1,
-//     justifyContent: 'center',
-//   },
-//   nameTimeRow: {
-//     flexDirection: 'row',
-//     justifyContent: 'space-between',
-//     alignItems: 'center',
-//     marginBottom: 4,
-//   },
-//   studentName: {
-//     fontSize: 16,
-//     fontWeight: '600',
-//     color: '#000',
-//     maxWidth: '70%',
-//   },
-//   timestamp: {
-//     fontSize: 12,
-//     color: '#8696a0',
-//   },
-//   messageRow: {
-//     flexDirection: 'row',
-//     justifyContent: 'space-between',
-//     alignItems: 'center',
-//   },
-//   lastMessage: {
-//     fontSize: 14,
-//     color: '#8696a0',
-//     maxWidth: '90%',
-//   },
-//   unreadMessage: {
-//     color: '#000',
-//     fontWeight: '500',
-//   },
-//   emptyChats: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     padding: 20,
-//   },
-//   emptyChatsText: {
-//     fontSize: 18,
-//     fontWeight: '600',
-//     color: '#666',
-//     marginTop: 20,
-//   },
-//   emptyChatsSubText: {
-//     fontSize: 14,
-//     color: '#8696a0',
-//     textAlign: 'center',
-//     marginTop: 10,
-//     maxWidth: '80%',
-//   },
-// });
-
-// export default ChatsScreen;
-
 import {
   FlatList,
   Image,
@@ -368,20 +9,37 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import {getapi} from '../utils/api';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
+import BatchSelectorSheet from '../components/BatchSelectorSheet';
+import {batch_id, selectBatch} from '../utils/authslice';
 
 const ChatsScreen = ({navigation}) => {
   const [loading, setLoading] = useState(true);
   const [conversations, setConversations] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
+  const selectedBatchString = useSelector(state => state.auth?.selectBatch);
+
+  const refRBSheet = useRef();
+  const dispatch = useDispatch();
+
+  const handleBatchSelect = async batch => {
+    await AsyncStorage.setItem('batch_id', batch.id.toString());
+    await AsyncStorage.setItem('batch', JSON.stringify(batch));
+
+    dispatch(batch_id(batch.id));
+    dispatch(selectBatch(batch));
+
+    // Close the bottom sheet
+    refRBSheet.current.close();
+  };
 
   const fetchConversations = async () => {
     setLoading(true);
@@ -501,24 +159,31 @@ const ChatsScreen = ({navigation}) => {
   return (
     <View style={styles.screen}>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-      <View style={styles.appBar}>
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <Image
-            style={styles.avatarImg}
-            source={{
-              uri: 'https://cdn-icons-png.flaticon.com/512/5310/5310895.png',
-            }}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Messages</Text>
+
+        <TouchableOpacity
+          onPress={() => refRBSheet.current.open()}
+          style={{
+            borderRadius: 12,
+            paddingHorizontal: 10,
+            paddingVertical: 5,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderWidth: 1,
+            borderColor: '#e0e0e0',
+          }}>
+          <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
+            {selectedBatch_id ? selectedBatchString?.name : 'Select Batch'}
+          </Text>
+
+          <MaterialIcons
+            name="keyboard-arrow-down"
+            size={20}
+            color="#001d3d"
+            style={{paddingLeft: 5}}
           />
-        </TouchableOpacity>
-        <Text style={styles.appBarTitle}>Messages</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Notification')}>
-          <View style={styles.notificationIcon}>
-            <Ionicons
-              name="notifications-outline"
-              size={30}
-              color="rgb(0,0,0)"
-            />
-          </View>
         </TouchableOpacity>
       </View>
 
@@ -594,6 +259,7 @@ const ChatsScreen = ({navigation}) => {
           )}
         </View>
       )}
+      <BatchSelectorSheet ref={refRBSheet} onBatchSelect={handleBatchSelect} />
     </View>
   );
 };
@@ -605,32 +271,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgb(255,255,255)',
   },
-  appBar: {
+  header: {
     paddingTop: 10,
+    paddingBottom: 15,
+    paddingHorizontal: 20,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 20,
-    backgroundColor: '#fff',
   },
-  appBarTitle: {
-    fontSize: 22,
-    fontWeight: '900',
-    fontStyle: 'italic',
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '700',
     color: '#001d3d',
-  },
-  avatarImg: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgb(216, 224, 247)',
-  },
-  notificationIcon: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   container: {
     flex: 1,
@@ -641,6 +296,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: '5%',
     marginBottom: 15,
+    marginTop: 20,
   },
   searchBar: {
     flexDirection: 'row',
@@ -668,7 +324,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 8,
+    elevation: 15,
   },
   list: {
     paddingHorizontal: '5%',
@@ -683,7 +339,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 12,
   },
   avatarContainer: {
     marginRight: 15,

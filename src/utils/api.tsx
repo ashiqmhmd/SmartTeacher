@@ -83,7 +83,7 @@
 //       onResponse(responseJson);
 //     }
 
-//     return responseJson; 
+//     return responseJson;
 //   } catch (error) {
 //     console.error('API Fetch Error:', error);
 //     console.log(...header)
@@ -92,7 +92,7 @@
 //       onCatch(error);
 //     }
 
-//     return null; 
+//     return null;
 //   }
 // };
 
@@ -140,8 +140,6 @@
 //     });
 // };
 
-
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Callback<T = any> = (data: T) => void;
@@ -161,10 +159,10 @@ let base_url = 'https://zkbsgdbbhc.execute-api.us-east-1.amazonaws.com/Dev/';
 
 // Function to refresh the token
 export const refreshToken = async (): Promise<RefreshTokenResponse | null> => {
-  console.log("entered the refreshtoken function")
+  console.log('entered the refreshtoken function');
   try {
     const refreshToken = await AsyncStorage.getItem('RefreshToken');
-    
+
     if (!refreshToken) {
       console.error('No refresh token found');
       return null;
@@ -175,7 +173,6 @@ export const refreshToken = async (): Promise<RefreshTokenResponse | null> => {
       'Content-Type': 'application/json',
       'refresh-token': refreshToken,
     };
-   
 
     const response = await fetch(base_url + url, {
       method: 'GET',
@@ -187,7 +184,7 @@ export const refreshToken = async (): Promise<RefreshTokenResponse | null> => {
     }
 
     const text = await response.text();
-    
+
     try {
       // Fix malformed JSON if necessary (based on your existing code)
       const fixedText = text.replace(
@@ -196,19 +193,19 @@ export const refreshToken = async (): Promise<RefreshTokenResponse | null> => {
       );
 
       const responseJson = JSON.parse(fixedText);
-      
+
       if (responseJson.token) {
         // Store the new authorization token
         await AsyncStorage.setItem('Token', responseJson.token);
-        console.log("token setted")
+        console.log('token setted');
         // If a new refresh token is provided, store it as well
         if (responseJson.refreshToken) {
           await AsyncStorage.setItem('RefreshToken', responseJson.refreshToken);
         }
-        
+
         return {
           token: responseJson.token,
-          refreshToken: responseJson.refreshToken || refreshToken
+          refreshToken: responseJson.refreshToken || refreshToken,
         };
       } else {
         throw new Error('Invalid response from refresh token endpoint');
@@ -230,37 +227,37 @@ const handleTokenRefresh = async (
   header: Record<string, string>,
   body: Record<string, any> | null,
   onResponse: Callback | null,
-  onCatch: Callback | null
+  onCatch: Callback | null,
 ): Promise<void> => {
   try {
     const refreshResult = await refreshToken();
-    
+
     if (refreshResult && refreshResult.token) {
       // Update the Authorization header with the new token
       const newHeaders = {
         ...header,
         Authorization: `Bearer ${refreshResult.token}`,
       };
-      
+
       // Retry the original request
       await requestFunction(url, newHeaders, body, onResponse, onCatch);
     } else {
       // If refresh failed, force logout
       await AsyncStorage.multiRemove(['Token', 'RefreshToken', 'TeacherId']);
-      
+
       // Import your navigation or event system to redirect to login
       // Example: navigate('Login');
-      
+
       if (onCatch) {
         onCatch(new Error('Session expired. Please login again.'));
       }
     }
   } catch (error) {
     console.error('Token refresh handling error:', error);
-    
+
     // Force logout
     await AsyncStorage.multiRemove(['Token', 'RefreshToken', 'TeacherId']);
-    
+
     if (onCatch) {
       onCatch(error);
     }
@@ -282,11 +279,11 @@ export const postApi = async (
       'Content-Type': 'application/json',
       ...header,
     };
-    
+
     if (token && !headers.Authorization) {
       headers.Authorization = `Bearer ${token}`;
     }
-    
+
     console.log('Request Body:', body);
 
     fetch(base_url + url, {
@@ -298,10 +295,17 @@ export const postApi = async (
         // Handle token expiration (401 Unauthorized)
         if (response.status === 401) {
           // Don't parse the response, instead refresh token and retry
-          await handleTokenRefresh(postApi, url, header, body, onResponse, onCatch);
+          await handleTokenRefresh(
+            postApi,
+            url,
+            header,
+            body,
+            onResponse,
+            onCatch,
+          );
           return null;
         }
-        
+
         const text = await response.text();
         console.log('Raw Response:', text);
 
@@ -339,7 +343,7 @@ export const getapi = async (
   url: string = '',
   header: Record<string, string> = {},
   onResponse: Callback | null = null,
-  onCatch: Callback | null = null
+  onCatch: Callback | null = null,
 ): Promise<any> => {
   try {
     // Add authorization token if available
@@ -348,7 +352,7 @@ export const getapi = async (
       'Content-Type': 'application/json',
       ...header,
     };
-    
+
     if (token && !headers.Authorization) {
       headers.Authorization = `Bearer ${token}`;
     }
@@ -380,7 +384,7 @@ export const getapi = async (
     return responseJson;
   } catch (error) {
     console.error('API Fetch Error:', error);
-    
+
     if (onCatch) {
       onCatch(error);
     }
@@ -404,11 +408,11 @@ export const putapi = async (
       'Content-Type': 'application/json',
       ...header,
     };
-    
+
     if (token && !headers.Authorization) {
       headers.Authorization = `Bearer ${token}`;
     }
-    
+
     console.log('PUT Request Body:', body);
 
     fetch(base_url + url, {
@@ -419,10 +423,17 @@ export const putapi = async (
       .then(async response => {
         // Handle token expiration (401 Unauthorized)
         if (response.status === 401) {
-          await handleTokenRefresh(putapi, url, header, body, onResponse, onCatch);
+          await handleTokenRefresh(
+            putapi,
+            url,
+            header,
+            body,
+            onResponse,
+            onCatch,
+          );
           return null;
         }
-        
+
         const text = await response.text();
         console.log('Raw Response:', text);
 
@@ -467,6 +478,6 @@ export const clearAuthData = async (): Promise<void> => {
     'RefreshToken',
     'TeacherId',
     'batch_id',
-    'selectedBatch'
+    'selectedBatch',
   ]);
 };
