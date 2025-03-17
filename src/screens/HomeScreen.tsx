@@ -756,7 +756,7 @@ useEffect(() => {
           <TouchableOpacity
             style={styles.addStudentButton}
             accessibilityLabel="Add new student"
-            onPress={() => navigation.navigate('Student_Create')}>
+            onPress={() => navigation.navigate('Student_Create',{update:false})}>
             <Text style={styles.addStudentButtonText}>Add Student</Text>
           </TouchableOpacity>
         </View>

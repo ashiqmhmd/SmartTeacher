@@ -23,24 +23,28 @@ const NoteDetailsScreen = ({route, navigation}) => {
   const note = route.params.note;
   const [downloading, setDownloading] = useState(false);
 
-  const handleOpenResource = async url => {
-    try {
-      const supported = await Linking.canOpenURL(url);
-      if (supported) {
-        setDownloading(true);
-
-        setTimeout(() => {
-          setDownloading(false);
-          Linking.openURL(url);
-        }, 1500);
-      } else {
-        Alert.alert('Error', `Cannot open URL: ${url}`);
-      }
-    } catch (error) {
-      console.error('An error occurred', error);
-      Alert.alert('Error', 'Something went wrong while opening the resource');
-    }
-  };
+ const handleOpenAttachment = async url => {
+     try {
+       Linking.openURL(url);
+       // const supported = await Linking.canOpenURL(url);
+       // console.log(supported);
+       // if (supported) {
+       //   setDownloading(true);
+ 
+       //   setTimeout(() => {
+       //     setDownloading(false);
+       //     Linking.openURL(url);
+       //   }, 1500);
+       // } else {
+       //   Alert.alert('Error', `Cannot open URL: ${url}`);
+       //   console.log('Error', `Cannot open URL: ${url}`);
+       // }
+     } catch (error) {
+       console.error('An error occurred', error);
+       Alert.alert('Error', 'Something went wrong while opening the attachment');
+     }
+   };
+ 
 
   return (
     <View style={styles.screen}>

@@ -195,9 +195,8 @@ const NoteCreateScreen = ({ navigation, route }) => {
 
 
   useEffect(() => {
-    setUpdate(route.params.update)
-    console.log()
-  }, [route.params.update])
+    setUpdate(route?.params?.update)
+  }, [route?.params?.update])
 
 
 

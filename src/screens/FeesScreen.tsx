@@ -161,7 +161,7 @@ const FeesScreen = ({navigation}) => {
 
 
 
-  const monthOptions = ['Current Month', 'January', 'February', 'March'];
+  const monthOptions = ['Current Month', 'January', 'February', 'March','April',"may"];
   const filterOptions = ['All', 'Paid', 'Unpaid'];
 
   const refRBSheet = useRef();

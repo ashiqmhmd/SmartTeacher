@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {patchApi, postApi} from '../utils/api';
+import {patchApi, postApi, putapi} from '../utils/api';
 import {pickAndUploadImage} from '../components/FileUploadService';
 
 const StudentCreation = ({navigation, route}) => {
@@ -283,8 +283,8 @@ const StudentCreation = ({navigation, route}) => {
 
 
   useEffect(() => {
-    setUpdate(route.params.update)
-  }, [route.params.update])
+    setUpdate(route?.params?.update)
+  }, [route?.params?.update])
 
   
   const addToBatch = async student => {
