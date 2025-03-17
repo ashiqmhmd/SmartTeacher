@@ -543,6 +543,12 @@ const HomeScreen = ({navigation}) => {
 
   const students_fetch = async () => {
     setLoading(true);
+
+    // const loadingTimeout = setTimeout(() => {
+    //   setLoading(false);
+    // }, 10000);
+
+
     const Token = await AsyncStorage.getItem('Token');
     const Batch_id = await AsyncStorage.getItem('batch_id');
     const url = `students/batch/${Batch_id ? Batch_id : selectedBatch_id}`;
@@ -552,6 +558,7 @@ const HomeScreen = ({navigation}) => {
       Authorization: `Bearer ${Token}`,
     };
     const onResponse = res => {
+      // clearTimeout(loadingTimeout);
       setStudents(res || []);
       setLoading(false);
     };

@@ -143,7 +143,7 @@ const ProfileScreen = ({navigation, item}) => {
         </TouchableOpacity>
         <Text style={styles.appBarTitle}>Profile</Text>
         <TouchableOpacity
-          onPress={() => navigation.navigate('EditProfile', {teacher})}>
+          onPress={() => navigation.navigate('Update_Profile', {teacher,update:true})}>
           <MaterialIcons name="edit" size={24} color="#0F1F4B" />
         </TouchableOpacity>
       </View>

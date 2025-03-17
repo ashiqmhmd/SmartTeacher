@@ -221,6 +221,7 @@ export const refreshToken = async (): Promise<RefreshTokenResponse | null> => {
 };
 
 // Handle token refresh and retry the original request
+
 const handleTokenRefresh = async (
   requestFunction: Function,
   url: string,
@@ -239,31 +240,34 @@ const handleTokenRefresh = async (
         Authorization: `Bearer ${refreshResult.token}`,
       };
 
-      // Retry the original request
-      await requestFunction(url, newHeaders, body, onResponse, onCatch);
+      // Create wrapper callbacks to ensure loading state is updated
+      const wrappedOnResponse = (data: any) => {
+        onResponse && onResponse(data);
+      };
+
+      const wrappedOnCatch = (error: any) => {
+        onCatch && onCatch(error);
+      };
+
+      // Retry the original request with wrapped callbacks
+      await requestFunction(url, newHeaders, body, wrappedOnResponse, wrappedOnCatch);
     } else {
-      // If refresh failed, force logout
+      // If refresh failed, force logout and ensure loading state is updated
       await AsyncStorage.multiRemove(['Token', 'RefreshToken', 'TeacherId']);
-
-      // Import your navigation or event system to redirect to login
-      // Example: navigate('Login');
-
+      
       if (onCatch) {
         onCatch(new Error('Session expired. Please login again.'));
       }
     }
   } catch (error) {
     console.error('Token refresh handling error:', error);
-
-    // Force logout
     await AsyncStorage.multiRemove(['Token', 'RefreshToken', 'TeacherId']);
-
+    
     if (onCatch) {
       onCatch(error);
     }
   }
 };
-
 // Enhanced POST API with token refresh
 export const postApi = async (
   url: string = '',

@@ -78,7 +78,7 @@ const TrendySignupScreen = ({ navigation }) => {
 
 
   const handle_navigation = (id: any,) => {
-    navigation.navigate('Update_Profile', { userId: id })
+    navigation.navigate('Update_Profile', { userId: id,update:false })
   }
 
   const Teacher_signup = async () => {
