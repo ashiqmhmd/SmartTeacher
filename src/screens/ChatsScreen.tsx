@@ -8,8 +8,9 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  RefreshControl, // Add RefreshControl
 } from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
@@ -24,6 +25,8 @@ const ChatsScreen = ({navigation}) => {
   const [loading, setLoading] = useState(true);
   const [conversations, setConversations] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false); // State for refresh control
+
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
 
@@ -56,11 +59,13 @@ const ChatsScreen = ({navigation}) => {
     const onResponse = res => {
       setConversations(res);
       setLoading(false);
+      setRefreshing(false); // Stop refreshing after data is fetched
     };
 
     const onCatch = err => {
       console.log('Error fetching conversations:', err);
       setLoading(false);
+      setRefreshing(false); // Stop refreshing on error
     };
 
     getapi(url, headers, onResponse, onCatch);
@@ -68,6 +73,12 @@ const ChatsScreen = ({navigation}) => {
 
   useEffect(() => {
     fetchConversations();
+  }, []);
+
+  // Handle pull-to-refresh
+  const onRefresh = useCallback(() => {
+    setRefreshing(true); // Start refreshing
+    fetchConversations(); // Fetch data
   }, []);
 
   const formatDate = dateString => {
@@ -237,6 +248,14 @@ const ChatsScreen = ({navigation}) => {
               renderItem={renderConversationItem}
               keyExtractor={item => item.id}
               contentContainerStyle={styles.list}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing} // Controlled by refreshing state
+                  onRefresh={onRefresh} // Callback when user pulls to refresh
+                  colors={['#001d3d']} // Customize refresh spinner color
+                  tintColor="#001d3d" // Customize spinner color (iOS)
+                />
+              }
             />
           ) : (
             <View style={styles.emptyContainer}>
@@ -263,7 +282,6 @@ const ChatsScreen = ({navigation}) => {
     </View>
   );
 };
-
 export default ChatsScreen;
 
 const styles = StyleSheet.create({

@@ -7,11 +7,11 @@ import {
   TouchableOpacity,
   StatusBar,
   FlatList,
+  RefreshControl, // Add RefreshControl
 } from 'react-native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-
 import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
@@ -25,22 +25,20 @@ const NotesScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false); // State for refresh control
+
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
+
   const refRBSheet = useRef();
   const dispatch = useDispatch();
 
   const handleBatchSelect = async (batch) => {
     await AsyncStorage.setItem('batch_id', batch.id.toString());
     await AsyncStorage.setItem('batch', JSON.stringify(batch));
-    
     dispatch(batch_id(batch.id));
     dispatch(selectBatch(batch));
-    
-    // Fetch students for the selected batch
     await Notes_fetch();
-    
-    // Close the bottom sheet
     refRBSheet.current.close();
   };
 
@@ -60,12 +58,14 @@ const NotesScreen = ({navigation}) => {
       console.log(res);
       setNotes(res);
       setLoading(false);
+      setRefreshing(false); // Stop refreshing after data is fetched
     };
 
     const onCatch = res => {
       console.log('Error');
       console.log(res);
       setLoading(false);
+      setRefreshing(false); // Stop refreshing on error
     };
     getapi(url, headers, onResponse, onCatch);
   };
@@ -80,14 +80,17 @@ const NotesScreen = ({navigation}) => {
     useCallback(() => {
       console.log('Screen is focused');
       Notes_fetch();
-
-      // Optional cleanup function
       return () => {
         console.log('Screen is unfocused');
       };
-    }, []), // Empty dependency array ensures this runs only when screen gains focus
+    }, []),
   );
 
+  // Handle pull-to-refresh
+  const onRefresh = useCallback(() => {
+    setRefreshing(true); // Start refreshing
+    Notes_fetch(); // Fetch data
+  }, []);
 
   const NoteCard = ({item}) => (
     <TouchableOpacity
@@ -162,7 +165,16 @@ const NotesScreen = ({navigation}) => {
           ))}
         </View>
       ) : (
-        <ScrollView style={styles.container}>
+        <ScrollView
+          style={styles.container}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing} // Controlled by refreshing state
+              onRefresh={onRefresh} // Callback when user pulls to refresh
+              colors={['#001d3d']} // Customize refresh spinner color
+              tintColor="#001d3d" // Customize spinner color (iOS)
+            />
+          }>
           <View style={styles.searchSection}>
             <View style={styles.searchBar}>
               <MaterialIcons name="search" size={24} color="#666" />

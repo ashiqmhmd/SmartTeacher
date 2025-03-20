@@ -14,8 +14,9 @@ import {
 import React, {useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
-import {getapi, postapi} from '../utils/api';
+import {deleteapi, getapi, postapi} from '../utils/api';
 import dateconvert from '../components/moment';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const FeePaymentDetailsScreen = ({route, navigation}) => {
   const {feeRecord, name} = route.params;
@@ -67,7 +68,7 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = (id: any) => {
     Alert.alert(
       'Delete Fee Record',
       'Do you really want to delete?',
@@ -80,21 +81,43 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
           text: 'Yes',
           style: 'destructive',
           onPress: async () => {
-            setLoading(true);
-            try {
-              // API call would go here
-              await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating API call
-              navigation.goBack();
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete fee record');
-            } finally {
-              setLoading(false);
-            }
+           await Delete_FeeRecord(id)
           },
         },
       ],
       {cancelable: true},
     );
+  };
+
+  const Delete_FeeRecord = async (id: any) => {
+    setLoading(true);
+
+    // const loadingTimeout = setTimeout(() => {
+    //   setLoading(false);
+    // }, 10000);
+
+
+    const Token = await AsyncStorage.getItem('Token');
+    const url = `fee-records/${id}`;
+    const headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${Token}`,
+    };
+    const onResponse = async (res) => {
+
+      console.log("deleted successfully")
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating API call
+        navigation.goBack();
+      
+      setLoading(false);
+    };
+    
+    const onCatch = res => {
+      console.error('Error deleting fee:', res);
+      setLoading(false);
+    };
+    deleteapi(url, headers, onResponse, onCatch);
   };
 
   const renderAttachment = () => {
@@ -226,7 +249,7 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
 
           <TouchableOpacity
             style={[styles.button, styles.deleteButton]}
-            onPress={handleDelete}
+            onPress={() => handleDelete(feeRecord.id)}
             disabled={loading}>
             {loading ? (
               <ActivityIndicator color="#fff" />

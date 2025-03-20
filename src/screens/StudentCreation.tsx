@@ -16,10 +16,11 @@ import {
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {patchApi, postApi, putapi} from '../utils/api';
-import {pickAndUploadImage} from '../components/FileUploadService';
+import { patchApi, postApi, putapi } from '../utils/api';
+import { pickAndUploadImage } from '../components/FileUploadService';
+import Feather from 'react-native-vector-icons/Feather';
 
-const StudentCreation = ({navigation, route}) => {
+const StudentCreation = ({ navigation, route }) => {
   const isEditMode = route.params?.student ? true : false;
 
   const [student, setStudent] = useState(
@@ -27,7 +28,7 @@ const StudentCreation = ({navigation, route}) => {
       ? route.params.student
       :
       {
-        id:'',
+        id: '',
         firstName: '',
         lastName: '',
         age: '',
@@ -142,7 +143,7 @@ const StudentCreation = ({navigation, route}) => {
     }
   };
 
-  const updatestudent =async () => {
+  const updatestudent = async () => {
 
     if (!validateForm()) return;
 
@@ -286,7 +287,7 @@ const StudentCreation = ({navigation, route}) => {
     setUpdate(route?.params?.update)
   }, [route?.params?.update])
 
-  
+
   const addToBatch = async student => {
     try {
       const Token = await AsyncStorage.getItem('Token');
@@ -314,7 +315,7 @@ const StudentCreation = ({navigation, route}) => {
         Alert.alert(
           'Error',
           'Failed to add student to batch. Please try again.',
-          [{text: 'OK'}],
+          [{ text: 'OK' }],
         );
       };
 
@@ -324,7 +325,7 @@ const StudentCreation = ({navigation, route}) => {
       Alert.alert(
         'Error',
         'Failed to add student to batch. Please try again.',
-        [{text: 'OK'}],
+        [{ text: 'OK' }],
       );
     }
   };
@@ -336,26 +337,44 @@ const StudentCreation = ({navigation, route}) => {
     keyboardType = 'default',
     isSecure = false,
     required = false,
-  ) => (
-    <View style={styles.inputGroup}>
-      <Text style={styles.label}>
-        {label} {required && '*'}
-      </Text>
-      <TextInput
-        style={[styles.input, errors[field] && styles.inputError]}
-        value={field == 'age' ? student[field]?.toString() : student[field]}
-        onChangeText={text => {
-          setStudent(prev => ({ ...prev, [field]: text }));
-          if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }));
-        }}
-        placeholder={placeholder}
-        placeholderTextColor="#9CA3AF"
-        keyboardType={keyboardType}
-        secureTextEntry={isSecure}
-      />
-      {errors[field] && <Text style={styles.errorText}>{errors[field]}</Text>}
-    </View>
-  );
+  ) => {
+    const [showPassword, setShowPassword] = useState(false);
+  
+  return (
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>
+          {label} {required && '*'}
+        </Text>
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={[styles.input, errors[field] && styles.inputError]}
+            value={field === 'age' ? student[field]?.toString() : student[field]}
+            onChangeText={(text) => {
+              setStudent((prev) => ({ ...prev, [field]: text }));
+              if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+            }}
+            placeholder={placeholder}
+            placeholderTextColor="#9CA3AF"
+            keyboardType={keyboardType}
+            secureTextEntry={isSecure && !showPassword} // Toggle secureTextEntry based on showPassword
+          />
+          {isSecure && ( // Show the toggle button only for password fields
+            <TouchableOpacity
+              style={styles.toggleButton}
+              onPress={() => setShowPassword(!showPassword)}>
+            <Feather
+                           name={showPassword ? 'eye' : 'eye-off'}
+                           size={20}
+                           color="#001d3d"
+             />
+           </TouchableOpacity>
+         )}
+       </View>
+       {errors[field] && <Text style={styles.errorText}>{errors[field]}</Text>}
+     </View>
+  )
+
+}
 
   return (
     <View style={styles.screen}>
@@ -376,7 +395,7 @@ const StudentCreation = ({navigation, route}) => {
           {showSuccessMessage && (
             <Animated.View style={[styles.successMessage, { opacity: fadeAnim }]}>
               <MaterialIcons name="check-circle" size={24} color="#059669" />
-              <Text style={styles.successText}>{ update ? "Student Detail updated successfully" :'Student added successfully'}</Text>
+              <Text style={styles.successText}>{update ? "Student Detail updated successfully" : 'Student added successfully'}</Text>
             </Animated.View>
           )}
 
@@ -521,8 +540,8 @@ const StudentCreation = ({navigation, route}) => {
               'Password',
               'Enter password',
               'default',
-              true,
-              true,
+              true, 
+              true
             )}
           </View>
         </ScrollView>
@@ -540,7 +559,7 @@ const StudentCreation = ({navigation, route}) => {
               styles.saveButton,
               (isSaving || isUploading) && styles.saveButtonDisabled,
             ]}
-            onPress={ () => update ? updatestudent() : handleSave}
+            onPress={() => update ? updatestudent() : handleSave}
             disabled={isSaving || isUploading}>
             {isSaving ? (
               <ActivityIndicator color="#FFFFFF" />
@@ -633,6 +652,14 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     fontSize: 14,
     marginTop: 4,
+  },
+  passwordContainer: {
+    position: 'relative',
+  },
+  toggleButton: {
+    position: 'absolute',
+    right: 12,
+    top: 15,
   },
   genderContainer: {
     flexDirection: 'row',

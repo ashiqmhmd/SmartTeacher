@@ -8,16 +8,70 @@ import {
   StatusBar,
   Dimensions,
 } from 'react-native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
+import { getapi } from '../utils/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const {width} = Dimensions.get('window');
 
 const StudentDetailsScreen = ({route, navigation}) => {
+  const [batchNames, setBatchNames] = useState({});
   const student = route.params.student;
+  useEffect(() => {
+    student_details_fetch(student)
+  },[student])
 
+  const student_details_fetch = async (student) => {
+    const Token = await AsyncStorage.getItem('Token');
+    const batchIds = student.batches;
+  
+    const batchDetailsResponse = await Promise.all(
+      batchIds.map(async (batchId) => {
+        const url = `/batches/${batchId}`;
+        const headers = {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${Token}`,
+        };
+  
+        return new Promise((resolve) => {
+          getapi(
+            url,
+            headers,
+            (res) => {
+              if (res && res.id) {
+                console.log(`Response for ${batchId}:`, res);
+                resolve({
+                  batchId: res.id,
+                  batchName: res.name || `Batch ${res.id}`, // Use batch name or fallback to "Batch ID"
+                });
+              } else {
+                console.warn(`Invalid response for batch ID ${batchId}:`, res);
+                resolve(null);
+              }
+            },
+            (error) => {
+              console.error(`Error fetching batch details for ${batchId}:`, error);
+              resolve(null);
+            },
+          );
+        });
+      }),
+    );
+  
+    // Convert the response into a map of batchId -> batchName
+    const batchDetails = batchDetailsResponse
+      .filter(Boolean)
+      .reduce((acc, { batchId, batchName }) => {
+        acc[batchId] = batchName;
+        return acc;
+      }, {});
+  
+    setBatchNames(batchDetails); // Update the state with batch names
+  };
   const renderContactSection = (title, items) => (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -123,22 +177,24 @@ const StudentDetailsScreen = ({route, navigation}) => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Enrolled Batches</Text>
-          <View style={styles.batchList}>
-            {student.batches.map((batchId, index) => (
-              <View key={index} style={styles.batchCard}>
-                <LinearGradient
-                  colors={['#f8f9ff', '#ffffff']}
-                  style={styles.batchContent}>
-                  <View style={styles.batchInfo}>
-                    <Text style={styles.batchName}>Batch {index + 1}</Text>
-                    <Text style={styles.batchId}>{batchId}</Text>
-                  </View>
-                </LinearGradient>
-              </View>
-            ))}
+  <Text style={styles.sectionTitle}>Enrolled Batches</Text>
+  <View style={styles.batchList}>
+    {student.batches.map((batchId, index) => (
+      <View key={index} style={styles.batchCard}>
+        <LinearGradient
+          colors={['#f8f9ff', '#ffffff']}
+          style={styles.batchContent}>
+          <View style={styles.batchInfo}>
+            <Text style={styles.batchName}>
+              {batchNames[batchId] || `Batch ${batchId}`} {/* Fallback to "Batch ID" if name is not available */}
+            </Text>
+            <Text style={styles.batchId}>ID: {batchId}</Text>
           </View>
-        </View>
+        </LinearGradient>
+      </View>
+    ))}
+  </View>
+</View>
       </ScrollView>
     </View>
   );

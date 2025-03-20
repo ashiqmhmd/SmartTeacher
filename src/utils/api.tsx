@@ -881,6 +881,68 @@ export const putapi = async (
   }
 };
 
+export const deleteapi = async (
+  url: string = '',
+  header: Record<string, string> = {},
+  onResponse: Callback | null = null,
+  onCatch: Callback | null = null,
+): Promise<any> => {
+  try {
+    // Add authorization token if available
+    const token = await AsyncStorage.getItem('Token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...header,
+    };
+
+    if (token && !headers.Authorization) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+
+
+    fetch(base_url + url, {
+      method: 'DELETE',
+      headers: headers,
+    })
+      .then(async response => {
+        // Handle token expiration (401 Unauthorized)
+        if (response.status === 401) {
+          await handleTokenRefresh(deleteapi, url, header, null, onResponse, onCatch);
+          return null;
+        }
+
+        const text = await response.text();
+        console.log('Raw Response:', text);
+
+        try {
+          const fixedText = text.replace(
+            /"token":\s*([^"{\[][^,}\]]*)/g,
+            '"token": "$1"',
+          );
+
+          return JSON.parse(fixedText);
+        } catch (error) {
+          console.error('JSON Parse Error:', error);
+          throw new Error(`Invalid JSON response: ${text}`);
+        }
+      })
+      .then(responseJson => {
+        if (responseJson) {
+          console.log('Parsed JSON:', responseJson);
+          onResponse && onResponse(responseJson);
+        }
+      })
+      .catch(e => {
+        console.error('Fetch Error:', e);
+        onCatch && onCatch(e);
+      });
+  } catch (error) {
+    console.error('PUT API Error:', error);
+    onCatch && onCatch(error);
+  }
+};
+
 // Helper function to check if token is present and valid
 export const isAuthenticated = async (): Promise<boolean> => {
   const token = await AsyncStorage.getItem('Token');

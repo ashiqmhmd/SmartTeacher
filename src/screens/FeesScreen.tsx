@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  RefreshControl, // Add RefreshControl
 } from 'react-native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -46,6 +47,7 @@ const FeesScreen = ({navigation}) => {
   const [totalFees, setTotalFees] = useState(0);
   const [receivedFees, setReceivedFees] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false); // State for refresh control
 
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
@@ -79,12 +81,14 @@ const FeesScreen = ({navigation}) => {
 
       setTotalFees(totalAmount);
       setReceivedFees(receivedAmount);
+      setRefreshing(false); // Stop refreshing after data is fetched
     };
 
     const onCatch = res => {
       console.log('Error');
       console.log(res);
       setLoading(false);
+      setRefreshing(false); // Stop refreshing on error
     };
     getapi(url, headers, onResponse, onCatch);
   };
@@ -140,63 +144,66 @@ const FeesScreen = ({navigation}) => {
     setStudentDetails(details);
   };
 
+  // Handle pull-to-refresh
+  const onRefresh = useCallback(() => {
+    setRefreshing(true); // Start refreshing
+    Fees_fetch(); // Fetch data
+  }, []);
 
   useEffect(() => {
     Fees_fetch();
   }, [selectedBatchString]);
 
-
   useFocusEffect(
-      useCallback(() => {
-        console.log('Screen is focused');
-        Fees_fetch();
-  
-        // Optional cleanup function
-        return () => {
-          console.log('Screen is unfocused');
-        };
-      }, []) // Empty dependency array ensures this runs only when screen gains focus
-    );
-  
+    useCallback(() => {
+      console.log('Screen is focused');
+      Fees_fetch();
+      return () => {
+        console.log('Screen is unfocused');
+      };
+    }, []),
+  );
 
-
-
-  const monthOptions = ['Current Month', 'January', 'February', 'March','April',"may"];
+  const monthOptions = [
+    'Current Month',
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
   const filterOptions = ['All', 'Paid', 'Unpaid'];
 
   const refRBSheet = useRef();
 
-  const handleBatchSelect = async (batch) => {
+  const handleBatchSelect = async batch => {
     await AsyncStorage.setItem('batch_id', batch.id.toString());
     await AsyncStorage.setItem('batch', JSON.stringify(batch));
-    
     dispatch(batch_id(batch.id));
     dispatch(selectBatch(batch));
-    
-    // Fetch students for the selected batch
     await Fees_fetch();
-    
-    // Close the bottom sheet
     refRBSheet.current.close();
   };
 
-  // Filter fees based on search query and selected filters
   const filteredFees = useMemo(() => {
     return fees.filter(record => {
-      // Filter by search query
       const studentName = studentDetails[record.studentId] || '';
       const matchesSearch =
         searchQuery === '' ||
         studentName.toLowerCase().includes(searchQuery.toLowerCase());
 
-      // Filter by payment status
       const matchesPaymentFilter =
         paymentFilter === 'All' ||
         (paymentFilter === 'Paid' && record.status === 'paid') ||
         (paymentFilter === 'Unpaid' && record.status !== 'paid');
 
-      // Filter by month (this would need to be implemented based on your date format)
-      // This is a simplified example assuming the month filter works
       const matchesMonth = selectedMonth === 'Current Month' || true;
 
       return matchesSearch && matchesPaymentFilter && matchesMonth;
@@ -306,15 +313,11 @@ const FeesScreen = ({navigation}) => {
 
       {loading ? (
         <View style={styles.container}>
-          {/* Batch Card Shimmer */}
+          {/* Shimmer Placeholders */}
           <ShimmerPlaceholder style={styles.feesummeryCard} />
-
-          {/* Search Bar Shimmer */}
           <View style={styles.filterSection}>
             <ShimmerPlaceholder style={styles.searchInput} />
           </View>
-
-          {/* Student List Shimmer */}
           {[1, 2, 3, 4, 5].map((_, index) => (
             <View key={index} style={styles.feeCard}>
               <View style={styles.feeCardHeader}>
@@ -329,7 +332,16 @@ const FeesScreen = ({navigation}) => {
           ))}
         </View>
       ) : (
-        <ScrollView style={styles.container}>
+        <ScrollView
+          style={styles.container}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing} // Controlled by refreshing state
+              onRefresh={onRefresh} // Callback when user pulls to refresh
+              colors={['#001d3d']} // Customize refresh spinner color
+              tintColor="#001d3d" // Customize spinner color (iOS)
+            />
+          }>
           <View style={styles.feesummeryCard}>
             <LinearGradient
               colors={['rgb(255,255,255)', 'rgb(229,235,252)']}
