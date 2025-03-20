@@ -160,9 +160,9 @@ const ProfileScreen = ({navigation, item}) => {
               style={styles.profileImage}
               // onError={() => setImageError(true)}
             />
-            <TouchableOpacity style={styles.editImageButton}>
+            {/* <TouchableOpacity style={styles.editImageButton}>
               <MaterialIcons name="camera-alt" size={20} color="#fff" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
           <Text style={styles.profileName}>
             {teacher.firstName} {teacher.lastName}
