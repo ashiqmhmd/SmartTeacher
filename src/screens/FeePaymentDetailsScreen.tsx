@@ -9,6 +9,7 @@ import {
   Alert,
   Image,
   Linking,
+  Share,
 } from 'react-native';
 import React, {useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -53,6 +54,47 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
 
   const openPdfFile = url => {
     Linking.openURL(url);
+  };
+
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: `Fee Payment Details for ${feeRecord.studentName}`,
+        title: 'Fee Payment Details',
+      });
+    } catch (error) {
+      Alert.alert('Error', 'Failed to share');
+    }
+  };
+
+  const handleDelete = () => {
+    Alert.alert(
+      'Delete Fee Record',
+      'Do you really want to delete?',
+      [
+        {
+          text: 'No',
+          style: 'cancel',
+        },
+        {
+          text: 'Yes',
+          style: 'destructive',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              // API call would go here
+              await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating API call
+              navigation.goBack();
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete fee record');
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+      {cancelable: true},
+    );
   };
 
   const renderAttachment = () => {
@@ -106,7 +148,9 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Fee Payment Details</Text>
 
-          <View style={styles.emptyView} />
+          <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
+            <MaterialIcons name="share" size={24} color="#fff" />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -180,6 +224,20 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
             </TouchableOpacity>
           )}
 
+          <TouchableOpacity
+            style={[styles.button, styles.deleteButton]}
+            onPress={handleDelete}
+            disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <MaterialIcons name="delete" size={24} color="#fff" />
+                <Text style={styles.buttonText}>Delete Record</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
           {feeRecord.status === 'paid' && feeRecord.teacherAcknowledgement && (
             <View style={styles.acknowledgedContainer}>
               <MaterialIcons name="verified" size={24} color="#43A047" />
@@ -226,11 +284,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emptyView: {
+  shareButton: {
     padding: 8,
     borderRadius: 12,
-    width: 40,
-    height: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   container: {
     flex: 1,
@@ -350,6 +407,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  deleteButton: {
+    backgroundColor: '#E53935',
   },
   acknowledgedContainer: {
     flexDirection: 'row',
