@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   StatusBar,
   FlatList,
-  RefreshControl, // Add RefreshControl
+  RefreshControl,
 } from 'react-native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -52,7 +52,7 @@ const AssignmentsScreen = ({ navigation }) => {
       Authorization: `Bearer ${Token}`,
     };
     const onResponse = res => {
-      setAssignment(res);
+      setAssignment(res || []);
       setLoading(false);
       setRefreshing(false); // Stop refreshing after data is fetched
     };
@@ -217,13 +217,22 @@ const AssignmentsScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          <FlatList
-            data={assignment}
-            renderItem={({ item }) => <AssignmentCard item={item} />}
-            keyExtractor={item => item.id.toString()}
-            scrollEnabled={false}
-            style={styles.assignmentsList}
-          />
+          {assignment.length === 0 ? (
+            <View style={styles.noAssignmentsContainer}>
+              <MaterialIcons name="assignment" size={48} color="#ccc" />
+              <Text style={styles.noAssignmentsText}>
+                No assignments in this batch
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={assignment}
+              renderItem={({ item }) => <AssignmentCard item={item} />}
+              keyExtractor={item => item.id.toString()}
+              scrollEnabled={false}
+              style={styles.assignmentsList}
+            />
+          )}
         </ScrollView>
       )}
       <BatchSelectorSheet
@@ -257,35 +266,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-  },
-  batchSelector: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-  },
-  batchButton: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 16,
-    paddingHorizontal: '5%',
-    paddingVertical: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  batchName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#001d3d',
-  },
-  batchSubject: {
-    fontSize: 14,
-    color: '#666',
-    marginLeft: 10,
-    flex: 1,
-  },
-  batchIcon: {
-    marginLeft: 10,
   },
   searchSection: {
     flexDirection: 'row',
@@ -377,6 +357,17 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     color: '#666',
     fontSize: 10,
+  },
+  noAssignmentsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 30,
+  },
+  noAssignmentsText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 10,
   },
 });
 

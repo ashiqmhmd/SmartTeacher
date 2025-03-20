@@ -500,17 +500,12 @@
 //   parentDetail: {width: 80, height: 12, backgroundColor: '#E5EBFC'},
 // });
 
-
-
-
-
-
 import {
   Alert,
   FlatList,
   Image,
   Platform,
-  RefreshControl, // Add RefreshControl
+  RefreshControl,
   StatusBar,
   StyleSheet,
   Text,
@@ -539,7 +534,7 @@ const HomeScreen = ({navigation}) => {
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState([]);
-  const [refreshing, setRefreshing] = useState(false); // State for refresh control
+  const [refreshing, setRefreshing] = useState(false);
   const dispatch = useDispatch();
 
   const students_fetch = async () => {
@@ -555,22 +550,21 @@ const HomeScreen = ({navigation}) => {
     const onResponse = res => {
       setStudents(res || []);
       setLoading(false);
-      setRefreshing(false); // Stop refreshing after data is fetched
+      setRefreshing(false);
     };
     
     const onCatch = res => {
       console.error('Error fetching students:', res);
       setLoading(false);
       setStudents([]);
-      setRefreshing(false); // Stop refreshing on error
+      setRefreshing(false);
     };
     getapi(url, headers, onResponse, onCatch);
   };
 
-  // Handle pull-to-refresh
   const onRefresh = useCallback(() => {
-    setRefreshing(true); // Start refreshing
-    students_fetch(); // Fetch data
+    setRefreshing(true);
+    students_fetch();
   }, []);
 
   const handleBatchSelect = async (batch) => {
@@ -584,7 +578,7 @@ const HomeScreen = ({navigation}) => {
 
   useEffect(() => {
     students_fetch();
-    fetch_batchs(); // Call the function directly if it's not a Redux action
+    fetch_batchs();
   }, []);
 
   useFocusEffect(
@@ -649,7 +643,6 @@ const HomeScreen = ({navigation}) => {
       </View>
       {loading ? (
         <View style={styles.container}>
-          {/* Shimmer Placeholders */}
           <ShimmerPlaceholder style={styles.batchCard} />
           <View style={styles.searchContainer}>
             <ShimmerPlaceholder style={styles.searchInput} />
@@ -721,21 +714,26 @@ const HomeScreen = ({navigation}) => {
             </TouchableOpacity>
           </View>
 
-          {/* FlatList with RefreshControl */}
-          <FlatList
-            data={students}
-            renderItem={renderStudentCard}
-            keyExtractor={(item) => item.firstName}
-            contentContainerStyle={styles.list}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing} // Controlled by refreshing state
-                onRefresh={onRefresh} // Callback when user pulls to refresh
-                colors={['#001d3d']} // Customize refresh spinner color
-                tintColor="#001d3d" // Customize spinner color (iOS)
-              />
-            }
-          />
+          {students.length === 0 ? (
+            <View style={styles.noStudentsContainer}>
+              <Text style={styles.noStudentsText}>No students in this batch</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={students}
+              renderItem={renderStudentCard}
+              keyExtractor={(item) => item.firstName}
+              contentContainerStyle={styles.list}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={['#001d3d']}
+                  tintColor="#001d3d"
+                />
+              }
+            />
+          )}
         </View>
       )}
       <BatchSelectorSheet
@@ -753,13 +751,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(255,255,255)',
   },
   appBar: {
-    // paddingTop: Platform.OS === 'ios' ? 40 : StatusBar.currentHeight + 10,
     paddingTop: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    // paddingVertical: 10,
     marginBottom: 20,
     backgroundColor: '#fff',
   },
@@ -821,7 +817,6 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
   },
   card: {
-    // width: 150,
     height: '100%',
     borderRadius: 12,
     padding: 15,
@@ -899,8 +894,6 @@ const styles = StyleSheet.create({
     color: 'rgb(51,51,51)',
   },
   addStudentButton: {
-    // backgroundColor: 'rgb(53, 104, 244)',
-    // backgroundColor: 'rgb(34, 78, 200)',
     backgroundColor: '#001d3d',
     padding: 10,
     borderRadius: 20,
@@ -957,7 +950,6 @@ const styles = StyleSheet.create({
   noPic: {
     width: 30,
     height: 30,
-
     opacity: 0.5,
   },
   studentName: {
@@ -995,5 +987,13 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   parentDetail: {width: 80, height: 12, backgroundColor: '#E5EBFC'},
+  noStudentsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noStudentsText: {
+    fontSize: 18,
+    color: '#888',
+  },
 });
-

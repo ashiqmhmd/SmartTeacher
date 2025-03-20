@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   StatusBar,
   FlatList,
-  RefreshControl, // Add RefreshControl
+  RefreshControl,
 } from 'react-native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -56,7 +56,7 @@ const NotesScreen = ({navigation}) => {
     const onResponse = res => {
       console.log('hiii');
       console.log(res);
-      setNotes(res);
+      setNotes(res || []);
       setLoading(false);
       setRefreshing(false); // Stop refreshing after data is fetched
     };
@@ -192,13 +192,22 @@ const NotesScreen = ({navigation}) => {
             </TouchableOpacity>
           </View>
 
-          <FlatList
-            data={notes}
-            renderItem={({item}) => <NoteCard item={item} />}
-            keyExtractor={item => item.id.toString()}
-            scrollEnabled={false}
-            style={styles.notesList}
-          />
+          {notes.length === 0 ? (
+            <View style={styles.noNotesContainer}>
+              <MaterialIcons name="description" size={48} color="#ccc" />
+              <Text style={styles.noNotesText}>
+                No notes in this batch
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={notes}
+              renderItem={({item}) => <NoteCard item={item} />}
+              keyExtractor={item => item.id.toString()}
+              scrollEnabled={false}
+              style={styles.notesList}
+            />
+          )}
         </ScrollView>
       )}
       <BatchSelectorSheet
@@ -232,35 +241,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-  },
-  batchSelector: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-  },
-  batchButton: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 16,
-    paddingHorizontal: '5%',
-    paddingVertical: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  batchName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#001d3d',
-  },
-  batchSubject: {
-    fontSize: 14,
-    color: '#666',
-    marginLeft: 10,
-    flex: 1,
-  },
-  batchIcon: {
-    marginLeft: 10,
   },
   searchSection: {
     flexDirection: 'row',
@@ -350,6 +330,17 @@ const styles = StyleSheet.create({
     color: '#666',
     flexShrink: 0,
     marginTop: 2,
+  },
+  noNotesContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 30,
+  },
+  noNotesText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 10,
   },
 });
 
