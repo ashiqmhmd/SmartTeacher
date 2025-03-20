@@ -55,6 +55,36 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
     Linking.openURL(url);
   };
 
+  const handleDelete = () => {
+    Alert.alert(
+      'Delete Fee Record',
+      'Do you really want to delete?',
+      [
+        {
+          text: 'No',
+          style: 'cancel',
+        },
+        {
+          text: 'Yes',
+          style: 'destructive',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              // API call would go here
+              await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating API call
+              navigation.goBack();
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete fee record');
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+      {cancelable: true},
+    );
+  };
+
   const renderAttachment = () => {
     if (!feeRecord.attachmentUrl) {
       return (
@@ -179,6 +209,20 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
               )}
             </TouchableOpacity>
           )}
+
+          <TouchableOpacity
+            style={[styles.button, styles.deleteButton]}
+            onPress={handleDelete}
+            disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <MaterialIcons name="delete" size={24} color="#fff" />
+                <Text style={styles.buttonText}>Delete Record</Text>
+              </>
+            )}
+          </TouchableOpacity>
 
           {feeRecord.status === 'paid' && feeRecord.teacherAcknowledgement && (
             <View style={styles.acknowledgedContainer}>
@@ -350,6 +394,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  deleteButton: {
+    backgroundColor: '#E53935',
   },
   acknowledgedContainer: {
     flexDirection: 'row',
