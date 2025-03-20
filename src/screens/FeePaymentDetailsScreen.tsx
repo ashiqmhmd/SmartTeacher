@@ -9,6 +9,7 @@ import {
   Alert,
   Image,
   Linking,
+  Share,
 } from 'react-native';
 import React, {useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -53,6 +54,17 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
 
   const openPdfFile = url => {
     Linking.openURL(url);
+  };
+
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: `Fee Payment Details for ${feeRecord.studentName}`,
+        title: 'Fee Payment Details',
+      });
+    } catch (error) {
+      Alert.alert('Error', 'Failed to share');
+    }
   };
 
   const handleDelete = () => {
@@ -136,7 +148,9 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Fee Payment Details</Text>
 
-          <View style={styles.emptyView} />
+          <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
+            <MaterialIcons name="share" size={24} color="#fff" />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -270,11 +284,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emptyView: {
+  shareButton: {
     padding: 8,
     borderRadius: 12,
-    width: 40,
-    height: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   container: {
     flex: 1,
