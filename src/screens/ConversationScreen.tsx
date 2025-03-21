@@ -307,9 +307,9 @@ const ConversationScreen = ({route, navigation}) => {
       const newMessageObj = {
         sender: teacherId,
         senderName:
-          initialConversation.sender === teacherId
-            ? initialConversation.senderName
-            : initialConversation.receiverName,
+          initialConversation?.sender === teacherId
+            ? initialConversation?.senderName
+            : initialConversation?.receiverName,
         senderType: 'TEACHER',
         content: messageContent,
         timestamp: new Date().toISOString(),
@@ -340,9 +340,9 @@ const ConversationScreen = ({route, navigation}) => {
         content: messageContent,
         sender: teacherId,
         senderName:
-          initialConversation.sender === teacherId
-            ? initialConversation.senderName
-            : initialConversation.receiverName,
+          initialConversation?.sender === teacherId
+            ? initialConversation?.senderName
+            : initialConversation?.receiverName,
         senderType: 'TEACHER',
         timestamp: new Date().toISOString(),
         attachmentUrls: attachmentUrls,
@@ -465,9 +465,9 @@ const ConversationScreen = ({route, navigation}) => {
         </TouchableOpacity>
         <View style={styles.appBarTitle}>
           <Text style={styles.conversationSubject}>
-            {initialConversation.sender === teacherId
-              ? initialConversation.receiverName
-              : initialConversation.senderName}
+            {initialConversation?.sender === teacherId
+              ? initialConversation?.receiverName
+              : initialConversation?.senderName}
           </Text>
         </View>
         <TouchableOpacity onPress={() => console.log('More options')}>
