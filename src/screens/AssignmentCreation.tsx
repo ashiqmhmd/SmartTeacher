@@ -104,8 +104,8 @@ const CreateAssignment = ({ navigation, route }) => {
   };
 
   useEffect(() => {
-    setUpdate(route.params.update)
-  }, [route.params.update])
+    setUpdate(route?.params?.update)
+  }, [route?.params?.update])
 
   const getDateObject = (date) => {
     if (!date) return new Date(); // Fallback to current date if null or undefined

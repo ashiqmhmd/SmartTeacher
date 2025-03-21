@@ -20,6 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
 import {batch_id, selectBatch} from '../utils/authslice';
+import { useFocusEffect } from '@react-navigation/core';
 
 const ChatsScreen = ({navigation}) => {
   const [loading, setLoading] = useState(true);
@@ -78,6 +79,16 @@ const ChatsScreen = ({navigation}) => {
   useEffect(() => {
     fetchConversations();
   }, []);
+
+    useFocusEffect(
+      useCallback(() => {
+        console.log('Screen is focused');
+        fetchConversations();
+        return () => {
+          console.log('Screen is unfocused');
+        };
+      }, []),
+    );
 
   // Handle pull-to-refresh
   const onRefresh = useCallback(() => {
@@ -138,7 +149,7 @@ const ChatsScreen = ({navigation}) => {
     return (
       <TouchableOpacity
         style={styles.conversationCard}
-        onPress={() => navigation.navigate('Chat', {conversation: item})}>
+        onPress={() => navigation.navigate('Chat', {conversation: item,conversationId:item.id})}>
         <View style={styles.avatarContainer}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
