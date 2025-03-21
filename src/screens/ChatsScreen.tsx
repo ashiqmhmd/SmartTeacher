@@ -24,6 +24,7 @@ const ChatsScreen = ({navigation}) => {
   const [loading, setLoading] = useState(true);
   const [conversations, setConversations] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [userId, setUserId] = useState('');
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
 
@@ -45,15 +46,18 @@ const ChatsScreen = ({navigation}) => {
     setLoading(true);
     const Token = await AsyncStorage.getItem('Token');
     const Batch_id = await AsyncStorage.getItem('batch_id');
-    const Teacher_id = await AsyncStorage.getItem('TeacherId');
-    // const url = `messages/batch/${Batch_id ? Batch_id : selectedBatch_id}`;
-    const url = `messages/batch/a8f0c784-687f-4fa3-bd72-2fbdbe89c7d0`;
+    const Teacher_id = (await AsyncStorage.getItem('TeacherId')) ?? '';
+    setUserId(Teacher_id);
+    const url = `messages/batch/${Batch_id ? Batch_id : selectedBatch_id}`;
+    // const url = `messages/batch/a8f0c784-687f-4fa3-bd72-2fbdbe89c7d0`;
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
       Authorization: `Bearer ${Token}`,
     };
     const onResponse = res => {
+      console.log('teacher: ', Teacher_id);
+      console.log('batch: ', Batch_id);
       setConversations(res);
       setLoading(false);
     };
@@ -127,14 +131,16 @@ const ChatsScreen = ({navigation}) => {
         <View style={styles.avatarContainer}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
-              {item.subject.charAt(0).toUpperCase()}
+              {item.sender === userId
+                ? item.receiverName.charAt(0).toUpperCase()
+                : item.senderName.charAt(0).toUpperCase()}
             </Text>
           </View>
         </View>
         <View style={styles.conversationDetails}>
           <View style={styles.conversationHeader}>
             <Text style={styles.conversationSubject} numberOfLines={1}>
-              {item.subject}
+              {item.sender === userId ? item.receiverName : item.senderName}
             </Text>
             <Text style={styles.conversationTime}>{lastMessageTime}</Text>
           </View>
