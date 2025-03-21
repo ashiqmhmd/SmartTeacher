@@ -516,6 +516,7 @@ import {
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import BottomNavigation from '../components/BottomNavBar';
@@ -716,6 +717,7 @@ const HomeScreen = ({navigation}) => {
 
           {students.length === 0 ? (
             <View style={styles.noStudentsContainer}>
+                <FontAwesome name="user" size={48} color="#ccc" />
               <Text style={styles.noStudentsText}>No students in this batch</Text>
             </View>
           ) : (
