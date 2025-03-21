@@ -22,11 +22,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {pick} from '@react-native-documents/picker';
 
 const ConversationScreen = ({route, navigation}) => {
-  const {
-    conversation: initialConversation,
-    deeplink,
-    conversationId,
-  } = route.params;
+  const {deeplink, conversationId} = route.params;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -35,6 +31,7 @@ const ConversationScreen = ({route, navigation}) => {
   const [sendingMessage, setSendingMessage] = useState(false);
   const [selectedAttachments, setSelectedAttachments] = useState([]);
   const [formData, setFormData] = useState(null);
+  const [conversationData, setConversationData] = useState(null);
   const flatListRef = useRef(null);
 
   const loadUserData = async () => {
@@ -49,28 +46,24 @@ const ConversationScreen = ({route, navigation}) => {
 
   useEffect(() => {
     loadUserData();
-    if (deeplink && conversationId) {
-      console.log('Loading conversation from deeplink:', conversationId);
+    if (conversationId) {
+      console.log('Loading conversation with ID:', conversationId);
       getMessageById(conversationId);
-    } else if (initialConversation) {
-      // Combine original message with replies in chronological order
-      const initialMessage = {
-        sender: initialConversation?.sender,
-        content: initialConversation?.content,
-        timestamp: initialConversation?.timestamp,
-        attachmentUrls: initialConversation?.attachmentUrls || [],
-        isOriginal: true,
-      };
-
-      const allMessages = [
-        initialMessage,
-        ...(initialConversation?.replies || []),
-      ];
-      setMessages(allMessages);
     } else {
       setError('No conversation data provided');
     }
-  }, [initialConversation, deeplink, conversationId]);
+
+    if (flatListRef.current && messages.length > 0) {
+      if (Platform.OS === 'android') {
+        flatListRef.current.scrollToOffset({
+          offset: 99999,
+          animated: false,
+        });
+      } else {
+        flatListRef.current.scrollToEnd({animated: false});
+      }
+    }
+  }, [conversationId]);
 
   const getMessageById = async id => {
     setLoading(true);
@@ -87,6 +80,9 @@ const ConversationScreen = ({route, navigation}) => {
 
       const onResponse = res => {
         if (res) {
+          // Store the full conversation data for later use
+          setConversationData(res);
+
           const originalMessage = {
             id: res.id,
             sender: res.sender,
@@ -307,9 +303,9 @@ const ConversationScreen = ({route, navigation}) => {
       const newMessageObj = {
         sender: teacherId,
         senderName:
-          initialConversation?.sender === teacherId
-            ? initialConversation?.senderName
-            : initialConversation?.receiverName,
+          conversationData?.sender === teacherId
+            ? conversationData?.senderName
+            : conversationData?.receiverName,
         senderType: 'TEACHER',
         content: messageContent,
         timestamp: new Date().toISOString(),
@@ -340,9 +336,9 @@ const ConversationScreen = ({route, navigation}) => {
         content: messageContent,
         sender: teacherId,
         senderName:
-          initialConversation?.sender === teacherId
-            ? initialConversation?.senderName
-            : initialConversation?.receiverName,
+          conversationData?.sender === teacherId
+            ? conversationData?.senderName
+            : conversationData?.receiverName,
         senderType: 'TEACHER',
         timestamp: new Date().toISOString(),
         attachmentUrls: attachmentUrls,
@@ -465,9 +461,9 @@ const ConversationScreen = ({route, navigation}) => {
         </TouchableOpacity>
         <View style={styles.appBarTitle}>
           <Text style={styles.conversationSubject}>
-            {initialConversation?.sender === teacherId
-              ? initialConversation?.receiverName
-              : initialConversation?.senderName}
+            {conversationData?.sender === teacherId
+              ? conversationData?.receiverName
+              : conversationData?.senderName}
           </Text>
         </View>
         <TouchableOpacity onPress={() => console.log('More options')}>
@@ -487,7 +483,7 @@ const ConversationScreen = ({route, navigation}) => {
           <TouchableOpacity
             style={styles.retryButton}
             onPress={() =>
-              deeplink && conversationId ? getMessageById(conversationId) : null
+              conversationId ? getMessageById(conversationId) : null
             }>
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
@@ -499,7 +495,12 @@ const ConversationScreen = ({route, navigation}) => {
           renderItem={renderItem}
           keyExtractor={item => item.id}
           contentContainerStyle={styles.messagesList}
-          onLayout={() => flatListRef.current?.scrollToEnd({animated: false})}
+          onLayout={() =>
+            flatListRef.current.scrollToOffset({
+              offset: Number.MAX_VALUE,
+              animated: false,
+            })
+          }
         />
       )}
 
