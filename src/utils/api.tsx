@@ -1,6 +1,3 @@
-
-
-
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 // import store from './store';
 // import { logout } from './authslice';
@@ -24,18 +21,18 @@
 //   try {
 //     // First, clear AsyncStorage items
 //     await AsyncStorage.multiRemove([
-//       'Token', 
-//       'RefreshToken', 
+//       'Token',
+//       'RefreshToken',
 //       'TeacherId',
 //       'batch_id',
 //       'selectedBatch'
 //     ]);
-    
+
 //     // Then dispatch the logout action to Redux
 //     store.dispatch(logout());
-    
+
 //     console.log('User logged out due to expired refresh token');
-    
+
 //     // Navigate to login screen using the passed navigation object
 //     if (navigation) {
 //       // Reset navigation stack and go to Login
@@ -90,7 +87,7 @@
 //         // Store the new authorization token
 //         await AsyncStorage.setItem('Token', responseJson.token);
 //         console.log('Token stored successfully');
-        
+
 //         // If a new refresh token is provided, store it as well
 //         if (responseJson.refreshToken) {
 //           await AsyncStorage.setItem('RefreshToken', responseJson.refreshToken);
@@ -139,7 +136,7 @@
 //       // If refresh failed, force logout
 //       await AsyncStorage.multiRemove(['Token', 'RefreshToken', 'TeacherId']);
 //       await handleLogout(navigation);
-      
+
 //       if (onCatch) {
 //         onCatch(new Error('Session expired. Please login again.'));
 //       }
@@ -148,7 +145,7 @@
 //     console.error('Token refresh handling error:', error);
 //     await AsyncStorage.multiRemove(['Token', 'RefreshToken', 'TeacherId']);
 //     await handleLogout(navigation);
-    
+
 //     if (onCatch) {
 //       onCatch(error);
 //     }
@@ -183,7 +180,7 @@
 //       headers: headers,
 //       body: JSON.stringify(body),
 //     });
-    
+
 //     // Handle token expiration (401 Unauthorized)
 //     if (response.status === 401) {
 //       await handleTokenRefresh(
@@ -210,11 +207,11 @@
 
 //       const responseJson = JSON.parse(fixedText);
 //       console.log('Parsed JSON:', responseJson);
-      
+
 //       if (onResponse) {
 //         onResponse(responseJson);
 //       }
-      
+
 //       return responseJson;
 //     } catch (error) {
 //       console.error('JSON Parse Error:', error);
@@ -259,12 +256,12 @@
 //     // Handle token expiration (401 Unauthorized)
 //     if (response.status === 401) {
 //       await handleTokenRefresh(
-//         getapi, 
-//         url, 
-//         header, 
-//         null, 
-//         onResponse, 
-//         onCatch, 
+//         getapi,
+//         url,
+//         header,
+//         null,
+//         onResponse,
+//         onCatch,
 //         navigation
 //       );
 //       return null;
@@ -275,14 +272,14 @@
 //     }
 
 //     const text = await response.text();
-    
+
 //     try {
 //       // Fix malformed JSON if necessary
 //       const fixedText = text.replace(
 //         /"token":\s*([^"{\[][^,}\]]*)/g,
 //         '"token": "$1"',
 //       );
-      
+
 //       const responseJson = JSON.parse(fixedText);
 //       console.log('Response:', responseJson);
 
@@ -333,7 +330,7 @@
 //       headers: headers,
 //       body: body ? JSON.stringify(body) : null,
 //     });
-    
+
 //     // Handle token expiration (401 Unauthorized)
 //     if (response.status === 401) {
 //       await handleTokenRefresh(
@@ -360,11 +357,11 @@
 
 //       const responseJson = JSON.parse(fixedText);
 //       console.log('Parsed JSON:', responseJson);
-      
+
 //       if (onResponse) {
 //         onResponse(responseJson);
 //       }
-      
+
 //       return responseJson;
 //     } catch (error) {
 //       console.error('JSON Parse Error:', error);
@@ -407,7 +404,7 @@
 //       headers: headers,
 //       body: JSON.stringify(body),
 //     });
-    
+
 //     // Handle token expiration (401 Unauthorized)
 //     if (response.status === 401) {
 //       await handleTokenRefresh(
@@ -433,11 +430,11 @@
 
 //       const responseJson = JSON.parse(fixedText);
 //       console.log('Parsed JSON:', responseJson);
-      
+
 //       if (onResponse) {
 //         onResponse(responseJson);
 //       }
-      
+
 //       return responseJson;
 //     } catch (error) {
 //       console.error('JSON Parse Error:', error);
@@ -471,8 +468,8 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import store from './store';
-import { logout } from './authslice';
-import { useNavigation } from '@react-navigation/native';
+import {logout} from './authslice';
+import {useNavigation} from '@react-navigation/native';
 
 type Callback<T = any> = (data: T) => void;
 
@@ -489,24 +486,23 @@ interface RefreshTokenResponse {
 
 let base_url = 'https://zkbsgdbbhc.execute-api.us-east-1.amazonaws.com/Dev/';
 
-
 // export const handleLogout = async (navigation): Promise<void> => {
 
 //   try {
 //     // First, clear AsyncStorage items
 //     await AsyncStorage.multiRemove([
-//       'Token', 
-//       'RefreshToken', 
+//       'Token',
+//       'RefreshToken',
 //       'TeacherId',
 //       'batch_id',
 //       'selectedBatch'
 //     ]);
-    
+
 //     // Then dispatch the logout action to Redux
 //     store.dispatch(logout());
-    
+
 //     console.log('User logged out due to expired refresh token');
-    
+
 //     // Navigate to login screen using the passed navigation object
 //     if (navigation) {
 //       // Reset navigation stack and go to Login
@@ -613,12 +609,18 @@ const handleTokenRefresh = async (
       };
 
       // Retry the original request with wrapped callbacks
-      await requestFunction(url, newHeaders, body, wrappedOnResponse, wrappedOnCatch);
+      await requestFunction(
+        url,
+        newHeaders,
+        body,
+        wrappedOnResponse,
+        wrappedOnCatch,
+      );
     } else {
       // If refresh failed, force logout and ensure loading state is updated
       await AsyncStorage.multiRemove(['Token', 'RefreshToken', 'TeacherId']);
       // handleLogout(navigation)
-      
+
       if (onCatch) {
         onCatch(new Error('Session expired. Please login again.'));
         // handleLogout(navigation)
@@ -776,38 +778,60 @@ export const patchApi = async (
 
   console.log('Request Body:', body);
 
-  fetch(base_url + url, {
-    method: 'PATCH',
-    headers: headers,
-    body: body ? JSON.stringify(body) : null, // Ensure empty body is handled
-  })
-    .then(async response => {
-      const text = await response.text();
-      console.log('Raw Response:', text);
-
-      try {
-        // Fix malformed JSON if necessary
-        const fixedText = text.replace(
-          /"token":\s*([^"{\[][^,}\]]*)/g,
-          '"token": "$1"',
-        );
-
-        const responseJson = JSON.parse(fixedText);
-        console.log('Parsed JSON:', responseJson);
-
-        // Call the onResponse callback if provided
-        onResponse && onResponse(responseJson);
-      } catch (error) {
-        console.error('JSON Parse Error:', error);
-        throw new Error(`Invalid JSON response: ${text}`);
-      }
-    })
-    .catch(e => {
-      console.error('Fetch Error:', e);
-      // Call the onCatch callback if provided
-      onCatch && onCatch(e);
+  try {
+    const response = await fetch(base_url + url, {
+      method: 'PATCH',
+      headers: headers,
+      body: body ? JSON.stringify(body) : null, // Ensure empty body is handled
     });
+
+    const text = await response.text();
+    console.log('Raw Response:', text);
+
+    // Check for HTTP error status codes
+    if (!response.ok) {
+      const errorMessage = `HTTP Error: ${response.status} ${response.statusText}`;
+      console.error(errorMessage, text);
+
+      // Create error object with status and response text
+      const error = new Error(errorMessage);
+      (error as any).status = response.status;
+      (error as any).responseText = text;
+
+      // Call the onCatch callback if provided
+      onCatch && onCatch(error);
+      return Promise.reject(error);
+    }
+
+    try {
+      // Fix malformed JSON if necessary
+      const fixedText = text.replace(
+        /"token":\s*([^"{\[][^,}\]]*)/g,
+        '"token": "$1"',
+      );
+
+      const responseJson = JSON.parse(fixedText);
+      console.log('Parsed JSON:', responseJson);
+
+      // Call the onResponse callback if provided
+      onResponse && onResponse(responseJson);
+      return responseJson;
+    } catch (error) {
+      console.error('JSON Parse Error:', error);
+      const parseError = new Error(`Invalid JSON response: ${text}`);
+
+      // Call the onCatch callback if provided
+      onCatch && onCatch(parseError);
+      return Promise.reject(parseError);
+    }
+  } catch (e) {
+    console.error('Fetch Error:', e);
+
+    // Call the onCatch callback if provided
+    onCatch && onCatch(e);
+    return Promise.reject(e);
   }
+};
 
 // Enhanced PUT API with token refresh
 export const putapi = async (
@@ -899,8 +923,6 @@ export const deleteapi = async (
       headers.Authorization = `Bearer ${token}`;
     }
 
-
-
     fetch(base_url + url, {
       method: 'DELETE',
       headers: headers,
@@ -908,7 +930,14 @@ export const deleteapi = async (
       .then(async response => {
         // Handle token expiration (401 Unauthorized)
         if (response.status === 401) {
-          await handleTokenRefresh(deleteapi, url, header, null, onResponse, onCatch);
+          await handleTokenRefresh(
+            deleteapi,
+            url,
+            header,
+            null,
+            onResponse,
+            onCatch,
+          );
           return null;
         }
 
@@ -959,4 +988,3 @@ export const clearAuthData = async (): Promise<void> => {
     'selectedBatch',
   ]);
 };
-
