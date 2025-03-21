@@ -22,27 +22,39 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {pick} from '@react-native-documents/picker';
 
 const ConversationScreen = ({route, navigation}) => {
-  const {deeplink, conversationId} = route.params;
+  const {deeplink, conversationId} = route?.params;
+  const [createmessage,setcreate] = useState(false)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [teacherId, setTeacherId] = useState('');
+  const [TeacherName, setTeacherName] = useState();
   const [sendingMessage, setSendingMessage] = useState(false);
   const [selectedAttachments, setSelectedAttachments] = useState([]);
   const [formData, setFormData] = useState(null);
   const [conversationData, setConversationData] = useState(null);
+  const [student,setstudent] = useState([]) 
   const flatListRef = useRef(null);
-
   const loadUserData = async () => {
     try {
       const id = (await AsyncStorage.getItem('TeacherId')) || '';
+      const username = (await AsyncStorage.getItem('TeacherName')) || '';
       setTeacherId(id);
+      setTeacherName(username);
     } catch (err) {
       console.error('Error loading user data:', err);
       setError('Failed to load user data');
     }
   };
+
+  useEffect(() => {
+    const studentData = route?.params?.student;
+    const create = route?.params?.create;
+    setstudent(studentData);
+    setcreate(create);
+  },[route?.params?.create && route?.params?.student])
+
 
   useEffect(() => {
     loadUserData();
@@ -374,6 +386,107 @@ const ConversationScreen = ({route, navigation}) => {
     }
   };
 
+  const Create_message = async () => {
+    const Batch_id = await AsyncStorage.getItem('batch_id');
+    if (newMessage.trim() === '' && selectedAttachments.length === 0) return;
+
+    setSendingMessage(true);
+    const messageContent = newMessage.trim();
+    setNewMessage('');
+
+    try {
+      // Upload attachment if exists
+      let attachmentUrls = [];
+
+      if (formData) {
+        const uploadedUrl = await uploadAttachment();
+        if (uploadedUrl) {
+          attachmentUrls = Array.isArray(uploadedUrl)
+            ? uploadedUrl
+            : [uploadedUrl];
+        }
+      }
+
+      // Create a temporary message object for immediate UI update
+      const newMessageObj = {
+        subject: "just chat",
+        sender: teacherId,
+        senderName: TeacherName,
+        senderType: 'TEACHER',
+        content: messageContent,
+        timestamp: new Date().toISOString(),
+        attachmentUrls: attachmentUrls,
+        receiverName: student.id,
+        receiverType:"STUDENT",
+        receiver:student.userName,
+        batchId:Batch_id
+      };
+
+
+      // Add to messages list for instant feedback
+      setMessages(prevMessages => [...prevMessages, newMessageObj]);
+
+      // Clear attachments and form data
+      setSelectedAttachments([]);
+      setFormData(null);
+
+      // Scroll to bottom
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({animated: true});
+      }, 100);
+
+      const Token = await AsyncStorage.getItem('Token');
+      const url = `messages`;
+      const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Token}`,
+      };
+
+      const data = {
+        subject: "just chat",
+        sender: teacherId,
+        senderName: TeacherName,
+        senderType: 'TEACHER',
+        content: messageContent,
+        timestamp: new Date().toISOString(),
+        attachmentUrls: attachmentUrls,
+        receiverName:student.userName,
+        receiverType:"STUDENT",
+        receiver:student.id,
+        batchId:Batch_id
+      };
+
+      const onResponse = res => {
+        console.log('Message Created successfully:', res);
+        setSendingMessage(false);
+      };
+
+      const onCatch = err => {
+        console.error('Error sending message:', err);
+        setSendingMessage(false);
+
+        // Show error to user
+        Alert.alert('Error', 'Failed to send message. Please try again.');
+
+        // Optional: You could remove the temporary message and restore the text input
+        setMessages(prevMessages =>
+          prevMessages.filter(msg => msg !== newMessageObj),
+        );
+        setNewMessage(messageContent);
+      };
+
+      postApi(url, headers, data, onResponse, onCatch);
+    } catch (error) {
+      console.error('Exception when sending message:', error);
+      setSendingMessage(false);
+      Alert.alert(
+        'Error',
+        'An unexpected error occurred while sending message.',
+      );
+    }
+  };
+
   const renderItem = ({item}) => {
     if (item.type === 'date') {
       return (
@@ -554,7 +667,7 @@ const ConversationScreen = ({route, navigation}) => {
             (newMessage.trim() === '' && selectedAttachments.length === 0) ||
             sendingMessage
           }
-          onPress={sendMessage}>
+          onPress={() => createmessage? Create_message() : sendMessage()}>
           {sendingMessage ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (

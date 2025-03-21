@@ -376,7 +376,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useDispatch } from 'react-redux';
 import { postApi } from '../utils/api';
 import { login } from '../utils/authslice';
-import { getUserId, Token_decode } from '../utils/TokenDecoder';
+import { getUserId, getUserName, Token_decode } from '../utils/TokenDecoder';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LoginScreen = ({ navigation }) => {
@@ -433,6 +433,7 @@ const LoginScreen = ({ navigation }) => {
     const onResponse = async (res) => {
       setLoading(false);
       const Teacherid = await getUserId(res.token);
+      const Teachername = await getUserName(res.token);
       
       // Check for both token types
       if (res.token && res.refreshToken) { 
@@ -440,11 +441,13 @@ const LoginScreen = ({ navigation }) => {
         await AsyncStorage.setItem('Token', res.token);
         await AsyncStorage.setItem('RefreshToken', res.refreshToken);
         await AsyncStorage.setItem('TeacherId', Teacherid);
+        await AsyncStorage.setItem('TeacherName', Teachername);
         
         const userData = {
           token: res.token,
           refreshToken: res.refreshToken,
-          Teacher_id: Teacherid
+          Teacher_id: Teacherid,
+          Teacher_name:Teachername
         };
         console.log('userData', userData);
         
@@ -455,10 +458,12 @@ const LoginScreen = ({ navigation }) => {
         // If only auth token is provided (fallback)
         await AsyncStorage.setItem('Token', res.token);
         await AsyncStorage.setItem('TeacherId', Teacherid);
+        await AsyncStorage.setItem('TeacherName', Teachername);
         
         const userData = {
           token: res.token,
-          Teacher_id: Teacherid
+          Teacher_id: Teacherid,
+          Teacher_name:Teachername
         };
         console.log('userData', userData);
         

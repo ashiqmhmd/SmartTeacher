@@ -120,6 +120,7 @@ interface AuthState {
   refreshToken: string | null; // Added refresh token
   batch_id: string | null;
   Teacher_id: string | null;
+  Teacher_name:string | null;
   selectBatch: any | null;
   batches: any[];
   loading: boolean;
@@ -171,6 +172,7 @@ const initialState: AuthState = {
   refreshToken: null, // Added refresh token
   batch_id: null,
   Teacher_id: null,
+  Teacher_name:null,
   selectBatch: null,
   batches: [],
   loading: false,
@@ -186,6 +188,7 @@ const authSlice = createSlice({
       state.token = action.payload.token;
       state.refreshToken = action.payload.refreshToken || null; // Handle refresh token
       state.Teacher_id = action.payload.Teacher_id;
+      state.Teacher_name = action.payload.Teacher_name;
       
       // Store tokens in AsyncStorage
       AsyncStorage.setItem('Token', action.payload.token);
@@ -193,6 +196,7 @@ const authSlice = createSlice({
         AsyncStorage.setItem('RefreshToken', action.payload.refreshToken);
       }
       AsyncStorage.setItem('TeacherId', action.payload.Teacher_id);
+      AsyncStorage.setItem('TeacherName', action.payload.Teacher_name);
     },
     logout: (state) => {
       state.isLoggedIn = false;

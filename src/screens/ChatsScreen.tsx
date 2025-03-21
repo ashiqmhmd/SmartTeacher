@@ -138,6 +138,7 @@ const ChatsScreen = ({navigation}) => {
       getLastMessage(conversation)
         .toLowerCase()
         .includes(searchQuery.toLowerCase()),
+       
   );
 
   const renderConversationItem = ({item}) => {
@@ -149,7 +150,7 @@ const ChatsScreen = ({navigation}) => {
     return (
       <TouchableOpacity
         style={styles.conversationCard}
-        onPress={() => navigation.navigate('Chat', {conversation: item,conversationId:item.id})}>
+        onPress={() => navigation.navigate('Chat', {conversation: item,conversationId:item.id,create:false})}>
         <View style={styles.avatarContainer}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>

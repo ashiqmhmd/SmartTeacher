@@ -52,7 +52,7 @@ const StudentListing = ({ navigation }) => {
         return (
             <TouchableOpacity
                 style={styles.listCard}
-                onPress={() => navigation.navigate('Student_Detail', { student: item })}>
+                onPress={() => navigation.navigate('Chat', { student: item, create: true })} >
                 {item.profilePicUrl != null ? (
                     <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
                 ) : (

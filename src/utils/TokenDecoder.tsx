@@ -20,3 +20,13 @@ export const getUserId = async (token: string) => {
     }
 };
 
+export const getUserName = async (token: string) => {
+    const decoded = tokenDecode(token);
+    
+    if (decoded && typeof decoded === "object" && "userName" in decoded) {
+        return decoded.userName;
+    } else {
+        return null; 
+    }
+};
+
