@@ -16,13 +16,17 @@ import React, {useEffect, useRef, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import {getapi, postApi} from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import {postApi} from '../utils/api';
 
 const ConversationScreen = ({route, navigation}) => {
-  const {conversation} = route.params;
-
+  const {
+    conversation: initialConversation,
+    deeplink,
+    conversationId,
+  } = route.params;
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -31,19 +35,84 @@ const ConversationScreen = ({route, navigation}) => {
   const flatListRef = useRef(null);
 
   useEffect(() => {
-    // Combine original message with replies in chronological order
-    const initialMessage = {
-      sender: conversation.sender,
-      content: conversation.content,
-      timestamp: conversation.timestamp,
-      attachmentUrls: conversation.attachmentUrls || [],
-      isOriginal: true,
+    console.log('useeffect', conversationId);
+    if (deeplink && conversationId) {
+      console.log('entering deeplink get');
+      message_getting_by_id(conversationId);
+    } else {
+      // Combine original message with replies in chronological order
+      const initialMessage = {
+        sender: initialConversation?.sender,
+        content: initialConversation?.content,
+        timestamp: initialConversation?.timestamp,
+        attachmentUrls: initialConversation?.attachmentUrls || [],
+        isOriginal: true,
+      };
+
+      const allMessages = [
+        initialMessage,
+        ...(initialConversation?.replies || []),
+      ];
+      setMessages(allMessages);
+    }
+  }, [initialConversation, deeplink, conversationId]);
+
+  const message_getting_by_id = async id => {
+    setLoading(true);
+
+    const Token = await AsyncStorage.getItem('Token');
+    const url = `/messages/${id}`;
+    const headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${Token}`,
     };
 
-    const allMessages = [initialMessage, ...(conversation.replies || [])];
-    setMessages(allMessages);
-  }, [conversation]);
+    const onResponse = res => {
+      if (res) {
+        const originalMessage = {
+          id: res.id,
+          sender: res.sender,
+          senderName: res.senderName,
+          senderType: res.senderType,
+          content: res.content,
+          timestamp: res.timestamp,
+          attachmentUrls: res.attachmentUrls || [],
+          isOriginal: true,
+        };
 
+        // Map replies to match the same structure as the original message
+        const replies = res.replies.map(reply => ({
+          id: reply.id || `reply-${Math.random()}`, // Ensure each reply has a unique ID
+          sender: reply.sender,
+          senderName: reply.senderName,
+          senderType: reply.senderType,
+          content: reply.content,
+          timestamp: reply.timestamp,
+          attachmentUrls: reply.attachmentUrls || [],
+          isOriginal: false,
+        }));
+
+        // Combine original message and replies into a single array
+        const allMessages = [originalMessage, ...replies];
+
+        // Sort messages by timestamp
+        allMessages.sort(
+          (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
+        );
+
+        setMessages(allMessages);
+      }
+      setLoading(false);
+    };
+
+    const onCatch = err => {
+      console.error('Error fetching messages:', err);
+      setLoading(false);
+    };
+
+    getapi(url, headers, onResponse, onCatch);
+  };
   const formatTime = dateString => {
     const date = new Date(dateString);
     return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
@@ -77,7 +146,7 @@ const ConversationScreen = ({route, navigation}) => {
       groupedMessages.push({
         type: 'message',
         ...message,
-        id: `message-${message.timestamp}-${Math.random()}`,
+        id: message.id || `message-${message.timestamp}-${Math.random()}`,
       });
     });
 
@@ -108,18 +177,16 @@ const ConversationScreen = ({route, navigation}) => {
       attachmentUrls: selectedAttachments,
     };
 
-    // Add message to UI immediately for better UX
     setMessages(prevMessages => [...prevMessages, newMessageObj]);
     setSelectedAttachments([]);
 
-    // Scroll to the latest message
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({animated: true});
     }, 100);
 
     try {
       const Token = await AsyncStorage.getItem('Token');
-      const url = `messages/${conversation.id}/reply`;
+      const url = `messages/${conversationId}/reply`;
       const headers = {
         Accept: 'application/json',
         'Content-Type': 'application/json',
@@ -142,7 +209,6 @@ const ConversationScreen = ({route, navigation}) => {
       const onCatch = err => {
         console.log('Error sending message:', err);
         setSendingMessage(false);
-        // Show error to user
         Alert.alert('Error', 'Failed to send message. Please try again.');
       };
 
@@ -154,6 +220,7 @@ const ConversationScreen = ({route, navigation}) => {
   };
 
   const renderItem = ({item}) => {
+    console.log(item);
     if (item.type === 'date') {
       return (
         <View style={styles.dateContainer}>
@@ -178,14 +245,15 @@ const ConversationScreen = ({route, navigation}) => {
             isCurrentUser
               ? styles.userMessageBubble
               : styles.otherMessageBubble,
-            // item.isOriginal && styles.originalMessageBubble,
           ]}>
-          {/* {!isCurrentUser && (
-            <Text style={styles.messageSender}>{item.sender}</Text>
-          )} */}
+          {/* Display sender name for replies */}
+          {!isCurrentUser && !item.isOriginal && (
+            <Text style={styles.messageSender}>{item.senderName}</Text>
+          )}
 
           <Text style={styles.messageContent}>{item.content}</Text>
 
+          {/* Display attachments */}
           {item.attachmentUrls && item.attachmentUrls.length > 0 && (
             <View style={styles.attachmentsContainer}>
               {item.attachmentUrls.map((url, index) => (
@@ -199,6 +267,7 @@ const ConversationScreen = ({route, navigation}) => {
             </View>
           )}
 
+          {/* Display timestamp */}
           <Text style={styles.messageTime}>{formatTime(item.timestamp)}</Text>
         </View>
       </View>
@@ -206,9 +275,7 @@ const ConversationScreen = ({route, navigation}) => {
   };
 
   const handleAttachment = () => {
-    // This would be connected to a file picker
     console.log('Adding attachment');
-    // For demo purposes, add a fake attachment
     setSelectedAttachments([
       ...selectedAttachments,
       `http://example.com/attachment${selectedAttachments.length + 1}.pdf`,
@@ -250,7 +317,6 @@ const ConversationScreen = ({route, navigation}) => {
         />
       )}
 
-      {/* Selected attachments */}
       {selectedAttachments.length > 0 && (
         <View style={styles.selectedAttachmentsContainer}>
           <FlatList
@@ -383,17 +449,6 @@ const styles = StyleSheet.create({
   otherMessageBubble: {
     backgroundColor: '#fff',
     borderBottomLeftRadius: 4,
-  },
-  originalMessageBubble: {
-    backgroundColor: '#e5ebfc',
-    borderWidth: 1,
-    borderColor: '#d0d7eb',
-  },
-  messageSender: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 4,
-    fontWeight: '500',
   },
   messageContent: {
     fontSize: 15,

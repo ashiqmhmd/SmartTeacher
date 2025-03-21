@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StatusBar,
   FlatList,
+  RefreshControl,
 } from 'react-native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -18,10 +19,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { batch_id, selectBatch } from '../utils/authslice';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import { useFocusEffect } from '@react-navigation/native';
+
 const AssignmentsScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [assignment, setAssignment] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false); // State for refresh control
+
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
 
@@ -31,14 +35,9 @@ const AssignmentsScreen = ({ navigation }) => {
   const handleBatchSelect = async (batch) => {
     await AsyncStorage.setItem('batch_id', batch.id.toString());
     await AsyncStorage.setItem('batch', JSON.stringify(batch));
-    
     dispatch(batch_id(batch.id));
     dispatch(selectBatch(batch));
-    
-    // Fetch students for the selected batch
     await Assignment_fetch();
-    
-    // Close the bottom sheet
     refRBSheet.current.close();
   };
 
@@ -53,18 +52,19 @@ const AssignmentsScreen = ({ navigation }) => {
       Authorization: `Bearer ${Token}`,
     };
     const onResponse = res => {
-      setAssignment(res);
+      setAssignment(res || []);
       setLoading(false);
+      setRefreshing(false); // Stop refreshing after data is fetched
     };
 
     const onCatch = res => {
       console.log('Error');
       console.log(res);
       setLoading(false);
+      setRefreshing(false); // Stop refreshing on error
     };
     getapi(url, headers, onResponse, onCatch);
   };
-
 
   const getStatusColor = (submissionDate) => {
     if (!submissionDate || isNaN(new Date(submissionDate).getTime())) {
@@ -75,7 +75,6 @@ const AssignmentsScreen = ({ navigation }) => {
       : false; // Red if current date is after or equal to submissionDate
   };
 
-
   useEffect(() => {
     Assignment_fetch();
   }, [selectedBatchString]);
@@ -84,14 +83,17 @@ const AssignmentsScreen = ({ navigation }) => {
     useCallback(() => {
       console.log('Screen is focused');
       Assignment_fetch();
-
-      // Optional cleanup function
       return () => {
         console.log('Screen is unfocused');
       };
-    }, []), // Empty dependency array ensures this runs only when screen gains focus
+    }, []),
   );
 
+  // Handle pull-to-refresh
+  const onRefresh = useCallback(() => {
+    setRefreshing(true); // Start refreshing
+    Assignment_fetch(); // Fetch data
+  }, []);
 
   const AssignmentCard = ({ item }) => (
     <TouchableOpacity
@@ -146,7 +148,6 @@ const AssignmentsScreen = ({ navigation }) => {
         <TouchableOpacity
           onPress={() => refRBSheet.current.open()}
           style={{
-            // backgroundColor: '#f8f9fa',
             borderRadius: 12,
             paddingHorizontal: 10,
             paddingVertical: 5,
@@ -189,7 +190,16 @@ const AssignmentsScreen = ({ navigation }) => {
           ))}
         </View>
       ) : (
-        <ScrollView style={styles.container}>
+        <ScrollView
+          style={styles.container}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing} // Controlled by refreshing state
+              onRefresh={onRefresh} // Callback when user pulls to refresh
+              colors={['#001d3d']} // Customize refresh spinner color
+              tintColor="#001d3d" // Customize spinner color (iOS)
+            />
+          }>
           <View style={styles.searchSection}>
             <View style={styles.searchBar}>
               <MaterialIcons name="search" size={24} color="#666" />
@@ -207,13 +217,22 @@ const AssignmentsScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          <FlatList
-            data={assignment}
-            renderItem={({ item }) => <AssignmentCard item={item} />}
-            keyExtractor={item => item.id.toString()}
-            scrollEnabled={false}
-            style={styles.assignmentsList}
-          />
+          {assignment.length === 0 ? (
+            <View style={styles.noAssignmentsContainer}>
+              <MaterialIcons name="assignment" size={48} color="#ccc" />
+              <Text style={styles.noAssignmentsText}>
+                No assignments in this batch
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={assignment}
+              renderItem={({ item }) => <AssignmentCard item={item} />}
+              keyExtractor={item => item.id.toString()}
+              scrollEnabled={false}
+              style={styles.assignmentsList}
+            />
+          )}
         </ScrollView>
       )}
       <BatchSelectorSheet
@@ -247,35 +266,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-  },
-  batchSelector: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-  },
-  batchButton: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 16,
-    paddingHorizontal: '5%',
-    paddingVertical: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  batchName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#001d3d',
-  },
-  batchSubject: {
-    fontSize: 14,
-    color: '#666',
-    marginLeft: 10,
-    flex: 1,
-  },
-  batchIcon: {
-    marginLeft: 10,
   },
   searchSection: {
     flexDirection: 'row',
@@ -367,6 +357,17 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     color: '#666',
     fontSize: 10,
+  },
+  noAssignmentsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 30,
+  },
+  noAssignmentsText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 10,
   },
 });
 

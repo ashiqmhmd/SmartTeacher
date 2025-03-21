@@ -500,16 +500,12 @@
 //   parentDetail: {width: 80, height: 12, backgroundColor: '#E5EBFC'},
 // });
 
-
-
-
-
-
 import {
   Alert,
   FlatList,
   Image,
   Platform,
+  RefreshControl,
   StatusBar,
   StyleSheet,
   Text,
@@ -520,6 +516,7 @@ import {
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import BottomNavigation from '../components/BottomNavBar';
@@ -538,17 +535,11 @@ const HomeScreen = ({navigation}) => {
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
   const dispatch = useDispatch();
-
 
   const students_fetch = async () => {
     setLoading(true);
-
-    // const loadingTimeout = setTimeout(() => {
-    //   setLoading(false);
-    // }, 10000);
-
-
     const Token = await AsyncStorage.getItem('Token');
     const Batch_id = await AsyncStorage.getItem('batch_id');
     const url = `students/batch/${Batch_id ? Batch_id : selectedBatch_id}`;
@@ -558,57 +549,48 @@ const HomeScreen = ({navigation}) => {
       Authorization: `Bearer ${Token}`,
     };
     const onResponse = res => {
-      // clearTimeout(loadingTimeout);
       setStudents(res || []);
       setLoading(false);
+      setRefreshing(false);
     };
     
     const onCatch = res => {
       console.error('Error fetching students:', res);
       setLoading(false);
       setStudents([]);
+      setRefreshing(false);
     };
     getapi(url, headers, onResponse, onCatch);
   };
 
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    students_fetch();
+  }, []);
 
   const handleBatchSelect = async (batch) => {
     await AsyncStorage.setItem('batch_id', batch.id.toString());
     await AsyncStorage.setItem('batch', JSON.stringify(batch));
-    
     dispatch(batch_id(batch.id));
     dispatch(selectBatch(batch));
-    
-    // Fetch students for the selected batch
     await students_fetch();
-    
-    // Close the bottom sheet
     refRBSheet.current.close();
   };
 
-useEffect(() => {
+  useEffect(() => {
     students_fetch();
-    fetch_batchs(); // Call the function directly if it's not a Redux action
-}, []); // Empty array to run only once on mount
+    fetch_batchs();
+  }, []);
 
-
- useFocusEffect(
-      useCallback(() => {
-        console.log('Screen is focused');
-        students_fetch();
-  
-        // Optional cleanup function
-        return () => {
-          console.log('Screen is unfocused');
-        };
-      }, []) // Empty dependency array ensures this runs only when screen gains focus
-    );
-
-
-  // // Function to Open Bottom Sheet
-  // const handleOpenBottomSheet = useCallback(() => {
-  //   bottomSheetRef.current?.expand();
-  // }, []);
+  useFocusEffect(
+    useCallback(() => {
+      console.log('Screen is focused');
+      students_fetch();
+      return () => {
+        console.log('Screen is unfocused');
+      };
+    }, [])
+  );
 
   const renderStudentCard = ({item}) => {
     return (
@@ -632,45 +614,16 @@ useEffect(() => {
           <Text style={styles.parentDtl}>Parent: {item.parent1Name}</Text>
           <Text style={styles.parentDtl}>Phone No: {item.parent1Phone}</Text>
         </View>
-        {/* <View style={styles.actions}>
-        <TouchableOpacity style={styles.actionButton}>
-          <MaterialIcons name="message" size={20} color="#4CAF50" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}>
-          <MaterialIcons name="visibility" size={20} color="#2196F3" />
-        </TouchableOpacity>
-      </View> */}
       </TouchableOpacity>
     );
   };
-
-
-  // const handleBatchSelect = async (batch) => {
-  //   await AsyncStorage.removeItem('batch_id');
-  
-  //   dispatch(batch_id(batch.id));
-  
-  //   // Ensure batch is stored as a string
-  //   await AsyncStorage.setItem('batch', JSON.stringify(batch));
-  
-  //   dispatch(selectBatch(batch)); // Update Redux with the actual object
-  
-  //   refRBSheet.current.close();
-  
-  //   await students_fetch();
-  // };
-  
-
 
   return (
     <View style={styles.screen}>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
       <View style={styles.appBar}>
         <TouchableOpacity
-          onPress={() =>
-            // handle_logout()
-            navigation.navigate('Profile')
-          }>
+          onPress={() => navigation.navigate('Profile')}>
           <Image
             style={styles.avatarImg}
             source={{
@@ -691,16 +644,11 @@ useEffect(() => {
       </View>
       {loading ? (
         <View style={styles.container}>
-          {/* Batch Card Shimmer */}
           <ShimmerPlaceholder style={styles.batchCard} />
-
-          {/* Search Bar Shimmer */}
           <View style={styles.searchContainer}>
             <ShimmerPlaceholder style={styles.searchInput} />
             <ShimmerPlaceholder style={styles.addButton} />
           </View>
-
-          {/* Student List Shimmer */}
           {[1, 2, 3, 4, 5].map((_, index) => (
             <View key={index} style={styles.listCard}>
               <View style={styles.profilePicPlaceholder} />
@@ -712,72 +660,84 @@ useEffect(() => {
           ))}
         </View>
       ) : (
-
-      <View style={styles.container}>
-        <View style={styles.batchCard}>
-          <LinearGradient
-            colors={['rgb(255,255,255)', 'rgb(229,235,252)']} // Light gradient
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 1}}
-            style={styles.card}>
-            <TouchableOpacity
-              onPress={() => refRBSheet.current.open()}
-              style={styles.hexagonWrapper}>
-              <LinearGradient
-                colors={['rgb(255,255,255)', 'rgb(247,248,252)']} // Same as card to blend in
-                style={styles.hexagon}>
-                <MaterialIcons
-                  name="change-circle"
-                  size={24}
-                  color="#001d3d"
-                  style={styles.hexagonIcon}
-                />
-              </LinearGradient>
-            </TouchableOpacity>
-            <Text style={styles.batchCardTitle}>{selectedBatchString?.name}</Text>
-            <Text style={styles.batchCardSubtitle}>
-              {selectedBatchString?.subject}
-            </Text>
-            <Text style={styles.batchCardCount}>{students.length}</Text>
-            <View style={styles.createBatch}>
+        <View style={styles.container}>
+          <View style={styles.batchCard}>
+            <LinearGradient
+              colors={['rgb(255,255,255)', 'rgb(229,235,252)']}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 1}}
+              style={styles.card}>
               <TouchableOpacity
-                onPress={() => navigation.navigate('Batch_Create')}
-                style={styles.createBatchButton}>
-                <Text style={styles.createBatchButtonText}>
-                  Create New Batch
-                </Text>
+                onPress={() => refRBSheet.current.open()}
+                style={styles.hexagonWrapper}>
+                <LinearGradient
+                  colors={['rgb(255,255,255)', 'rgb(247,248,252)']}
+                  style={styles.hexagon}>
+                  <MaterialIcons
+                    name="change-circle"
+                    size={24}
+                    color="#001d3d"
+                    style={styles.hexagonIcon}
+                  />
+                </LinearGradient>
               </TouchableOpacity>
-            </View>
-          </LinearGradient>
-        </View>
-
-        <View style={styles.header}>
-          <View style={styles.searchBar}>
-            <Ionicons name="search" size={24} color="#666" />
-            <TextInput
-              placeholder="Search Student"
-              placeholderTextColor="#666"
-              style={styles.searchInput}
-            />
+              <Text style={styles.batchCardTitle}>{selectedBatchString?.name}</Text>
+              <Text style={styles.batchCardSubtitle}>
+                {selectedBatchString?.subject}
+              </Text>
+              <Text style={styles.batchCardCount}>{students.length}</Text>
+              <View style={styles.createBatch}>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Batch_Create')}
+                  style={styles.createBatchButton}>
+                  <Text style={styles.createBatchButtonText}>
+                    Create New Batch
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </LinearGradient>
           </View>
-          <TouchableOpacity
-            style={styles.addStudentButton}
-            accessibilityLabel="Add new student"
-            onPress={() => navigation.navigate('Student_Create',{update:false})}>
-            <Text style={styles.addStudentButtonText}>Add Student</Text>
-          </TouchableOpacity>
+
+          <View style={styles.header}>
+            <View style={styles.searchBar}>
+              <Ionicons name="search" size={24} color="#666" />
+              <TextInput
+                placeholder="Search Student"
+                placeholderTextColor="#666"
+                style={styles.searchInput}
+              />
+            </View>
+            <TouchableOpacity
+              style={styles.addStudentButton}
+              accessibilityLabel="Add new student"
+              onPress={() => navigation.navigate('Student_Create',{update:false})}>
+              <Text style={styles.addStudentButtonText}>Add Student</Text>
+            </TouchableOpacity>
+          </View>
+
+          {students.length === 0 ? (
+            <View style={styles.noStudentsContainer}>
+                <FontAwesome name="user" size={48} color="#ccc" />
+              <Text style={styles.noStudentsText}>No students in this batch</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={students}
+              renderItem={renderStudentCard}
+              keyExtractor={(item) => item.firstName}
+              contentContainerStyle={styles.list}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={['#001d3d']}
+                  tintColor="#001d3d"
+                />
+              }
+            />
+          )}
         </View>
-        {/* <Text style={styles.listTitle}>Students In Batch</Text> */}
-      
-          <FlatList
-            data={students}
-            renderItem={renderStudentCard}
-            keyExtractor={(item) => item.firstName}
-            contentContainerStyle={styles.list}
-          />
-      
-      </View>
-)}
+      )}
       <BatchSelectorSheet
         ref={refRBSheet}
         onBatchSelect={handleBatchSelect}/>
@@ -793,13 +753,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(255,255,255)',
   },
   appBar: {
-    // paddingTop: Platform.OS === 'ios' ? 40 : StatusBar.currentHeight + 10,
     paddingTop: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    // paddingVertical: 10,
     marginBottom: 20,
     backgroundColor: '#fff',
   },
@@ -861,7 +819,6 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
   },
   card: {
-    // width: 150,
     height: '100%',
     borderRadius: 12,
     padding: 15,
@@ -939,8 +896,6 @@ const styles = StyleSheet.create({
     color: 'rgb(51,51,51)',
   },
   addStudentButton: {
-    // backgroundColor: 'rgb(53, 104, 244)',
-    // backgroundColor: 'rgb(34, 78, 200)',
     backgroundColor: '#001d3d',
     padding: 10,
     borderRadius: 20,
@@ -997,7 +952,6 @@ const styles = StyleSheet.create({
   noPic: {
     width: 30,
     height: 30,
-
     opacity: 0.5,
   },
   studentName: {
@@ -1035,5 +989,13 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   parentDetail: {width: 80, height: 12, backgroundColor: '#E5EBFC'},
+  noStudentsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noStudentsText: {
+    fontSize: 18,
+    color: '#888',
+  },
 });
-

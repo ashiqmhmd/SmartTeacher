@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  RefreshControl,
 } from 'react-native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -46,6 +47,7 @@ const FeesScreen = ({navigation}) => {
   const [totalFees, setTotalFees] = useState(0);
   const [receivedFees, setReceivedFees] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
@@ -63,7 +65,7 @@ const FeesScreen = ({navigation}) => {
       Authorization: `Bearer ${Token}`,
     };
     const onResponse = res => {
-      setFees(res);
+      setFees(res || []);
       student_details_fetch(res);
 
       let totalAmount = 0;
@@ -79,12 +81,14 @@ const FeesScreen = ({navigation}) => {
 
       setTotalFees(totalAmount);
       setReceivedFees(receivedAmount);
+      setRefreshing(false);
     };
 
     const onCatch = res => {
       console.log('Error');
       console.log(res);
       setLoading(false);
+      setRefreshing(false);
     };
     getapi(url, headers, onResponse, onCatch);
   };
@@ -108,17 +112,11 @@ const FeesScreen = ({navigation}) => {
             headers,
             res => {
               if (res && res.id) {
-                console.log(`Response for ${studentId}:`, res);
                 resolve({
                   studentId: res.id,
                   name: `${res.firstName} ${res.lastName}`,
                 });
-                setLoading(false);
               } else {
-                console.warn(
-                  `Invalid response for Student ID ${studentId}:`,
-                  res,
-                );
                 resolve(null);
               }
             },
@@ -138,65 +136,68 @@ const FeesScreen = ({navigation}) => {
         return acc;
       }, {});
     setStudentDetails(details);
+    setLoading(false);
   };
 
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    Fees_fetch();
+  }, []);
 
   useEffect(() => {
     Fees_fetch();
   }, [selectedBatchString]);
 
-
   useFocusEffect(
-      useCallback(() => {
-        console.log('Screen is focused');
-        Fees_fetch();
-  
-        // Optional cleanup function
-        return () => {
-          console.log('Screen is unfocused');
-        };
-      }, []) // Empty dependency array ensures this runs only when screen gains focus
-    );
-  
+    useCallback(() => {
+      console.log('Screen is focused');
+      Fees_fetch();
+      return () => {
+        console.log('Screen is unfocused');
+      };
+    }, []),
+  );
 
-
-
-  const monthOptions = ['Current Month', 'January', 'February', 'March','April',"may"];
+  const monthOptions = [
+    'Current Month',
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
   const filterOptions = ['All', 'Paid', 'Unpaid'];
 
   const refRBSheet = useRef();
 
-  const handleBatchSelect = async (batch) => {
+  const handleBatchSelect = async batch => {
     await AsyncStorage.setItem('batch_id', batch.id.toString());
     await AsyncStorage.setItem('batch', JSON.stringify(batch));
-    
     dispatch(batch_id(batch.id));
     dispatch(selectBatch(batch));
-    
-    // Fetch students for the selected batch
     await Fees_fetch();
-    
-    // Close the bottom sheet
     refRBSheet.current.close();
   };
 
-  // Filter fees based on search query and selected filters
   const filteredFees = useMemo(() => {
     return fees.filter(record => {
-      // Filter by search query
       const studentName = studentDetails[record.studentId] || '';
       const matchesSearch =
         searchQuery === '' ||
         studentName.toLowerCase().includes(searchQuery.toLowerCase());
 
-      // Filter by payment status
       const matchesPaymentFilter =
         paymentFilter === 'All' ||
         (paymentFilter === 'Paid' && record.status === 'paid') ||
         (paymentFilter === 'Unpaid' && record.status !== 'paid');
 
-      // Filter by month (this would need to be implemented based on your date format)
-      // This is a simplified example assuming the month filter works
       const matchesMonth = selectedMonth === 'Current Month' || true;
 
       return matchesSearch && matchesPaymentFilter && matchesMonth;
@@ -306,15 +307,11 @@ const FeesScreen = ({navigation}) => {
 
       {loading ? (
         <View style={styles.container}>
-          {/* Batch Card Shimmer */}
+          {/* Shimmer Placeholders */}
           <ShimmerPlaceholder style={styles.feesummeryCard} />
-
-          {/* Search Bar Shimmer */}
           <View style={styles.filterSection}>
             <ShimmerPlaceholder style={styles.searchInput} />
           </View>
-
-          {/* Student List Shimmer */}
           {[1, 2, 3, 4, 5].map((_, index) => (
             <View key={index} style={styles.feeCard}>
               <View style={styles.feeCardHeader}>
@@ -329,110 +326,130 @@ const FeesScreen = ({navigation}) => {
           ))}
         </View>
       ) : (
-        <ScrollView style={styles.container}>
-          <View style={styles.feesummeryCard}>
-            <LinearGradient
-              colors={['rgb(255,255,255)', 'rgb(229,235,252)']}
-              start={{x: 0, y: 0}}
-              end={{x: 1, y: 1}}
-              style={styles.card}>
-              <BackgroundGraph />
-              <View style={styles.summaryContent}>
-                <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLabel}>Total Expected</Text>
-                  <Text style={styles.summaryAmount}>₹{totalFees}</Text>
-                </View>
-                <View style={styles.divider} />
-                <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLabel}>Received</Text>
-                  <Text style={[styles.summaryAmount, {color: '#43A047'}]}>
-                    ₹{receivedFees}
-                  </Text>
-                </View>
-                <View style={styles.divider} />
-                <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLabel}>Balance</Text>
-                  <Text style={[styles.summaryAmount, {color: '#E53935'}]}>
-                    ₹{totalFees - receivedFees}
-                  </Text>
-                </View>
-              </View>
-            </LinearGradient>
-          </View>
-
-          <View style={styles.filterSection}>
-            <View style={styles.searchBar}>
-              <MaterialIcons name="search" size={24} color="#666" />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search by student name"
-                placeholderTextColor="#666"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
+        <ScrollView
+          style={styles.container}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#001d3d']}
+              tintColor="#001d3d"
+            />
+          }>
+          {fees.length === 0 ? (
+            <View style={styles.noFeeRecordsContainer}>
+              <MaterialIcons name="money-off" size={48} color="#ccc" />
+              <Text style={styles.noFeeRecordsText}>
+                No fee records in this batch
+              </Text>
             </View>
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.filterScrollView}>
-              {monthOptions.map(month => (
-                <TouchableOpacity
-                  key={month}
-                  onPress={() => setSelectedMonth(month)}
-                  style={[
-                    styles.filterChip,
-                    selectedMonth === month && styles.selectedChip,
-                  ]}>
-                  <Text
-                    style={[
-                      styles.filterChipText,
-                      selectedMonth === month && styles.selectedChipText,
-                    ]}>
-                    {month}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.filterScrollView}>
-              {filterOptions.map(option => (
-                <TouchableOpacity
-                  key={option}
-                  onPress={() => setPaymentFilter(option)}
-                  style={[
-                    styles.filterChip,
-                    paymentFilter === option && styles.selectedChip,
-                  ]}>
-                  <Text
-                    style={[
-                      styles.filterChipText,
-                      paymentFilter === option && styles.selectedChipText,
-                    ]}>
-                    {option}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-
-          <View style={styles.feeList}>
-            {filteredFees.length > 0 ? (
-              filteredFees.map(record => (
-                <FeeCard key={record.id} record={record} />
-              ))
-            ) : (
-              <View style={styles.noResultsContainer}>
-                <MaterialIcons name="search-off" size={48} color="#ccc" />
-                <Text style={styles.noResultsText}>
-                  No matching records found
-                </Text>
+          ) : (
+            <>
+              <View style={styles.feesummeryCard}>
+                <LinearGradient
+                  colors={['rgb(255,255,255)', 'rgb(229,235,252)']}
+                  start={{x: 0, y: 0}}
+                  end={{x: 1, y: 1}}
+                  style={styles.card}>
+                  <BackgroundGraph />
+                  <View style={styles.summaryContent}>
+                    <View style={styles.summaryItem}>
+                      <Text style={styles.summaryLabel}>Total Expected</Text>
+                      <Text style={styles.summaryAmount}>₹{totalFees}</Text>
+                    </View>
+                    <View style={styles.divider} />
+                    <View style={styles.summaryItem}>
+                      <Text style={styles.summaryLabel}>Received</Text>
+                      <Text style={[styles.summaryAmount, {color: '#43A047'}]}>
+                        ₹{receivedFees}
+                      </Text>
+                    </View>
+                    <View style={styles.divider} />
+                    <View style={styles.summaryItem}>
+                      <Text style={styles.summaryLabel}>Balance</Text>
+                      <Text style={[styles.summaryAmount, {color: '#E53935'}]}>
+                        ₹{totalFees - receivedFees}
+                      </Text>
+                    </View>
+                  </View>
+                </LinearGradient>
               </View>
-            )}
-          </View>
+
+              <View style={styles.filterSection}>
+                <View style={styles.searchBar}>
+                  <MaterialIcons name="search" size={24} color="#666" />
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder="Search by student name"
+                    placeholderTextColor="#666"
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                  />
+                </View>
+
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.filterScrollView}>
+                  {monthOptions.map(month => (
+                    <TouchableOpacity
+                      key={month}
+                      onPress={() => setSelectedMonth(month)}
+                      style={[
+                        styles.filterChip,
+                        selectedMonth === month && styles.selectedChip,
+                      ]}>
+                      <Text
+                        style={[
+                          styles.filterChipText,
+                          selectedMonth === month && styles.selectedChipText,
+                        ]}>
+                        {month}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.filterScrollView}>
+                  {filterOptions.map(option => (
+                    <TouchableOpacity
+                      key={option}
+                      onPress={() => setPaymentFilter(option)}
+                      style={[
+                        styles.filterChip,
+                        paymentFilter === option && styles.selectedChip,
+                      ]}>
+                      <Text
+                        style={[
+                          styles.filterChipText,
+                          paymentFilter === option && styles.selectedChipText,
+                        ]}>
+                        {option}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+
+              <View style={styles.feeList}>
+                {filteredFees.length > 0 ? (
+                  filteredFees.map(record => (
+                    <FeeCard key={record.id} record={record} />
+                  ))
+                ) : (
+                  <View style={styles.noResultsContainer}>
+                    <MaterialIcons name="search-off" size={48} color="#ccc" />
+                    <Text style={styles.noResultsText}>
+                      No matching records found
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </>
+          )}
         </ScrollView>
       )}
       <BatchSelectorSheet
@@ -466,35 +483,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-  },
-  batchSelector: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-  },
-  batchButton: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 16,
-    paddingHorizontal: '5%',
-    paddingVertical: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  batchName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#001d3d',
-  },
-  batchSubject: {
-    fontSize: 14,
-    color: '#666',
-    marginLeft: 10,
-    flex: 1,
-  },
-  batchIcon: {
-    marginLeft: 10,
   },
   feesummeryCard: {
     width: '90%',
@@ -638,15 +626,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
-  shimmerContainer: {
-    padding: 20,
+  noFeeRecordsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 30,
   },
-  shimmerCard: {
-    height: '100%',
-    width: '100%',
-    borderRadius: 10,
-    marginBottom: 15,
-    backgroundColor: '#e0e0e0',
+  noFeeRecordsText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 10,
   },
   noResultsContainer: {
     alignItems: 'center',
