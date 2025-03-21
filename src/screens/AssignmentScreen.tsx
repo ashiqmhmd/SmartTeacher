@@ -9,18 +9,18 @@ import {
   FlatList,
   RefreshControl,
 } from 'react-native';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { getapi } from '../utils/api';
+import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useDispatch, useSelector } from 'react-redux';
-import { batch_id, selectBatch } from '../utils/authslice';
+import {useDispatch, useSelector} from 'react-redux';
+import {batch_id, selectBatch} from '../utils/authslice';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
-import { useFocusEffect } from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 
-const AssignmentsScreen = ({ navigation }) => {
+const AssignmentsScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [assignment, setAssignment] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +32,7 @@ const AssignmentsScreen = ({ navigation }) => {
   const refRBSheet = useRef();
   const dispatch = useDispatch();
 
-  const handleBatchSelect = async (batch) => {
+  const handleBatchSelect = async batch => {
     await AsyncStorage.setItem('batch_id', batch.id.toString());
     await AsyncStorage.setItem('batch', JSON.stringify(batch));
     dispatch(batch_id(batch.id));
@@ -66,7 +66,7 @@ const AssignmentsScreen = ({ navigation }) => {
     getapi(url, headers, onResponse, onCatch);
   };
 
-  const getStatusColor = (submissionDate) => {
+  const getStatusColor = submissionDate => {
     if (!submissionDate || isNaN(new Date(submissionDate).getTime())) {
       return '#e53935'; // Red for invalid or missing dates
     }
@@ -95,10 +95,10 @@ const AssignmentsScreen = ({ navigation }) => {
     Assignment_fetch(); // Fetch data
   }, []);
 
-  const AssignmentCard = ({ item }) => (
+  const AssignmentCard = ({item}) => (
     <TouchableOpacity
       onPress={() =>
-        navigation.navigate('Assignment_Detail', { assignment: item })
+        navigation.navigate('Assignment_Detail', {assignment: item})
       }
       style={styles.assignmentCard}>
       <View style={styles.assignmentHeader}>
@@ -106,17 +106,20 @@ const AssignmentsScreen = ({ navigation }) => {
         <View
           style={[
             styles.statusBadge,
-            { backgroundColor: getStatusColor(item.submissionDate) ? '#E8F5E9' : '#ffb5a7' },
+            {
+              backgroundColor: getStatusColor(item.submissionDate)
+                ? '#E8F5E9'
+                : '#ffb5a7',
+            },
           ]}>
           <Text
             style={[
               styles.statusText,
               {
-                color:
-                   getStatusColor(item.submissionDate)
+                color: getStatusColor(item.submissionDate)
                   ? '#43A047'
-                  : '#e53935'
-              }
+                  : '#e53935',
+              },
             ]}>
             {new Date() > new Date(item.submissionDate) ? 'Expired' : 'Active'}
           </Text>
@@ -157,7 +160,7 @@ const AssignmentsScreen = ({ navigation }) => {
             borderWidth: 1,
             borderColor: '#e0e0e0',
           }}>
-          <Text style={{ color: '#001d3d', fontWeight: 'bold', fontSize: 16 }}>
+          <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
             {selectedBatchString?.name}
           </Text>
 
@@ -165,7 +168,7 @@ const AssignmentsScreen = ({ navigation }) => {
             name="keyboard-arrow-down"
             size={20}
             color="#001d3d"
-            style={{ paddingLeft: 5 }}
+            style={{paddingLeft: 5}}
           />
         </TouchableOpacity>
       </View>
@@ -212,7 +215,9 @@ const AssignmentsScreen = ({ navigation }) => {
             </View>
             <TouchableOpacity
               style={styles.createButton}
-              onPress={() => navigation.navigate('Assignment_Creation')}>
+              onPress={() =>
+                navigation.navigate('Assignment_Creation', {update: false})
+              }>
               <Text style={styles.createButtonText}>Create</Text>
             </TouchableOpacity>
           </View>
@@ -227,7 +232,7 @@ const AssignmentsScreen = ({ navigation }) => {
           ) : (
             <FlatList
               data={assignment}
-              renderItem={({ item }) => <AssignmentCard item={item} />}
+              renderItem={({item}) => <AssignmentCard item={item} />}
               keyExtractor={item => item.id.toString()}
               scrollEnabled={false}
               style={styles.assignmentsList}
@@ -235,10 +240,7 @@ const AssignmentsScreen = ({ navigation }) => {
           )}
         </ScrollView>
       )}
-      <BatchSelectorSheet
-        ref={refRBSheet}
-        onBatchSelect={handleBatchSelect}
-      />
+      <BatchSelectorSheet ref={refRBSheet} onBatchSelect={handleBatchSelect} />
     </View>
   );
 };
@@ -313,7 +315,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     marginBottom: 15,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 15,
