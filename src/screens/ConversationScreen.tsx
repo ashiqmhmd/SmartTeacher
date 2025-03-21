@@ -11,15 +11,15 @@ import {
   View,
   KeyboardAvoidingView,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {getapi, postApi} from '../utils/api';
+import {getapi, patchApi, postApi} from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
-import {postApi} from '../utils/api';
+import {pick} from '@react-native-documents/picker';
 
 const ConversationScreen = ({route, navigation}) => {
   const {
@@ -28,18 +28,31 @@ const ConversationScreen = ({route, navigation}) => {
     conversationId,
   } = route.params;
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [teacherId, setTeacherId] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
   const [selectedAttachments, setSelectedAttachments] = useState([]);
+  const [formData, setFormData] = useState(null);
   const flatListRef = useRef(null);
 
+  const loadUserData = async () => {
+    try {
+      const id = (await AsyncStorage.getItem('TeacherId')) || '';
+      setTeacherId(id);
+    } catch (err) {
+      console.error('Error loading user data:', err);
+      setError('Failed to load user data');
+    }
+  };
+
   useEffect(() => {
-    console.log('useeffect', conversationId);
+    loadUserData();
     if (deeplink && conversationId) {
-      console.log('entering deeplink get');
-      message_getting_by_id(conversationId);
-    } else {
+      console.log('Loading conversation from deeplink:', conversationId);
+      getMessageById(conversationId);
+    } else if (initialConversation) {
       // Combine original message with replies in chronological order
       const initialMessage = {
         sender: initialConversation?.sender,
@@ -54,65 +67,78 @@ const ConversationScreen = ({route, navigation}) => {
         ...(initialConversation?.replies || []),
       ];
       setMessages(allMessages);
+    } else {
+      setError('No conversation data provided');
     }
   }, [initialConversation, deeplink, conversationId]);
 
-  const message_getting_by_id = async id => {
+  const getMessageById = async id => {
     setLoading(true);
+    setError(null);
 
-    const Token = await AsyncStorage.getItem('Token');
-    const url = `/messages/${id}`;
-    const headers = {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${Token}`,
-    };
+    try {
+      const Token = await AsyncStorage.getItem('Token');
+      const url = `/messages/${id}`;
+      const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Token}`,
+      };
 
-    const onResponse = res => {
-      if (res) {
-        const originalMessage = {
-          id: res.id,
-          sender: res.sender,
-          senderName: res.senderName,
-          senderType: res.senderType,
-          content: res.content,
-          timestamp: res.timestamp,
-          attachmentUrls: res.attachmentUrls || [],
-          isOriginal: true,
-        };
+      const onResponse = res => {
+        if (res) {
+          const originalMessage = {
+            id: res.id,
+            sender: res.sender,
+            senderName: res.senderName,
+            senderType: res.senderType,
+            content: res.content,
+            timestamp: res.timestamp,
+            attachmentUrls: res.attachmentUrls || [],
+            isOriginal: true,
+          };
 
-        // Map replies to match the same structure as the original message
-        const replies = res.replies.map(reply => ({
-          id: reply.id || `reply-${Math.random()}`, // Ensure each reply has a unique ID
-          sender: reply.sender,
-          senderName: reply.senderName,
-          senderType: reply.senderType,
-          content: reply.content,
-          timestamp: reply.timestamp,
-          attachmentUrls: reply.attachmentUrls || [],
-          isOriginal: false,
-        }));
+          // Map replies to match the same structure as the original message
+          const replies = res.replies.map(reply => ({
+            id: reply.id || `reply-${Math.random()}`,
+            sender: reply.sender,
+            senderName: reply.senderName,
+            senderType: reply.senderType,
+            content: reply.content,
+            timestamp: reply.timestamp,
+            attachmentUrls: reply.attachmentUrls || [],
+            isOriginal: false,
+          }));
 
-        // Combine original message and replies into a single array
-        const allMessages = [originalMessage, ...replies];
+          // Combine original message and replies into a single array
+          const allMessages = [originalMessage, ...replies];
 
-        // Sort messages by timestamp
-        allMessages.sort(
-          (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
-        );
+          // Sort messages by timestamp
+          allMessages.sort(
+            (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
+          );
 
-        setMessages(allMessages);
-      }
+          setMessages(allMessages);
+        } else {
+          setError('Failed to load conversation');
+        }
+        setLoading(false);
+      };
+
+      const onCatch = err => {
+        console.error('Error fetching messages:', err);
+        setError('Failed to load conversation. Please try again.');
+        setLoading(false);
+      };
+
+      getapi(url, headers, onResponse, onCatch);
+    } catch (err) {
+      console.error('Exception when fetching messages:', err);
+      setError('An unexpected error occurred');
       setLoading(false);
-    };
-
-    const onCatch = err => {
-      console.error('Error fetching messages:', err);
-      setLoading(false);
-    };
-
-    getapi(url, headers, onResponse, onCatch);
+    }
   };
+
   const formatTime = dateString => {
     const date = new Date(dateString);
     return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
@@ -153,10 +179,108 @@ const ConversationScreen = ({route, navigation}) => {
     return groupedMessages;
   };
 
-  const isFromCurrentUser = async sender => {
-    // Replace with actual logic to check if sender is current user
-    // For demo purposes, assuming user@example.com is current user
-    return sender === (await AsyncStorage.getItem('TeacherId'));
+  const isFromCurrentUser = sender => {
+    return sender === teacherId;
+  };
+
+  const handleAttachment = async () => {
+    try {
+      const result = await pick({
+        type: ['*/*'],
+        allowMultiSelection: false,
+      });
+
+      if (result) {
+        console.log('Document selected:', result);
+
+        // Add selected file to attachments list for UI
+        const newAttachments = result.map(file => ({
+          name: file.name,
+          uri: file.uri,
+          type: file.type,
+          size: file.size,
+        }));
+
+        setSelectedAttachments(prev => [...prev, ...newAttachments]);
+
+        // Create file data for upload
+        const fileData = {
+          uri:
+            Platform.OS === 'android'
+              ? result[0].uri
+              : result[0].uri.replace('file://', ''),
+          type: result[0].type || 'application/pdf',
+          name: result[0].name || 'file.pdf',
+        };
+
+        console.log('File Data:', fileData);
+
+        // Create FormData for upload
+        const newFormData = new FormData();
+        newFormData.append('file', fileData);
+
+        console.log('FormData Object:', newFormData);
+
+        // Save FormData for later upload
+        setFormData(newFormData);
+      }
+    } catch (err) {
+      console.log('User cancelled document picker or error:', err);
+      if (err.code !== 'DOCUMENT_PICKER_CANCELED') {
+        console.error('Error picking document:', err);
+        Alert.alert('Error', 'Failed to select attachment');
+      }
+    }
+  };
+
+  const uploadAttachment = async () => {
+    if (!formData) {
+      console.log('No attachment to upload');
+      return null;
+    }
+
+    try {
+      console.log('Uploading attachment...');
+
+      const Token = await AsyncStorage.getItem('Token');
+
+      const url = `/uploads`; // Adjust this to match your API endpoint
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${Token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
+      });
+
+      console.log('Upload status code:', response.status);
+
+      const textResponse = await response.text();
+      console.log('Raw response:', textResponse);
+
+      let responseData;
+      try {
+        responseData = JSON.parse(textResponse);
+      } catch (error) {
+        console.error('Error parsing response:', error);
+        throw new Error('Invalid response from server');
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          `Upload failed: ${responseData.message || 'Unknown error'}`,
+        );
+      }
+
+      console.log('Upload successful:', responseData.url);
+      return responseData.url;
+    } catch (error) {
+      console.error('Error during file upload:', error.message);
+      Alert.alert('Error', 'Failed to upload attachment');
+      return null;
+    }
   };
 
   const sendMessage = async () => {
@@ -166,25 +290,44 @@ const ConversationScreen = ({route, navigation}) => {
     const messageContent = newMessage.trim();
     setNewMessage('');
 
-    const Teacher_id = (await AsyncStorage.getItem('TeacherId')) ?? '';
-
-    const newMessageObj = {
-      sender: Teacher_id,
-      senderName: 'keerthi',
-      senderType: 'TEACHER',
-      content: messageContent,
-      timestamp: new Date().toISOString(),
-      attachmentUrls: selectedAttachments,
-    };
-
-    setMessages(prevMessages => [...prevMessages, newMessageObj]);
-    setSelectedAttachments([]);
-
-    setTimeout(() => {
-      flatListRef.current?.scrollToEnd({animated: true});
-    }, 100);
-
     try {
+      // Upload attachment if exists
+      let attachmentUrls = [];
+
+      if (formData) {
+        const uploadedUrl = await uploadAttachment();
+        if (uploadedUrl) {
+          attachmentUrls = Array.isArray(uploadedUrl)
+            ? uploadedUrl
+            : [uploadedUrl];
+        }
+      }
+
+      // Create a temporary message object for immediate UI update
+      const newMessageObj = {
+        sender: teacherId,
+        senderName:
+          initialConversation.sender === teacherId
+            ? initialConversation.senderName
+            : initialConversation.receiverName,
+        senderType: 'TEACHER',
+        content: messageContent,
+        timestamp: new Date().toISOString(),
+        attachmentUrls: attachmentUrls,
+      };
+
+      // Add to messages list for instant feedback
+      setMessages(prevMessages => [...prevMessages, newMessageObj]);
+
+      // Clear attachments and form data
+      setSelectedAttachments([]);
+      setFormData(null);
+
+      // Scroll to bottom
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({animated: true});
+      }, 100);
+
       const Token = await AsyncStorage.getItem('Token');
       const url = `messages/${conversationId}/reply`;
       const headers = {
@@ -195,10 +338,14 @@ const ConversationScreen = ({route, navigation}) => {
 
       const data = {
         content: messageContent,
-        sender: Teacher_id,
-        senderName: 'keerthi',
+        sender: teacherId,
+        senderName:
+          initialConversation.sender === teacherId
+            ? initialConversation.senderName
+            : initialConversation.receiverName,
         senderType: 'TEACHER',
-        attachmentUrls: selectedAttachments,
+        timestamp: new Date().toISOString(),
+        attachmentUrls: attachmentUrls,
       };
 
       const onResponse = res => {
@@ -207,20 +354,31 @@ const ConversationScreen = ({route, navigation}) => {
       };
 
       const onCatch = err => {
-        console.log('Error sending message:', err);
+        console.error('Error sending message:', err);
         setSendingMessage(false);
+
+        // Show error to user
         Alert.alert('Error', 'Failed to send message. Please try again.');
+
+        // Optional: You could remove the temporary message and restore the text input
+        setMessages(prevMessages =>
+          prevMessages.filter(msg => msg !== newMessageObj),
+        );
+        setNewMessage(messageContent);
       };
 
-      postApi(url, headers, data, onResponse, onCatch);
+      patchApi(url, headers, data, onResponse, onCatch);
     } catch (error) {
-      console.log('Error sending message:', error);
+      console.error('Exception when sending message:', error);
       setSendingMessage(false);
+      Alert.alert(
+        'Error',
+        'An unexpected error occurred while sending message.',
+      );
     }
   };
 
   const renderItem = ({item}) => {
-    console.log(item);
     if (item.type === 'date') {
       return (
         <View style={styles.dateContainer}>
@@ -246,21 +404,21 @@ const ConversationScreen = ({route, navigation}) => {
               ? styles.userMessageBubble
               : styles.otherMessageBubble,
           ]}>
-          {/* Display sender name for replies */}
-          {!isCurrentUser && !item.isOriginal && (
-            <Text style={styles.messageSender}>{item.senderName}</Text>
-          )}
-
           <Text style={styles.messageContent}>{item.content}</Text>
 
           {/* Display attachments */}
           {item.attachmentUrls && item.attachmentUrls.length > 0 && (
             <View style={styles.attachmentsContainer}>
               {item.attachmentUrls.map((url, index) => (
-                <TouchableOpacity key={index} style={styles.attachment}>
+                <TouchableOpacity
+                  key={index}
+                  style={styles.attachment}
+                  onPress={() => handleOpenAttachment(url)}>
                   <MaterialIcons name="attachment" size={20} color="#001d3d" />
                   <Text style={styles.attachmentText}>
-                    {url.split('/').pop()}
+                    {typeof url === 'string'
+                      ? url.split('/').pop()
+                      : url.name || 'Attachment'}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -274,12 +432,24 @@ const ConversationScreen = ({route, navigation}) => {
     );
   };
 
-  const handleAttachment = () => {
-    console.log('Adding attachment');
-    setSelectedAttachments([
-      ...selectedAttachments,
-      `http://example.com/attachment${selectedAttachments.length + 1}.pdf`,
-    ]);
+  const handleOpenAttachment = url => {
+    // In a real app, this would open the attachment
+    console.log('Opening attachment:', url);
+    Alert.alert(
+      'Opening Attachment',
+      typeof url === 'string' ? url.split('/').pop() : url.name || 'Attachment',
+    );
+  };
+
+  const handleRemoveAttachment = index => {
+    const newAttachments = [...selectedAttachments];
+    newAttachments.splice(index, 1);
+    setSelectedAttachments(newAttachments);
+
+    // If no attachments left, clear formData
+    if (newAttachments.length === 0) {
+      setFormData(null);
+    }
   };
 
   return (
@@ -294,7 +464,11 @@ const ConversationScreen = ({route, navigation}) => {
           <Ionicons name="arrow-back" size={28} color="#001d3d" />
         </TouchableOpacity>
         <View style={styles.appBarTitle}>
-          <Text style={styles.conversationSubject}>{conversation.subject}</Text>
+          <Text style={styles.conversationSubject}>
+            {initialConversation.sender === teacherId
+              ? initialConversation.receiverName
+              : initialConversation.senderName}
+          </Text>
         </View>
         <TouchableOpacity onPress={() => console.log('More options')}>
           <MaterialIcons name="more-vert" size={28} color="#001d3d" />
@@ -305,6 +479,18 @@ const ConversationScreen = ({route, navigation}) => {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#001d3d" />
           <Text style={styles.loadingText}>Loading conversation...</Text>
+        </View>
+      ) : error ? (
+        <View style={styles.errorContainer}>
+          <MaterialIcons name="error-outline" size={48} color="#d32f2f" />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() =>
+              deeplink && conversationId ? getMessageById(conversationId) : null
+            }>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <FlatList
@@ -325,14 +511,12 @@ const ConversationScreen = ({route, navigation}) => {
             renderItem={({item, index}) => (
               <View style={styles.selectedAttachment}>
                 <Text style={styles.selectedAttachmentText} numberOfLines={1}>
-                  {item.split('/').pop()}
+                  {item.name ||
+                    (typeof item === 'string'
+                      ? item.split('/').pop()
+                      : 'Attachment')}
                 </Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    const newAttachments = [...selectedAttachments];
-                    newAttachments.splice(index, 1);
-                    setSelectedAttachments(newAttachments);
-                  }}>
+                <TouchableOpacity onPress={() => handleRemoveAttachment(index)}>
                   <Ionicons name="close-circle" size={20} color="#001d3d" />
                 </TouchableOpacity>
               </View>
@@ -361,8 +545,8 @@ const ConversationScreen = ({route, navigation}) => {
         <TouchableOpacity
           style={[
             styles.sendButton,
-            newMessage.trim() === '' &&
-              selectedAttachments.length === 0 &&
+            ((newMessage.trim() === '' && selectedAttachments.length === 0) ||
+              sendingMessage) &&
               styles.sendButtonDisabled,
           ]}
           disabled={
@@ -422,6 +606,29 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: '#666',
   },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    marginTop: 10,
+    color: '#d32f2f',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  retryButton: {
+    marginTop: 20,
+    backgroundColor: '#001d3d',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
   messagesList: {
     padding: 10,
     paddingBottom: 20,
@@ -449,6 +656,12 @@ const styles = StyleSheet.create({
   otherMessageBubble: {
     backgroundColor: '#fff',
     borderBottomLeftRadius: 4,
+  },
+  messageSender: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#001d3d',
+    marginBottom: 3,
   },
   messageContent: {
     fontSize: 15,
