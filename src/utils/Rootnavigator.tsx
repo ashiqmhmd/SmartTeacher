@@ -20,6 +20,7 @@ import AssignmentDetailsScreen from '../screens/AssignmentDetailsScreen';
 import NoteDetailsScreen from '../screens/NoteDetailsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ConversationScreen from '../screens/ConversationScreen';
+import StudentListing from '../screens/StudentListingScreen';
 // import ConversationScreen from '../screens/ConversationScreen';
 
 type Props = {};
@@ -59,9 +60,11 @@ const Rootnavigator = () => {
       <Stack.Screen name="Chat" component={ConversationScreen} />
       <Stack.Screen name="Student_Create" component={StudentCreation} />
       <Stack.Screen name="Student_Detail" component={StudentDetailsScreen} />
+      <Stack.Screen name="Student_List" component={StudentListing} />
       <Stack.Screen name="Batch_Create" component={BatchCreation} />
       <Stack.Screen name="Notification" component={NotificationScreen} />
       <Stack.Screen name="Tabs" component={BottomTabNavigator} />
+
     </Stack.Navigator>
   );
 };
