@@ -254,7 +254,7 @@ const ChatsScreen = ({navigation}) => {
             </View>
             <TouchableOpacity
               style={styles.composeButton}
-              onPress={() => navigation.navigate('ComposeMessage')}>
+              onPress={() => navigation.navigate('Student_List')}>
               <MaterialIcons name="edit" size={24} color="#ffffff" />
             </TouchableOpacity>
           </View>
