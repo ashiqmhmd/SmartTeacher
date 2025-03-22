@@ -20,6 +20,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import {getapi, patchApi, postApi} from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {pick} from '@react-native-documents/picker';
+import {base_url} from '../utils/store';
 
 const ConversationScreen = ({route, navigation}) => {
   const {deeplink, conversationId} = route?.params;
@@ -199,39 +200,29 @@ const ConversationScreen = ({route, navigation}) => {
         allowMultiSelection: false,
       });
 
-      if (result) {
+      if (result && result.length > 0) {
         console.log('Document selected:', result);
+        const selectedFile = result[0];
 
-        // Add selected file to attachments list for UI
-        const newAttachments = result.map(file => ({
-          name: file.name,
-          uri: file.uri,
-          type: file.type,
-          size: file.size,
-        }));
-
-        setSelectedAttachments(prev => [...prev, ...newAttachments]);
-
-        // Create file data for upload
+        // Create file data structure matching the assignment screen
         const fileData = {
           uri:
             Platform.OS === 'android'
-              ? result[0].uri
-              : result[0].uri.replace('file://', ''),
-          type: result[0].type || 'application/pdf',
-          name: result[0].name || 'file.pdf',
+              ? selectedFile.uri
+              : selectedFile.uri.replace('file://', ''),
+          type: selectedFile.type || 'application/pdf',
+          name: selectedFile.name || 'file.pdf',
+          size: selectedFile.size,
         };
 
         console.log('File Data:', fileData);
 
-        // Create FormData for upload
-        const newFormData = new FormData();
-        newFormData.append('file', fileData);
+        // Store the selected file in the state - this is what we'll use to upload
+        setSelectedAttachments([fileData]);
 
-        console.log('FormData Object:', newFormData);
-
-        // Save FormData for later upload
-        setFormData(newFormData);
+        // We don't need to create FormData here, that happens in uploadAttachment
+        // Just set formData to a non-null value to indicate we have an attachment
+        setFormData({});
       }
     } catch (err) {
       console.log('User cancelled document picker or error:', err);
@@ -243,7 +234,7 @@ const ConversationScreen = ({route, navigation}) => {
   };
 
   const uploadAttachment = async () => {
-    if (!formData) {
+    if (!formData || selectedAttachments.length === 0) {
       console.log('No attachment to upload');
       return null;
     }
@@ -252,8 +243,13 @@ const ConversationScreen = ({route, navigation}) => {
       console.log('Uploading attachment...');
 
       const Token = await AsyncStorage.getItem('Token');
+      const fileData = selectedAttachments[0]; // Get the file data from selected attachments
 
-      const url = `/uploads`; // Adjust this to match your API endpoint
+      // Create FormData - this is the key fix
+      const formDataToUpload = new FormData();
+      formDataToUpload.append('file', fileData);
+
+      const url = `${base_url}uploads`;
 
       const response = await fetch(url, {
         method: 'POST',
@@ -261,7 +257,7 @@ const ConversationScreen = ({route, navigation}) => {
           Authorization: `Bearer ${Token}`,
           'Content-Type': 'multipart/form-data',
         },
-        body: formData,
+        body: formDataToUpload,
       });
 
       console.log('Upload status code:', response.status);
@@ -303,7 +299,7 @@ const ConversationScreen = ({route, navigation}) => {
       // Upload attachment if exists
       let attachmentUrls = [];
 
-      if (formData) {
+      if (formData && selectedAttachments.length > 0) {
         const uploadedUrl = await uploadAttachment();
         if (uploadedUrl) {
           attachmentUrls = Array.isArray(uploadedUrl)
@@ -437,7 +433,7 @@ const ConversationScreen = ({route, navigation}) => {
       // Upload attachment if exists
       let attachmentUrls = [];
 
-      if (formData) {
+      if (formData && selectedAttachments.length > 0) {
         const uploadedUrl = await uploadAttachment();
         if (uploadedUrl) {
           attachmentUrls = Array.isArray(uploadedUrl)
@@ -455,9 +451,9 @@ const ConversationScreen = ({route, navigation}) => {
         content: messageContent,
         timestamp: new Date().toISOString(),
         attachmentUrls: attachmentUrls,
-        receiverName: student.id,
+        receiverName: student.userName,
         receiverType: 'STUDENT',
-        receiver: student.userName,
+        receiver: student.id,
         batchId: Batch_id,
       };
 
