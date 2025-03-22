@@ -904,6 +904,7 @@ const styles = StyleSheet.create({
   },
   attachmentsContainer: {
     marginTop: 8,
+    minWidth: 150,
   },
   attachment: {
     flexDirection: 'row',
@@ -912,6 +913,7 @@ const styles = StyleSheet.create({
     padding: 6,
     borderRadius: 8,
     marginVertical: 2,
+    width: '100%',
   },
   attachmentText: {
     fontSize: 12,
