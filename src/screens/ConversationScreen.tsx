@@ -23,18 +23,19 @@ import {pick} from '@react-native-documents/picker';
 
 const ConversationScreen = ({route, navigation}) => {
   const {deeplink, conversationId} = route?.params;
-  const [createmessage,setcreate] = useState(false)
+  const [createmessage, setcreate] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [teacherId, setTeacherId] = useState('');
-  const [TeacherName, setTeacherName] = useState();
+  const [TeacherName, setTeacherName] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
   const [selectedAttachments, setSelectedAttachments] = useState([]);
   const [formData, setFormData] = useState(null);
   const [conversationData, setConversationData] = useState(null);
-  const [student,setstudent] = useState([]) 
+  const [student, setstudent] = useState([]);
   const flatListRef = useRef(null);
   const loadUserData = async () => {
     try {
@@ -53,8 +54,8 @@ const ConversationScreen = ({route, navigation}) => {
     const create = route?.params?.create;
     setstudent(studentData);
     setcreate(create);
-  },[route?.params?.create && route?.params?.student])
-
+    TeacherDetails();
+  }, [route?.params?.create && route?.params?.student]);
 
   useEffect(() => {
     loadUserData();
@@ -386,7 +387,45 @@ const ConversationScreen = ({route, navigation}) => {
     }
   };
 
+  const TeacherDetails = async () => {
+    try {
+      setLoading(true);
+
+      const Token = await AsyncStorage.getItem('Token');
+      if (!Token) {
+        throw new Error('No token found, authentication required');
+      }
+
+      const url = `teachers/${teacherId}`;
+      const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Token}`,
+      };
+
+      const onResponse = res => {
+        if (res) {
+          setTeacherName(res.firstName + ' ' + res.lastName);
+          console.log(res);
+        }
+        setLoading(false);
+      };
+
+      const onCatch = error => {
+        console.error('API Error:', error);
+        setLoading(false);
+      };
+
+      getapi(url, headers, onResponse, onCatch);
+    } catch (error) {
+      console.error('TeacherDetails Error:', error.message);
+      setLoading(false);
+    }
+  };
+
   const Create_message = async () => {
+    console.log(TeacherName);
+
     const Batch_id = await AsyncStorage.getItem('batch_id');
     if (newMessage.trim() === '' && selectedAttachments.length === 0) return;
 
@@ -409,7 +448,7 @@ const ConversationScreen = ({route, navigation}) => {
 
       // Create a temporary message object for immediate UI update
       const newMessageObj = {
-        subject: "just chat",
+        subject: 'just chat',
         sender: teacherId,
         senderName: TeacherName,
         senderType: 'TEACHER',
@@ -417,11 +456,10 @@ const ConversationScreen = ({route, navigation}) => {
         timestamp: new Date().toISOString(),
         attachmentUrls: attachmentUrls,
         receiverName: student.id,
-        receiverType:"STUDENT",
-        receiver:student.userName,
-        batchId:Batch_id
+        receiverType: 'STUDENT',
+        receiver: student.userName,
+        batchId: Batch_id,
       };
-
 
       // Add to messages list for instant feedback
       setMessages(prevMessages => [...prevMessages, newMessageObj]);
@@ -444,22 +482,48 @@ const ConversationScreen = ({route, navigation}) => {
       };
 
       const data = {
-        subject: "just chat",
+        subject: 'just chat',
         sender: teacherId,
         senderName: TeacherName,
         senderType: 'TEACHER',
         content: messageContent,
         timestamp: new Date().toISOString(),
         attachmentUrls: attachmentUrls,
-        receiverName:student.userName,
-        receiverType:"STUDENT",
-        receiver:student.id,
-        batchId:Batch_id
+        receiverName: student.userName,
+        receiverType: 'STUDENT',
+        receiver: student.id,
+        batchId: Batch_id,
       };
 
       const onResponse = res => {
         console.log('Message Created successfully:', res);
         setSendingMessage(false);
+
+        // Show success notification
+        setShowSuccess(true);
+
+        // Update the conversation with the actual message ID from the server response
+        if (res && res.id) {
+          setMessages(prevMessages =>
+            prevMessages.map(msg =>
+              msg === newMessageObj ? {...msg, id: res.id} : msg,
+            ),
+          );
+
+          // Navigate to the conversation view with the new conversation ID
+          setTimeout(() => {
+            navigation.replace('Chat', {
+              conversationId: res.id,
+              student: student,
+              create: false,
+            });
+          }, 1500);
+        }
+
+        // Hide success notification after 3 seconds
+        setTimeout(() => {
+          setShowSuccess(false);
+        }, 3000);
       };
 
       const onCatch = err => {
@@ -574,7 +638,9 @@ const ConversationScreen = ({route, navigation}) => {
         </TouchableOpacity>
         <View style={styles.appBarTitle}>
           <Text style={styles.conversationSubject}>
-            {conversationData?.sender === teacherId
+            {createmessage
+              ? student.userName
+              : conversationData?.sender === teacherId
               ? conversationData?.receiverName
               : conversationData?.senderName}
           </Text>
@@ -584,11 +650,51 @@ const ConversationScreen = ({route, navigation}) => {
         </TouchableOpacity>
       </View>
 
+      {showSuccess && (
+        <View style={styles.successNotification}>
+          <MaterialIcons name="check-circle" size={24} color="#fff" />
+          <Text style={styles.successNotificationText}>
+            Message sent successfully
+          </Text>
+          <TouchableOpacity onPress={() => setShowSuccess(false)}>
+            <MaterialIcons name="close" size={20} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      )}
+
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#001d3d" />
           <Text style={styles.loadingText}>Loading conversation...</Text>
         </View>
+      ) : createmessage ? (
+        <FlatList
+          ref={flatListRef}
+          data={messages.length > 0 ? groupMessagesByDate() : []}
+          renderItem={renderItem}
+          keyExtractor={item => item.id || `temp-${Math.random()}`}
+          contentContainerStyle={styles.messagesList}
+          ListEmptyComponent={() => (
+            <View style={styles.emptyConversationContainer}>
+              <MaterialCommunityIcons
+                name="chat-outline"
+                size={60}
+                color="#bdbdbd"
+              />
+              <Text style={styles.emptyConversationText}>
+                Start a conversation with {student.userName}
+              </Text>
+              <Text style={styles.emptyConversationSubtext}>
+                Send a message to begin chatting
+              </Text>
+            </View>
+          )}
+          onLayout={() => {
+            if (messages.length > 0 && flatListRef.current) {
+              flatListRef.current.scrollToEnd({animated: false});
+            }
+          }}
+        />
       ) : error ? (
         <View style={styles.errorContainer}>
           <MaterialIcons name="error-outline" size={48} color="#d32f2f" />
@@ -667,7 +773,7 @@ const ConversationScreen = ({route, navigation}) => {
             (newMessage.trim() === '' && selectedAttachments.length === 0) ||
             sendingMessage
           }
-          onPress={() => createmessage? Create_message() : sendMessage()}>
+          onPress={() => (createmessage ? Create_message() : sendMessage())}>
           {sendingMessage ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
@@ -872,5 +978,48 @@ const styles = StyleSheet.create({
     color: '#001d3d',
     marginRight: 5,
     maxWidth: 150,
+  },
+  emptyConversationContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 30,
+    minHeight: 300,
+  },
+  emptyConversationText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#001d3d',
+    marginTop: 20,
+    textAlign: 'center',
+  },
+  emptyConversationSubtext: {
+    fontSize: 14,
+    color: '#757575',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  successNotification: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    right: 20,
+    backgroundColor: '#4CAF50',
+    padding: 12,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 1000,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  successNotificationText: {
+    color: '#fff',
+    flex: 1,
+    marginLeft: 10,
+    fontWeight: '500',
   },
 });
