@@ -547,6 +547,26 @@ const ConversationScreen = ({route, navigation}) => {
     }
   };
 
+  const handleOpenAttachment = url => {
+    // In a real app, this would open the attachment
+    console.log('Opening attachment:', url);
+    Alert.alert(
+      'Opening Attachment',
+      typeof url === 'string' ? url.split('/').pop() : url.name || 'Attachment',
+    );
+  };
+
+  const handleRemoveAttachment = index => {
+    const newAttachments = [...selectedAttachments];
+    newAttachments.splice(index, 1);
+    setSelectedAttachments(newAttachments);
+
+    // If no attachments left, clear formData
+    if (newAttachments.length === 0) {
+      setFormData(null);
+    }
+  };
+
   const renderItem = ({item}) => {
     if (item.type === 'date') {
       return (
@@ -599,26 +619,6 @@ const ConversationScreen = ({route, navigation}) => {
         </View>
       </View>
     );
-  };
-
-  const handleOpenAttachment = url => {
-    // In a real app, this would open the attachment
-    console.log('Opening attachment:', url);
-    Alert.alert(
-      'Opening Attachment',
-      typeof url === 'string' ? url.split('/').pop() : url.name || 'Attachment',
-    );
-  };
-
-  const handleRemoveAttachment = index => {
-    const newAttachments = [...selectedAttachments];
-    newAttachments.splice(index, 1);
-    setSelectedAttachments(newAttachments);
-
-    // If no attachments left, clear formData
-    if (newAttachments.length === 0) {
-      setFormData(null);
-    }
   };
 
   return (
