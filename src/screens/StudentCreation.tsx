@@ -559,7 +559,7 @@ const StudentCreation = ({ navigation, route }) => {
               styles.saveButton,
               (isSaving || isUploading) && styles.saveButtonDisabled,
             ]}
-            onPress={() => update ? updatestudent() : handleSave}
+            onPress={() => update ? updatestudent() : handleSave()}
             disabled={isSaving || isUploading}>
             {isSaving ? (
               <ActivityIndicator color="#FFFFFF" />

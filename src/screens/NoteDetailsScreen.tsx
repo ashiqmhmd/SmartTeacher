@@ -92,7 +92,7 @@ const NoteDetailsScreen = ({route, navigation}) => {
                 <TouchableOpacity
                   key={index}
                   style={styles.resourceCard}
-                  onPress={() => handleOpenResource(url)}
+                  onPress={() => handleOpenAttachment(url)}
                   disabled={downloading}>
                   <LinearGradient
                     colors={['#f8f9ff', '#ffffff']}
