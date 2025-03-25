@@ -105,7 +105,7 @@ const CreateAssignment = ({navigation, route}) => {
     console.log(size);
     const newErrors = {};
     console.log(size > 2 * 1024 * 1024);
-    if (size > 2 * 1024) {
+    if (size > 2 * 1024 * 1024) {
       newErrors.attachment = 'File size must be less than 2MB';
       setErrors(newErrors);
       return false;
