@@ -7,23 +7,22 @@ import {
   Platform,
   Alert,
   Linking,
-  Animated
+  Animated,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { notificationz } from '../dumyDb';
-import { getapi, patchApi } from '../utils/api';
+import {notificationz} from '../dumyDb';
+import {getapi, patchApi} from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
-const NotificationScreen = ({ navigation }) => {
+const NotificationScreen = ({navigation}) => {
   const [notifications, setNotifications] = useState();
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
 
- const animateSuccess = () => {
+  const animateSuccess = () => {
     Animated.sequence([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -41,10 +40,10 @@ const NotificationScreen = ({ navigation }) => {
 
   const handleNotificationPress = notification => {
     const updatedNotifications = notifications.map(item =>
-      item.id === notification.id ? { ...item, seen: true } : item,
+      item.id === notification.id ? {...item, seen: true} : item,
     );
-    console.log(notification)
-    Notification_marking(notification.id)
+    console.log(notification);
+    Notification_marking(notification.id);
     setNotifications(updatedNotifications);
 
     // Handle the deeplink based on notification type
@@ -54,41 +53,54 @@ const NotificationScreen = ({ navigation }) => {
       const objectId = urlParts[urlParts.length - 1];
 
       // Navigate based on notification type
-      switch(notification.type) {
+      switch (notification.type) {
         case 'MESSAGE':
-          navigation.navigate('Chat', { conversationId: objectId,deeplink:true});
+          navigation.navigate('Chat', {
+            conversationId: objectId,
+            deeplink: true,
+          });
           break;
         case 'ASSIGNMENT':
-          navigation.navigate('Assignment_Detail', { assignmentId: objectId,deeplink:true });
+          navigation.navigate('Assignment_Detail', {
+            assignmentId: objectId,
+            deeplink: true,
+          });
           break;
         case 'NOTE':
-          navigation.navigate('Note_Detail', { noteId: objectId,deeplink:true });
+          navigation.navigate('Note_Detail', {
+            noteId: objectId,
+            deeplink: true,
+          });
           break;
         case 'FEE':
-          navigation.navigate('Fees_Detail', { feeId: objectId ,deeplink:true});
+          navigation.navigate('Fees_Detail', {feeId: objectId, deeplink: true});
           break;
         case 'STUDENT':
-          navigation.navigate('Student_Detail', { studentId: objectId,deeplink:true });
+          navigation.navigate('Student_Detail', {
+            studentId: objectId,
+            deeplink: true,
+          });
           break;
         default:
           // If type is unknown, try to parse the path from the URL
           const path = urlParts[urlParts.length - 2];
           if (path === 'messages') {
-            navigation.navigate('Chat', { conversationId: objectId, deeplink:true});
+            navigation.navigate('Chat', {
+              conversationId: objectId,
+              deeplink: true,
+            });
           }
           // Add other path checks as needed
           break;
       }
     }
-  }
-
+  };
 
   const Notification_marking = async (notification_id: any) => {
     try {
       const Token = await AsyncStorage.getItem('Token');
 
-
-      const url = `/notifications/${notification_id}/seen`
+      const url = `/notifications/${notification_id}/seen`;
       const headers = {
         Accept: 'application/json',
         'Content-Type': 'application/json',
@@ -96,37 +108,30 @@ const NotificationScreen = ({ navigation }) => {
       };
 
       const onResponse = res => {
-        setShowSuccessMessage(true)
-        animateSuccess
-        console.log(res)
-        console.log("notification marked")
+        setShowSuccessMessage(true);
+        animateSuccess;
+        console.log(res);
+        console.log('notification marked');
         setTimeout(() => {
           setShowSuccessMessage(false);
         }, 2000);
-
       };
 
       const onCatch = error => {
         console.error('Error in notification marking:', error);
-        Alert.alert(
-          'Error',
-          'Failed to mark notification. Please try again.',
-          [{ text: 'OK' }],
-        );
+        Alert.alert('Error', 'Failed to mark notification. Please try again.', [
+          {text: 'OK'},
+        ]);
       };
 
       patchApi(url, headers, null, onResponse, onCatch);
     } catch (error) {
       console.error('Error marking notification:', error);
-      Alert.alert(
-        'Error',
-        'Failed to mark notification. Please try again.',
-        [{ text: 'OK' }],
-      );
-
+      Alert.alert('Error', 'Failed to mark notification. Please try again.', [
+        {text: 'OK'},
+      ]);
     }
-  }
-
+  };
 
   const Notification_fetch = async () => {
     const Token = await AsyncStorage.getItem('Token');
@@ -141,6 +146,7 @@ const NotificationScreen = ({ navigation }) => {
     const onResponse = res => {
       console.log('hiii');
       console.log(Teacher_id);
+      console.log('res', res);
       setNotifications(res);
     };
 
@@ -155,9 +161,7 @@ const NotificationScreen = ({ navigation }) => {
     Notification_fetch();
   }, [1]);
 
-
-
-  const renderNotificationCard = ({ item }) => (
+  const renderNotificationCard = ({item}) => (
     <TouchableOpacity
       style={[
         styles.notificationCard,
@@ -167,7 +171,7 @@ const NotificationScreen = ({ navigation }) => {
       <View
         style={[
           styles.iconContainer,
-          { backgroundColor: `${item.iconColor}15` },
+          {backgroundColor: `${item.iconColor}15`},
         ]}>
         {item.type === 'MESSAGE' ? (
           <MaterialIcons name="message" size={24} color="#4CAF50" />
@@ -187,8 +191,8 @@ const NotificationScreen = ({ navigation }) => {
             {item.type === 'MESSAGE'
               ? 'NEW MESSAGE'
               : item.type === 'FEE_PAID'
-                ? 'FEE PAID'
-                : 'NEW STUDENT'}
+              ? 'FEE PAID'
+              : 'NEW STUDENT'}
           </Text>
           <Text style={styles.timeText}>{item.time}</Text>
         </View>
@@ -208,7 +212,7 @@ const NotificationScreen = ({ navigation }) => {
         <MaterialIcons name="arrow-back" size={24} color="rgba(0, 0, 0, 0)" />
       </View>
       {showSuccessMessage && (
-        <Animated.View style={[styles.successMessage, { opacity: fadeAnim }]}>
+        <Animated.View style={[styles.successMessage, {opacity: fadeAnim}]}>
           <MaterialIcons name="check-circle" size={24} color="#059669" />
           <Text style={styles.successText}>{'Notification read marked'}</Text>
         </Animated.View>
@@ -255,7 +259,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     alignItems: 'center',
     shadowColor: 'rgb(105, 144, 252)',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 12,
