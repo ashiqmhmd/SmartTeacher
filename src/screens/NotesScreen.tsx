@@ -33,7 +33,7 @@ const NotesScreen = ({navigation}) => {
   const refRBSheet = useRef();
   const dispatch = useDispatch();
 
-  const handleBatchSelect = async (batch) => {
+  const handleBatchSelect = async batch => {
     await AsyncStorage.setItem('batch_id', batch.id.toString());
     await AsyncStorage.setItem('batch', JSON.stringify(batch));
     dispatch(batch_id(batch.id));
@@ -181,6 +181,7 @@ const NotesScreen = ({navigation}) => {
               <TextInput
                 style={styles.searchInput}
                 placeholder="Search notes"
+                placeholderTextColor="#666"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
@@ -195,9 +196,7 @@ const NotesScreen = ({navigation}) => {
           {notes.length === 0 ? (
             <View style={styles.noNotesContainer}>
               <MaterialIcons name="description" size={48} color="#ccc" />
-              <Text style={styles.noNotesText}>
-                No notes in this batch
-              </Text>
+              <Text style={styles.noNotesText}>No notes in this batch</Text>
             </View>
           ) : (
             <FlatList
@@ -210,10 +209,7 @@ const NotesScreen = ({navigation}) => {
           )}
         </ScrollView>
       )}
-      <BatchSelectorSheet
-        ref={refRBSheet}
-        onBatchSelect={handleBatchSelect}
-      />
+      <BatchSelectorSheet ref={refRBSheet} onBatchSelect={handleBatchSelect} />
     </View>
   );
 };
