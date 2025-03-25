@@ -209,6 +209,7 @@ const AssignmentsScreen = ({navigation}) => {
               <TextInput
                 style={styles.searchInput}
                 placeholder="Search assignments"
+                placeholderTextColor="#666"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
