@@ -195,43 +195,94 @@ const CreateAssignment = ({navigation, route}) => {
     }
   };
 
+  // const handleAttachments = async () => {
+  //   try {
+  //     const result = await pick({
+  //       allowMultiSelection: false,
+  //       type: ['*/*'],
+  //     });
+
+  //     if (result && result.length > 0) {
+  //       console.log('Document selected:', result);
+  //       const selectedFile = result[0];
+  //       let size = selectedFile.size;
+
+  //       // Validate file size
+  //       if (!attachmentValidation(size)) {
+  //         return;
+  //       }
+
+  //       const fileData = {
+  //         uri:
+  //           Platform.OS === 'android'
+  //             ? selectedFile.uri
+  //             : selectedFile.uri.replace('file://', ''),
+  //         type: selectedFile.type || 'application/pdf',
+  //         name: selectedFile.name || 'file.pdf',
+  //         size: selectedFile.size,
+  //         isExisting: false, // Flag to identify new attachments
+  //       };
+
+  //       // Add to attachment list for UI
+  //       setAttachmentList(prev => [...prev, fileData]);
+
+  //       // Add to attachments to upload list
+  //       setAttachmentsToUpload(prev => [...prev, fileData]);
+  //     }
+  //   } catch (error) {
+  //     console.error('Document Picker Error:', error);
+  //   }
+  // };
+
   const handleAttachments = async () => {
     try {
       const result = await pick({
-        allowMultiSelection: false,
+        allowMultiSelection: true, // Enable multiple file selection
         type: ['*/*'],
       });
 
       if (result && result.length > 0) {
-        console.log('Document selected:', result);
-        const selectedFile = result[0];
-        let size = selectedFile.size;
+        console.log('Documents selected:', result);
 
-        // Validate file size
-        if (!attachmentValidation(size)) {
-          return;
+        // Validate file sizes and create file objects
+        const newFiles = result
+          .map(file => ({
+            uri:
+              Platform.OS === 'android'
+                ? file.uri
+                : file.uri.replace('file://', ''),
+            type: file.type || 'application/pdf',
+            name: file.name || 'file.pdf',
+            size: file.size,
+            isExisting: false,
+          }))
+          .filter(file => attachmentValidation(file.size)); // Remove invalid files
+
+        if (newFiles.length === 0) {
+          return; // No valid files to upload
         }
 
-        const fileData = {
-          uri:
-            Platform.OS === 'android'
-              ? selectedFile.uri
-              : selectedFile.uri.replace('file://', ''),
-          type: selectedFile.type || 'application/pdf',
-          name: selectedFile.name || 'file.pdf',
-          size: selectedFile.size,
-          isExisting: false, // Flag to identify new attachments
-        };
-
-        // Add to attachment list for UI
-        setAttachmentList(prev => [...prev, fileData]);
-
-        // Add to attachments to upload list
-        setAttachmentsToUpload(prev => [...prev, fileData]);
+        // Update UI list and upload list
+        setAttachmentList(prev => [...prev, ...newFiles]);
+        setAttachmentsToUpload(prev => [...prev, ...newFiles]);
       }
     } catch (error) {
       console.error('Document Picker Error:', error);
     }
+  };
+
+  // Function to upload multiple files and get their URLs
+  const uploadMultipleFiles = async files => {
+    const uploadedUrls = [];
+
+    for (const file of files) {
+      const uploadedUrl = await uploadSingleFile(file);
+      if (uploadedUrl) {
+        uploadedUrls.push(uploadedUrl);
+      }
+    }
+
+    return uploadedUrls;
   };
 
   const uploadSingleFile = async fileData => {
@@ -282,31 +333,42 @@ const CreateAssignment = ({navigation, route}) => {
   };
 
   const Assignment_Submit = async assignmentData => {
-    const Token = await AsyncStorage.getItem('Token');
+    try {
+      const Token = await AsyncStorage.getItem('Token');
 
-    const url = `assignments`;
-    const headers = {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${Token}`,
-    };
+      if (!Token) {
+        throw new Error('Authentication token is missing.');
+      }
 
-    const body = {
-      ...assignmentData,
-    };
+      // Upload attachments first and get the URLs
+      const uploadedUrls = await uploadMultipleFiles(attachmentsToUpload);
 
-    const onResponse = res => {
-      setAssignment(res);
-      navigation.goBack();
-    };
+      const url = `assignments`;
+      const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Token}`,
+      };
 
-    const onCatch = res => {
-      console.log('Error');
-      console.log(res);
-    };
+      const body = {
+        ...assignmentData,
+        attachmentUrls: uploadedUrls, // Assign the uploaded URLs to the assignment
+      };
 
-    postApi(url, headers, body, onResponse, onCatch);
-    console.log(body);
+      const onResponse = res => {
+        setAssignment(res);
+        navigation.goBack();
+      };
+
+      const onCatch = error => {
+        console.error('Error submitting assignment:', error);
+      };
+
+      postApi(url, headers, body, onResponse, onCatch);
+      console.log('Assignment Submitted:', body);
+    } catch (error) {
+      console.error('Error during assignment submission:', error);
+    }
   };
 
   const Assignment_Update = async assignmentData => {
