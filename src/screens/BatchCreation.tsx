@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -18,13 +18,19 @@ import Toast from 'react-native-toast-message';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { getUserId } from '../utils/TokenDecoder';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { postApi } from '../utils/api';
+import { postApi, putapi } from '../utils/api';
 import { useRoute } from '@react-navigation/core';
 import { useDispatch } from 'react-redux';
 import { fetch_batchs, setBatchCreated } from '../utils/authslice';
 
-const BatchCreation = ({ navigation }) => {
-  const [batch, setBatch] = useState({
+const BatchCreation = ({ navigation,route }) => {
+  const isEditMode = route.params?.update ? true : false;
+  const [batch, setBatch] = useState(
+
+    isEditMode ?
+    route?.params?.batch
+    :
+    {
     name: '',
     course: '',
     subject: '',
@@ -33,7 +39,6 @@ const BatchCreation = ({ navigation }) => {
     paymentAmount: '',
     paymentDayOfMonth: '',
   });
-  const route = useRoute();
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -88,7 +93,13 @@ const BatchCreation = ({ navigation }) => {
     if (!validateForm()) return;
 
     setIsSaving(true);
+    isEditMode ?
+     Batch_update()
+    
+    :
     Batch_Creation();
+
+
     await new Promise(resolve => setTimeout(resolve, 1500));
     setIsSaving(false);
     setShowSuccessMessage(true);
@@ -105,8 +116,7 @@ const BatchCreation = ({ navigation }) => {
     setShowFrequencyDropdown(false);
   };
 
-
-
+  
   const Batch_Creation = async () => {
     try {
       const Token = await AsyncStorage.getItem('Token');
@@ -164,6 +174,60 @@ const BatchCreation = ({ navigation }) => {
       Alert.alert('Error', error.message);
     }
   };
+
+
+  const Batch_update = async () => {
+    try {
+      const Token = await AsyncStorage.getItem('Token');
+      if (!Token) {
+        throw new Error('No token found, authentication required');
+      }
+
+     
+      const url = `batches/${batch.id}`;
+      const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Token}`,
+      };
+
+      const { teacherId,id,  ...filteredBatch } = batch; 
+
+      const onResponse = async (res) => {
+        // Show Toast Message
+        Toast.show({
+          type: 'success',
+          text1: 'Batch Update',
+          text2: 'Batch has been successfully updated!',
+          position: 'top',
+          visibilityTime: 3000, // 3 seconds
+          autoHide: true,
+        });
+
+        // Wait 3 seconds before navigating back
+        setTimeout(() => {
+          handleCreateBatch()
+        }, 3000);
+      };
+
+      const onCatch = (error) => {
+        console.error('Batch Updation Failed:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Failed to create batch!',
+          position: 'top',
+        });
+      };
+
+      await putapi(url, headers, filteredBatch, onResponse, onCatch);
+      console.log(filteredBatch)
+    } catch (error) {
+      console.error('Batch_Updation Error:', error.message);
+      Alert.alert('Error', error.message);
+    }
+  };
+
 
 
   const handleCreateBatch = async () => {
@@ -299,7 +363,7 @@ const BatchCreation = ({ navigation }) => {
             {isSaving ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.saveButtonText}>Create Batch</Text>
+              <Text style={styles.saveButtonText}>{isEditMode ? "Update Batch" :"Create Batch"}</Text>
             )}
           </TouchableOpacity>
         </View>

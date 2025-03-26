@@ -688,7 +688,7 @@ const HomeScreen = ({navigation}) => {
               <Text style={styles.batchCardCount}>{students.length}</Text>
               <View style={styles.createBatch}>
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('Batch_Create')}
+                  onPress={() => navigation.navigate('Batch_Create',{update:false})}
                   style={styles.createBatchButton}>
                   <Text style={styles.createBatchButtonText}>
                     Create New Batch

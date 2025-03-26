@@ -11,12 +11,13 @@ import {
   Linking,
   Share,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
-import {deleteapi, getapi, postapi} from '../utils/api';
+import {deleteapi, getapi, patchApi, postapi, putapi} from '../utils/api';
 import dateconvert from '../components/moment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message';
 
 const FeePaymentDetailsScreen = ({route, navigation}) => {
   const {feeRecord, name} = route.params;
@@ -25,16 +26,9 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
 
   const handleMarkAsReceived = async () => {
     setIsSaving(true);
-    try {
-      // API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      Alert.alert('Success', 'Fee payment marked as received');
-      navigation.goBack();
-    } catch (error) {
-      Alert.alert('Error', 'Failed to update payment status');
-    } finally {
-      setIsSaving(false);
-    }
+  
+      Fees_update()
+    
   };
 
   const isImageFile = url => {
@@ -119,6 +113,68 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
     };
     deleteapi(url, headers, onResponse, onCatch);
   };
+
+  
+  const Fees_update = async () => {
+    try {
+      const Token = await AsyncStorage.getItem('Token');
+      if (!Token) {
+        throw new Error('No token found, authentication required');
+      }
+
+     
+      const url = `fee-records/${feeRecord.id}`;
+      const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Token}`,
+      };
+
+      const { id,batchId,createdAt,studentId,amount, ...filteredFeeRecord } = feeRecord;  
+      const body = {
+        ...filteredFeeRecord,
+        status: 'paid', 
+        notes: "Payment received in full.",
+        teacherAcknowledgement: true
+      };
+
+      const onResponse = async (res) => {
+        // Show Toast Message
+        Toast.show({
+          type: 'success',
+          text1: 'Fees marking',
+          text2: 'Fees has been successfully updated!',
+          position: 'top',
+          visibilityTime: 3000, // 3 seconds
+          autoHide: true,
+        });
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Alert.alert('Success', 'Fee payment marked as received');
+        navigation.goBack();
+
+      };
+
+      const onCatch = async (error) => {
+        console.error('Fee Marking Failed:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Failed to Marking fees!',
+          position: 'top',
+        });
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Alert.alert('Success', 'Fee payment marked as received');
+        navigation.goBack();
+      };
+
+      await patchApi(url, headers, body, onResponse, onCatch);
+      console.log(body)
+    } catch (error) {
+      console.error('Fees marking Error:', error.message);
+      Alert.alert('Error', error.message);
+    }
+  };
+ 
 
   const renderAttachment = () => {
     if (!feeRecord.attachmentUrl) {

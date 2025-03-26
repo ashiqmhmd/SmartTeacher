@@ -25,7 +25,7 @@ const StudentCreation = ({ navigation, route }) => {
 
   const [student, setStudent] = useState(
     isEditMode
-      ? route.params.student
+      ? route?.params?.student
       :
       {
         id: '',

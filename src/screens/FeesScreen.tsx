@@ -72,13 +72,14 @@ const FeesScreen = ({navigation}) => {
       let receivedAmount = 0;
 
       res.forEach(record => {
-        totalAmount += record.amount;
-
+        const amount = Number(record.amount);
+    
+        totalAmount += amount; 
         if (record.status === 'paid') {
-          receivedAmount += record.amount;
+          receivedAmount += amount;
         }
       });
-
+    
       setTotalFees(totalAmount);
       setReceivedFees(receivedAmount);
       setRefreshing(false);
