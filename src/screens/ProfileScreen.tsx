@@ -14,12 +14,14 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {logout} from '../utils/authslice';
 import {useDispatch} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {getapi} from '../utils/api';
+import {getapi, deleteapi} from '../utils/api';
 import {getUserId} from '../utils/TokenDecoder';
+import LinearGradient from 'react-native-linear-gradient';
 
 const ProfileScreen = ({navigation, item}) => {
   const [imageError, setImageError] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [batches, setBatches] = useState([]);
   const defaultTeacher = {
     id: '',
     firstName: '',
@@ -28,7 +30,7 @@ const ProfileScreen = ({navigation, item}) => {
     email: '',
     phoneNumber: '',
     gender: '',
-    age: 0, // Assuming it's a number
+    age: 0,
     addressLine1: '',
     addressCity: '',
     addressState: '',
@@ -37,7 +39,7 @@ const ProfileScreen = ({navigation, item}) => {
     accountNumber: '',
     ifscCode: '',
     upiId: '',
-    profilePicUrl: 'https://via.placeholder.com/150', // Use a proper placeholder
+    profilePicUrl: 'https://via.placeholder.com/150',
   };
 
   const [teacher, setTeacher] = useState(defaultTeacher);
@@ -69,7 +71,7 @@ const ProfileScreen = ({navigation, item}) => {
         if (res) {
           setTeacher(prevTeacher => ({
             ...prevTeacher,
-            ...res, // Merging API data into existing state
+            ...res,
           }));
         }
         setLoading(false);
@@ -81,10 +83,73 @@ const ProfileScreen = ({navigation, item}) => {
       };
 
       getapi(url, headers, onResponse, onCatch);
+
+      // Fetch batches for the teacher
+      const batchesUrl = `batches/teacher/${Teacherid}`;
+      const batchesHeaders = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Token}`,
+      };
+
+      const onBatchesResponse = res => {
+        if (res) {
+          setBatches(res);
+        }
+      };
+
+      const onBatchesCatch = error => {
+        console.error('Batches API Error:', error);
+      };
+
+      getapi(batchesUrl, batchesHeaders, onBatchesResponse, onBatchesCatch);
     } catch (error) {
       console.error('TeacherDetails Error:', error.message);
       setLoading(false);
     }
+  };
+
+  const handleDeleteBatch = batchId => {
+    Alert.alert('Delete Batch', 'Are you sure you want to delete this batch?', [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const Token = await AsyncStorage.getItem('Token');
+            const url = `batches/${batchId}`;
+            const headers = {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${Token}`,
+            };
+
+            deleteapi(
+              url,
+              headers,
+              res => {
+                // Remove the deleted batch from the list
+                setBatches(prevBatches =>
+                  prevBatches.filter(batch => batch.id !== batchId),
+                );
+                Alert.alert('Success', 'Batch deleted successfully');
+              },
+              error => {
+                console.error('Delete Batch Error:', error);
+                Alert.alert('Error', 'Failed to delete batch');
+              },
+            );
+          } catch (error) {
+            console.error('Delete Batch Error:', error);
+            Alert.alert('Error', 'Failed to delete batch');
+          }
+        },
+      },
+    ]);
   };
 
   const handleLogout = () => {
@@ -96,13 +161,13 @@ const ProfileScreen = ({navigation, item}) => {
       {
         text: 'Logout',
         onPress: () => {
-          // Handle logout logic here
           logoutbutton_press();
         },
         style: 'destructive',
       },
     ]);
   };
+
   const logoutbutton_press = async () => {
     navigation.reset({
       index: 0,
@@ -114,7 +179,7 @@ const ProfileScreen = ({navigation, item}) => {
 
   useEffect(() => {
     TeacherDetails();
-  }, [1]);
+  }, []);
 
   const InfoSection = ({icon, title, value}) => (
     <View style={styles.infoSection}>
@@ -143,7 +208,9 @@ const ProfileScreen = ({navigation, item}) => {
         </TouchableOpacity>
         <Text style={styles.appBarTitle}>Profile</Text>
         <TouchableOpacity
-          onPress={() => navigation.navigate('Update_Profile', {teacher,update:true})}>
+          onPress={() =>
+            navigation.navigate('Update_Profile', {teacher, update: true})
+          }>
           <MaterialIcons name="edit" size={24} color="#0F1F4B" />
         </TouchableOpacity>
       </View>
@@ -158,11 +225,7 @@ const ProfileScreen = ({navigation, item}) => {
                   : {uri: teacher.profilePicUrl}
               }
               style={styles.profileImage}
-              // onError={() => setImageError(true)}
             />
-            {/* <TouchableOpacity style={styles.editImageButton}>
-              <MaterialIcons name="camera-alt" size={20} color="#fff" />
-            </TouchableOpacity> */}
           </View>
           <Text style={styles.profileName}>
             {teacher.firstName} {teacher.lastName}
@@ -221,6 +284,45 @@ const ProfileScreen = ({navigation, item}) => {
           />
           <InfoSection icon="payment" title="UPI ID" value={teacher.upiId} />
         </Section>
+
+        <View style={styles.section}>
+          <View style={styles.batchHeader}>
+            <Text style={styles.sectionTitle}>My Batches</Text>
+            {/* <TouchableOpacity
+              onPress={() => navigation.navigate('Create_Batch')}
+              style={styles.addBatchButton}>
+              <MaterialIcons name="add" size={24} color="#0F1F4B" />
+            </TouchableOpacity> */}
+          </View>
+          <View style={styles.batchList}>
+            {batches.map((batch, index) => (
+              <View key={index} style={styles.batchCard}>
+                <LinearGradient
+                  colors={['#f8f9ff', '#ffffff']}
+                  style={styles.batchContent}>
+                  <View style={styles.batchInfo}>
+                    <Text style={styles.batchName}>{batch.name}</Text>
+                    <Text style={styles.batchId}>{batch.subject}</Text>
+                  </View>
+                  <View style={styles.batchActions}>
+                    <TouchableOpacity
+                      style={styles.editBatchButton}
+                      onPress={() =>
+                        navigation.navigate('Edit_Batch', {batch})
+                      }>
+                      <MaterialIcons name="edit" size={24} color="#0F1F4B" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.deleteBatchButton}
+                      onPress={() => handleDeleteBatch(batch.id)}>
+                      <MaterialIcons name="delete" size={24} color="#DC2626" />
+                    </TouchableOpacity>
+                  </View>
+                </LinearGradient>
+              </View>
+            ))}
+          </View>
+        </View>
 
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -344,6 +446,62 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#0F1F4B',
     fontWeight: '500',
+  },
+  batchList: {
+    gap: 12,
+  },
+  batchCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    elevation: 15,
+    overflow: 'hidden',
+    shadowColor: '#0F1F4B',
+  },
+  batchContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+  },
+  batchInfo: {
+    flex: 1,
+  },
+  batchName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#0F1F4B',
+    marginBottom: 4,
+  },
+  batchId: {
+    fontSize: 12,
+    color: '#666',
+  },
+  batchHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  addBatchButton: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  batchActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  editBatchButton: {
+    padding: 8,
+    marginRight: 8,
+    borderRadius: 12,
+  },
+  deleteBatchButton: {
+    padding: 8,
+    borderRadius: 12,
   },
   logoutButton: {
     flexDirection: 'row',
