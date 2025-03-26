@@ -12,12 +12,14 @@ import {
   KeyboardAvoidingView,
   StatusBar,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {pick} from '@react-native-documents/picker';
 import {currentdate} from '../components/moment';
 import {base_url} from '../utils/store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {postApi, putapi} from '../utils/api';
+import moment from 'moment';
 
 const NoteCreateScreen = ({navigation, route}) => {
   const isEditMode = route.params?.note ? true : false;
@@ -37,11 +39,30 @@ const NoteCreateScreen = ({navigation, route}) => {
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
-  const [formData, setFormData] = useState(null);
   const [attachmentList, setAttachmentList] = useState([]);
-  const [newAttachments, setNewAttachments] = useState([]);
-  const [removedAttachmentUrls, setRemovedAttachmentUrls] = useState([]);
-  const [update, setUpdate] = useState(false);
+  const [attachmentsToUpload, setAttachmentsToUpload] = useState([]);
+  const [existingAttachments, setExistingAttachments] = useState([]);
+  const [removedAttachments, setRemovedAttachments] = useState([]);
+
+  useEffect(() => {
+    // Initialize attachmentList from existing note if in edit mode
+    if (
+      isEditMode &&
+      route?.params?.note?.listUrls &&
+      route.params.note.listUrls.length > 0
+    ) {
+      const mappedAttachments = route.params.note.listUrls.map(url => ({
+        uri: url,
+        name: url.split('/').pop(),
+        size: 1.5,
+        type: 'application/pdf',
+        isExisting: true, // Flag to identify existing attachments
+      }));
+
+      setAttachmentList(mappedAttachments);
+      setExistingAttachments(mappedAttachments);
+    }
+  }, [route?.params?.note?.listUrls, isEditMode]);
 
   const animateSuccess = () => {
     Animated.sequence([
@@ -79,24 +100,71 @@ const NoteCreateScreen = ({navigation, route}) => {
   };
 
   const handleSave = async () => {
-    if (!validateForm()) return;
-
-    setIsSaving(true);
+    if (!validateForm()) {
+      return;
+    }
 
     try {
-      // Handle new attachments if any
-      if (newAttachments.length > 0) {
-        await uploadNewAttachments();
+      setIsSaving(true);
+
+      // Fetch Batch_id from AsyncStorage
+      const Batch_id = await AsyncStorage.getItem('batch_id');
+      if (!Batch_id) {
+        console.warn('Batch_id is not available!');
+        setIsSaving(false);
+        return;
       }
 
-      // Update or submit the note
-      if (update) {
-        await Note_Update();
-      } else {
-        await Note_Submit();
+      // Update note state with Batch_id
+      await new Promise(resolve => {
+        setNote(prev => ({
+          ...prev,
+          batchId: Batch_id,
+        }));
+        resolve();
+      });
+
+      // Handle new file uploads if there are any
+      let newAttachmentUrls = [];
+      if (attachmentsToUpload.length > 0) {
+        newAttachmentUrls = await Promise.all(
+          attachmentsToUpload.map(attachment => uploadSingleFile(attachment)),
+        );
+        // Filter out any undefined results from failed uploads
+        newAttachmentUrls = newAttachmentUrls.filter(url => url !== undefined);
       }
+
+      // Get current attachment URLs (existing ones that weren't removed)
+      let currentAttachmentUrls = [];
+      if (isEditMode) {
+        currentAttachmentUrls = existingAttachments
+          .filter(attachment => !removedAttachments.includes(attachment.uri))
+          .map(attachment => attachment.uri);
+      }
+
+      // Update note with combined attachment URLs
+      const updatedNote = {
+        ...note,
+        batchId: Batch_id,
+        listUrls: [...currentAttachmentUrls, ...newAttachmentUrls],
+      };
+
+      setNote(updatedNote);
+
+      // Update or create note
+      if (isEditMode) {
+        await Note_Update(updatedNote);
+      } else {
+        await Note_Submit(updatedNote);
+      }
+
+      // Show success message
+      setIsSaving(false);
+      setShowSuccessMessage(true);
+      animateSuccess();
+      setTimeout(() => setShowSuccessMessage(false), 3000);
     } catch (error) {
-      console.error('Error saving note:', error);
+      console.error('Error during save:', error.message);
       setIsSaving(false);
     }
   };
@@ -104,145 +172,86 @@ const NoteCreateScreen = ({navigation, route}) => {
   const handleAttachments = async () => {
     try {
       const result = await pick({
-        allowMultiSelection: false,
+        allowMultiSelection: true, // Enable multiple file selection
         type: ['*/*'],
       });
 
       if (result && result.length > 0) {
-        const file = result[0];
+        // Validate file sizes and create file objects
+        const newFiles = result
+          .map(file => ({
+            uri:
+              Platform.OS === 'android'
+                ? file.uri
+                : file.uri.replace('file://', ''),
+            type: file.type || 'application/pdf',
+            name: file.name || 'file.pdf',
+            size: file.size,
+            isExisting: false,
+          }))
+          .filter(file => attachmentValidation(file.size)); // Remove invalid files
 
-        // Validate file size
-        if (!attachmentValidation(file.size)) {
-          return;
+        if (newFiles.length === 0) {
+          return; // No valid files to upload
         }
 
-        // Add to new attachments for upload
-        setNewAttachments(prev => [...prev, file]);
-
-        // Add to attachment list for display
-        setAttachmentList(prev => [...prev, file]);
-
-        // Prepare FormData for the new file
-        const fileData = {
-          uri:
-            Platform.OS === 'android'
-              ? file.uri
-              : file.uri.replace('file://', ''),
-          type: file.type || 'application/pdf',
-          name: file.name || 'file.pdf',
-        };
-
-        const formData = new FormData();
-        formData.append('file', fileData);
-        setFormData(formData);
+        // Update UI list and upload list
+        setAttachmentList(prev => [...prev, ...newFiles]);
+        setAttachmentsToUpload(prev => [...prev, ...newFiles]);
       }
     } catch (error) {
       console.error('Document Picker Error:', error);
     }
   };
 
-  // Upload all new attachments and get their URLs
-  const uploadNewAttachments = async () => {
-    if (newAttachments.length === 0) return;
-
+  const uploadSingleFile = async fileData => {
     try {
-      const Batch_id = await AsyncStorage.getItem('batch_id');
+      console.log('Uploading file...', fileData.name);
+
       const Token = await AsyncStorage.getItem('Token');
 
-      // Upload each new attachment
-      const uploadPromises = newAttachments.map(async attachment => {
-        // Create FormData for this attachment
-        const fileData = {
-          uri:
-            Platform.OS === 'android'
-              ? attachment.uri
-              : attachment.uri.replace('file://', ''),
-          type: attachment.type || 'application/pdf',
-          name: attachment.name || 'file.pdf',
-        };
+      const formData = new FormData();
+      formData.append('file', fileData);
 
-        const formData = new FormData();
-        formData.append('file', fileData);
+      const url = `${base_url}uploads`;
 
-        const url = `${base_url}uploads`;
-
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${Token}`,
-            'Content-Type': 'multipart/form-data',
-          },
-          body: formData,
-        });
-
-        const textResponse = await response.text();
-        let responseData;
-
-        try {
-          responseData = JSON.parse(textResponse);
-        } catch (error) {
-          console.error('Error parsing JSON response:', error);
-          throw new Error('Invalid JSON response from the server');
-        }
-
-        if (!response.ok) {
-          throw new Error(
-            `Upload failed: ${responseData.message || 'Unknown error'}`,
-          );
-        }
-
-        return responseData.url;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${Token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
       });
 
-      // Wait for all uploads to complete
-      const newUrls = await Promise.all(uploadPromises);
+      console.log('Status Code:', response.status);
 
-      // Update note with new URLs
-      setNote(prev => ({
-        ...prev,
-        batchId: Batch_id || prev.batchId,
-        listUrls: [
-          ...(prev.listUrls || []).filter(
-            url => !removedAttachmentUrls.includes(url),
-          ),
-          ...newUrls.flat(),
-        ],
-      }));
+      const textResponse = await response.text();
+      console.log('Raw Response:', textResponse);
 
-      // Clear new attachments since they've been uploaded
-      setNewAttachments([]);
+      let responseData;
+      try {
+        responseData = JSON.parse(textResponse);
+      } catch (error) {
+        console.error('Error parsing JSON response:', error);
+        return undefined;
+      }
 
-      return newUrls;
+      if (!response.ok) {
+        throw new Error(
+          `Upload failed: ${responseData.message || 'Unknown error'}`,
+        );
+      }
+
+      console.log('Upload Successful!', responseData.url);
+      return responseData.url;
     } catch (error) {
       console.error('Error during file upload:', error.message);
-      throw error;
+      return undefined;
     }
   };
 
-  useEffect(() => {
-    // Initialize attachmentList from existing note if in edit mode
-    if (
-      route?.params?.note?.listUrls &&
-      route?.params?.note?.listUrls.length > 0
-    ) {
-      const existingAttachments = route.params.note.listUrls.map(url => ({
-        uri: url,
-        name: url.split('/').pop(),
-        size: 1.5, // Placeholder size for existing files
-        type: 'application/pdf', // Placeholder type
-        isExisting: true, // Flag to indicate this is an existing attachment
-        url: url, // Store the original URL
-      }));
-
-      setAttachmentList(existingAttachments);
-    }
-  }, [route?.params?.note?.listUrls]);
-
-  useEffect(() => {
-    setUpdate(route?.params?.update === true);
-  }, [route?.params?.update]);
-
-  const Note_Submit = async () => {
+  const Note_Submit = async noteData => {
     const Token = await AsyncStorage.getItem('Token');
     const url = `notes`;
     const headers = {
@@ -251,119 +260,77 @@ const NoteCreateScreen = ({navigation, route}) => {
       Authorization: `Bearer ${Token}`,
     };
 
-    const body = {...note};
+    const body = noteData;
 
     const onResponse = res => {
       setNote(res);
-      setIsSaving(false);
-      setShowSuccessMessage(true);
-      animateSuccess();
-      setTimeout(() => {
-        setShowSuccessMessage(false);
-        navigation.goBack();
-      }, 2000);
+      navigation.goBack();
     };
 
     const onCatch = res => {
       console.log('Error', res);
-      setIsSaving(false);
     };
 
     postApi(url, headers, body, onResponse, onCatch);
   };
 
-  const Note_Update = async () => {
+  const Note_Update = async noteData => {
     const Token = await AsyncStorage.getItem('Token');
-    const url = `notes/${note.id}`;
+    const url = `notes/${noteData.id}`;
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
       Authorization: `Bearer ${Token}`,
     };
 
-    // Make sure we're sending the updated listUrls that doesn't include removed attachments
     const payload = {
-      Title: note.Title,
-      publishDate: note.publishDate,
-      content: note.content,
-      listUrls: note.listUrls,
-      batchId: note.batchId,
+      Title: noteData.Title,
+      publishDate: noteData.publishDate,
+      content: noteData.content,
+      listUrls: noteData.listUrls,
+      batchId: noteData.batchId,
     };
 
     const onResponse = res => {
       setNote(res);
-      setIsSaving(false);
-      setShowSuccessMessage(true);
-      animateSuccess();
-      setTimeout(() => {
-        setShowSuccessMessage(false);
-        navigation.goBack();
-      }, 2000);
+      navigation.goBack();
     };
 
     const onCatch = res => {
       console.log('Error', res);
-      setIsSaving(false);
     };
 
     putapi(url, headers, payload, onResponse, onCatch);
   };
 
-  const handleRemoveAttachment = index => {
-    const attachment = attachmentList[index];
-
-    // Create a new array without the item at 'index'
-    const newAttachmentList = attachmentList.filter((_, i) => i !== index);
-    setAttachmentList(newAttachmentList);
-
-    // If this is an existing attachment (has a URL), track it for removal
-    if (attachment.isExisting && attachment.url) {
-      setRemovedAttachmentUrls(prev => [...prev, attachment.url]);
-
-      // Update the note's listUrls to remove this URL
-      setNote(prev => ({
-        ...prev,
-        listUrls: prev.listUrls.filter(url => url !== attachment.url),
-      }));
-    }
-
-    // If this is a new attachment that hasn't been uploaded yet
-    if (!attachment.isExisting) {
-      setNewAttachments(prev =>
-        prev.filter(
-          (_, i) =>
-            prev[i].name !== attachment.name || prev[i].uri !== attachment.uri,
-        ),
+  const handleRemoveAttachment = (index, item) => {
+    // If removing an existing attachment, add to the removed list
+    if (item.isExisting) {
+      setRemovedAttachments(prev => [...prev, item.uri]);
+    } else {
+      // If removing a newly added attachment, remove from uploads list
+      setAttachmentsToUpload(prev =>
+        prev.filter(attachment => attachment.uri !== item.uri),
       );
     }
 
-    // Reset any attachment errors
-    if (errors.attachment) {
-      setErrors(prev => ({...prev, attachment: undefined}));
-    }
+    // Remove from UI list
+    setAttachmentList(prev => prev.filter((_, i) => i !== index));
   };
 
-  const renderAttachment = (item, index) => {
-    const isPDF = item.type === 'application/pdf';
-
-    return (
-      <View key={index} style={styles.attachmentItem}>
-        <MaterialIcons
-          name={isPDF ? 'picture-as-pdf' : 'image'}
-          size={20}
-          color="#6B7280"
-        />
-        <Text style={styles.attachmentName} numberOfLines={1}>
-          {item.name}
-        </Text>
-        <TouchableOpacity
-          onPress={() => handleRemoveAttachment(index)}
-          style={styles.removeAttachment}>
-          <MaterialIcons name="close" size={20} color="#EF4444" />
-        </TouchableOpacity>
-      </View>
-    );
-  };
+  const renderAttachmentItem = (item, index) => (
+    <View style={styles.attachmentItem} key={index}>
+      <MaterialIcons name="attachment" size={20} color="#6B7280" />
+      <Text style={styles.attachmentName} numberOfLines={1}>
+        {item.name}
+      </Text>
+      <TouchableOpacity
+        onPress={() => handleRemoveAttachment(index, item)}
+        style={styles.removeAttachment}>
+        <MaterialIcons name="close" size={20} color="#EF4444" />
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <View style={styles.screen}>
@@ -385,11 +352,7 @@ const NoteCreateScreen = ({navigation, route}) => {
           {showSuccessMessage && (
             <Animated.View style={[styles.successMessage, {opacity: fadeAnim}]}>
               <MaterialIcons name="check-circle" size={24} color="#059669" />
-              <Text style={styles.successText}>
-                {update
-                  ? 'Note updated successfully'
-                  : 'Note saved successfully'}
-              </Text>
+              <Text style={styles.successText}>Note saved successfully</Text>
             </Animated.View>
           )}
 
@@ -430,23 +393,21 @@ const NoteCreateScreen = ({navigation, route}) => {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Attachment</Text>
+              <Text style={styles.label}>Attachments</Text>
               <TouchableOpacity
                 style={styles.attachmentButton}
                 onPress={handleAttachments}>
                 <MaterialIcons name="attach-file" size={24} color="#6B7280" />
-                <Text style={styles.attachmentButtonText}>
-                  Add PDF or Image (max 2MB)
-                </Text>
+                <Text style={styles.attachmentButtonText}>Add Attachments</Text>
               </TouchableOpacity>
-
-              {attachmentList.map((item, index) =>
-                renderAttachment(item, index),
-              )}
-
-              {errors.attachment && (
-                <Text style={styles.errorText}>{errors.attachment}</Text>
-              )}
+              <View style={styles.attachmentsList}>
+                {attachmentList.map((item, index) =>
+                  renderAttachmentItem(item, index),
+                )}
+                {errors.attachment && (
+                  <Text style={styles.errorText}>{errors.attachment}</Text>
+                )}
+              </View>
             </View>
           </View>
         </ScrollView>
