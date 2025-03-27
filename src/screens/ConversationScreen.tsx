@@ -196,16 +196,15 @@ const ConversationScreen = ({route, navigation}) => {
   const handleAttachment = async () => {
     try {
       const result = await pick({
-        type: ['*/*'],
-        allowMultiSelection: false,
+        type: ['*/*'], // Allow all file types
+        allowMultiSelection: true, // Enable multiple file selection
       });
 
       if (result && result.length > 0) {
-        console.log('Document selected:', result);
-        const selectedFile = result[0];
+        console.log('Documents selected:', result);
 
-        // Create file data structure matching the assignment screen
-        const fileData = {
+        // Transform selected files into a consistent file data structure
+        const fileDataArray = result.map(selectedFile => ({
           uri:
             Platform.OS === 'android'
               ? selectedFile.uri
@@ -213,15 +212,15 @@ const ConversationScreen = ({route, navigation}) => {
           type: selectedFile.type || 'application/pdf',
           name: selectedFile.name || 'file.pdf',
           size: selectedFile.size,
-        };
+        }));
 
-        console.log('File Data:', fileData);
+        // Update selected attachments by adding new files
+        setSelectedAttachments(prevAttachments => [
+          ...prevAttachments,
+          ...fileDataArray,
+        ]);
 
-        // Store the selected file in the state - this is what we'll use to upload
-        setSelectedAttachments([fileData]);
-
-        // We don't need to create FormData here, that happens in uploadAttachment
-        // Just set formData to a non-null value to indicate we have an attachment
+        // Set formData to indicate attachments are ready
         setFormData({});
       }
     } catch (err) {
@@ -288,6 +287,64 @@ const ConversationScreen = ({route, navigation}) => {
     }
   };
 
+  const uploadAttachments = async () => {
+    if (!formData || selectedAttachments.length === 0) {
+      console.log('No attachments to upload');
+      return [];
+    }
+
+    try {
+      console.log('Uploading attachments...');
+
+      const Token = await AsyncStorage.getItem('Token');
+      const uploadPromises = selectedAttachments.map(async fileData => {
+        const formDataToUpload = new FormData();
+        formDataToUpload.append('file', fileData);
+
+        const url = `${base_url}uploads`;
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${Token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+          body: formDataToUpload,
+        });
+
+        console.log('Upload status code:', response.status);
+
+        const textResponse = await response.text();
+        console.log('Raw response:', textResponse);
+
+        let responseData;
+        try {
+          responseData = JSON.parse(textResponse);
+        } catch (error) {
+          console.error('Error parsing response:', error);
+          throw new Error('Invalid response from server');
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            `Upload failed: ${responseData.message || 'Unknown error'}`,
+          );
+        }
+
+        console.log('Upload successful:', responseData.url);
+        return responseData.url;
+      });
+
+      // Wait for all uploads to complete
+      const attachmentUrls = await Promise.all(uploadPromises);
+      return attachmentUrls;
+    } catch (error) {
+      console.error('Error during file upload:', error.message);
+      Alert.alert('Error', 'Failed to upload attachments');
+      return [];
+    }
+  };
+
   const sendMessage = async () => {
     if (newMessage.trim() === '' && selectedAttachments.length === 0) return;
 
@@ -296,17 +353,8 @@ const ConversationScreen = ({route, navigation}) => {
     setNewMessage('');
 
     try {
-      // Upload attachment if exists
-      let attachmentUrls = [];
-
-      if (formData && selectedAttachments.length > 0) {
-        const uploadedUrl = await uploadAttachment();
-        if (uploadedUrl) {
-          attachmentUrls = Array.isArray(uploadedUrl)
-            ? uploadedUrl
-            : [uploadedUrl];
-        }
-      }
+      // Upload attachments
+      const attachmentUrls = await uploadAttachments();
 
       // Create a temporary message object for immediate UI update
       const newMessageObj = {
@@ -332,6 +380,8 @@ const ConversationScreen = ({route, navigation}) => {
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({animated: true});
       }, 100);
+
+      console.log(conversationId);
 
       const Token = await AsyncStorage.getItem('Token');
       const url = `messages/${conversationId}/reply`;
@@ -422,7 +472,7 @@ const ConversationScreen = ({route, navigation}) => {
   const Create_message = async () => {
     console.log(TeacherName);
 
-    const Batch_id = await AsyncStorage.getItem('batch_id');
+    // Similar modifications as sendMessage method
     if (newMessage.trim() === '' && selectedAttachments.length === 0) return;
 
     setSendingMessage(true);
@@ -430,17 +480,10 @@ const ConversationScreen = ({route, navigation}) => {
     setNewMessage('');
 
     try {
-      // Upload attachment if exists
-      let attachmentUrls = [];
+      // Upload attachments
+      const attachmentUrls = await uploadAttachments();
 
-      if (formData && selectedAttachments.length > 0) {
-        const uploadedUrl = await uploadAttachment();
-        if (uploadedUrl) {
-          attachmentUrls = Array.isArray(uploadedUrl)
-            ? uploadedUrl
-            : [uploadedUrl];
-        }
-      }
+      const Batch_id = await AsyncStorage.getItem('batch_id');
 
       // Create a temporary message object for immediate UI update
       const newMessageObj = {
@@ -556,6 +599,7 @@ const ConversationScreen = ({route, navigation}) => {
     );
   };
 
+  // Modify handleRemoveAttachment to work with multiple attachments
   const handleRemoveAttachment = index => {
     const newAttachments = [...selectedAttachments];
     newAttachments.splice(index, 1);
