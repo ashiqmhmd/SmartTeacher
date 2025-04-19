@@ -9,19 +9,19 @@ import {
   FlatList,
   RefreshControl,
 } from 'react-native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {getapi} from '../utils/api';
+import { getapi } from '../utils/api';
 import dateconvert from '../components/moment';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {batch_id, selectBatch} from '../utils/authslice';
-import {useDispatch, useSelector} from 'react-redux';
+import { batch_id, selectBatch } from '../utils/authslice';
+import { useDispatch, useSelector } from 'react-redux';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
-import {useFocusEffect} from '@react-navigation/core';
+import { useFocusEffect } from '@react-navigation/core';
 
-const NotesScreen = ({navigation}) => {
+const NotesScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -92,9 +92,15 @@ const NotesScreen = ({navigation}) => {
     Notes_fetch(); // Fetch data
   }, []);
 
-  const NoteCard = ({item}) => (
+  const filteredNotes = useMemo(() => {
+    return notes.filter(item =>
+      item.Title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery, notes]);
+
+  const NoteCard = ({ item }) => (
     <TouchableOpacity
-      onPress={() => navigation.navigate('Note_Detail', {note: item})}
+      onPress={() => navigation.navigate('Note_Detail', { note: item })}
       style={styles.noteCard}>
       <View style={styles.noteTypeIcon}>
         <MaterialIcons name="description" size={24} color="#FF9800" />
@@ -132,7 +138,7 @@ const NotesScreen = ({navigation}) => {
             borderWidth: 1,
             borderColor: '#e0e0e0',
           }}>
-          <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
+          <Text style={{ color: '#001d3d', fontWeight: 'bold', fontSize: 16 }}>
             {selectedBatchString?.name}
           </Text>
 
@@ -140,7 +146,7 @@ const NotesScreen = ({navigation}) => {
             name="keyboard-arrow-down"
             size={20}
             color="#001d3d"
-            style={{paddingLeft: 5}}
+            style={{ paddingLeft: 5 }}
           />
         </TouchableOpacity>
       </View>
@@ -180,10 +186,10 @@ const NotesScreen = ({navigation}) => {
               <MaterialIcons name="search" size={24} color="#666" />
               <TextInput
                 style={styles.searchInput}
-                placeholder="Search notes"
+                placeholder="Search assignments"
                 placeholderTextColor="#666"
                 value={searchQuery}
-                onChangeText={setSearchQuery}
+                onChangeText={setSearchQuery} // Updates searchQuery when user types
               />
             </View>
             <TouchableOpacity
@@ -200,8 +206,8 @@ const NotesScreen = ({navigation}) => {
             </View>
           ) : (
             <FlatList
-              data={notes}
-              renderItem={({item}) => <NoteCard item={item} />}
+              data={filteredNotes}
+              renderItem={({ item }) => <NoteCard item={item} />}
               keyExtractor={item => item.id.toString()}
               scrollEnabled={false}
               style={styles.notesList}
@@ -283,7 +289,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 15,
     shadowColor: '#1D49A7',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 15,

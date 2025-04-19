@@ -468,8 +468,8 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import store from './store';
-import {logout} from './authslice';
-import {useNavigation} from '@react-navigation/native';
+import { logout } from './authslice';
+import { useNavigation } from '@react-navigation/native';
 
 type Callback<T = any> = (data: T) => void;
 
@@ -644,8 +644,8 @@ export const postApi = async (
   onCatch: Callback | null = null,
 ): Promise<any> => {
   try {
-    // Add authorization token if available
     const token = await AsyncStorage.getItem('Token');
+
     const headers = {
       'Content-Type': 'application/json',
       ...header,
@@ -655,59 +655,60 @@ export const postApi = async (
       headers.Authorization = `Bearer ${token}`;
     }
 
-    console.log('Request Body:', body);
+    console.log('POST Request Body:', body);
 
-    fetch(base_url + url, {
+    const response = await fetch(base_url + url, {
       method: 'POST',
-      headers: headers,
+      headers,
       body: JSON.stringify(body),
-    })
-      .then(async response => {
-        // Handle token expiration (401 Unauthorized)
-        if (response.status === 401) {
-          // Don't parse the response, instead refresh token and retry
-          await handleTokenRefresh(
-            postApi,
-            url,
-            header,
-            body,
-            onResponse,
-            onCatch,
-          );
-          return null;
-        }
+    });
 
-        const text = await response.text();
-        console.log('Raw Response:', text);
+    if (response.status === 401) {
+      await handleTokenRefresh(postApi, url, header, body, onResponse, onCatch);
+      return null;
+    }
 
-        try {
-          // Fix malformed JSON if necessary
-          const fixedText = text.replace(
-            /"token":\s*([^"{\[][^,}\]]*)/g,
-            '"token": "$1"',
-          );
+    const text = await response.text();
+    console.log('Raw Response:', text);
 
-          return JSON.parse(fixedText);
-        } catch (error) {
-          console.error('JSON Parse Error:', error);
-          throw new Error(`Invalid JSON response: ${text}`);
-        }
-      })
-      .then(responseJson => {
-        if (responseJson) {
-          console.log('Parsed JSON:', responseJson);
-          onResponse && onResponse(responseJson);
-        }
-      })
-      .catch(e => {
-        console.error('Fetch Error:', e);
-        onCatch && onCatch(e);
-      });
-  } catch (error) {
-    console.error('POST API Error:', error);
-    onCatch && onCatch(error);
+    let responseJson: any;
+    try {
+      const fixedText = text.replace(
+        /"token":\s*([^"{\[][^,}\]]*)/g,
+        '"token": "$1"',
+      );
+      responseJson = JSON.parse(fixedText);
+    } catch (err) {
+      console.error('JSON Parse Error:', err);
+      // Attempt to extract a cleaner error message from raw text
+      let errorText = 'Something went wrong';
+      try {
+        const parsed = JSON.parse(text);
+        errorText = parsed?.error || text;
+      } catch {
+        errorText = text;
+      }
+      throw new Error(errorText);
+    }
+
+    if (!response.ok) {
+      const errorMessage = responseJson?.error || 'An error occurred';
+      throw new Error(errorMessage);
+    }
+
+    onResponse && onResponse(responseJson);
+
+  } catch (error: any) {
+    const errorMessage =
+      typeof error === 'string'
+        ? error
+        : error?.message || 'Something went wrong';
+
+    console.error('POST API Error:', errorMessage);
+    onCatch && onCatch({ error: errorMessage });
   }
 };
+
 
 // Enhanced GET API with token refresh
 export const getapi = async (
@@ -842,7 +843,6 @@ export const putapi = async (
   onCatch: Callback | null = null,
 ): Promise<any> => {
   try {
-    // Add authorization token if available
     const token = await AsyncStorage.getItem('Token');
     const headers = {
       'Content-Type': 'application/json',
@@ -855,55 +855,53 @@ export const putapi = async (
 
     console.log('PUT Request Body:', body);
 
-    fetch(base_url + url, {
+    const response = await fetch(base_url + url, {
       method: 'PUT',
       headers: headers,
       body: JSON.stringify(body),
-    })
-      .then(async response => {
-        // Handle token expiration (401 Unauthorized)
-        if (response.status === 401) {
-          await handleTokenRefresh(
-            putapi,
-            url,
-            header,
-            body,
-            onResponse,
-            onCatch,
-          );
-          return null;
-        }
+    });
 
-        const text = await response.text();
-        console.log('Raw Response:', text);
+    if (response.status === 401) {
+      await handleTokenRefresh(putapi, url, header, body, onResponse, onCatch);
+      return null;
+    }
 
-        try {
-          const fixedText = text.replace(
-            /"token":\s*([^"{\[][^,}\]]*)/g,
-            '"token": "$1"',
-          );
+    const text = await response.text();
+    console.log('Raw Response:', text);
 
-          return JSON.parse(fixedText);
-        } catch (error) {
-          console.error('JSON Parse Error:', error);
-          throw new Error(`Invalid JSON response: ${text}`);
-        }
-      })
-      .then(responseJson => {
-        if (responseJson) {
-          console.log('Parsed JSON:', responseJson);
-          onResponse && onResponse(responseJson);
-        }
-      })
-      .catch(e => {
-        console.error('Fetch Error:', e);
-        onCatch && onCatch(e);
-      });
-  } catch (error) {
+    let responseJson: any;
+
+    try {
+      const fixedText = text.replace(
+        /"token":\s*([^"{\[][^,}\]]*)/g,
+        '"token": "$1"',
+      );
+      responseJson = JSON.parse(fixedText);
+    } catch (err) {
+      console.error('JSON Parse Error:', err);
+      throw new Error(`Invalid JSON response: ${text}`);
+    }
+
+    if (!response.ok) {
+      // Handle validation or server error from API
+      const errorMessage = responseJson?.error || 'An error occurred';
+      throw new Error(errorMessage);
+    }
+
+    onResponse && onResponse(responseJson);
+  } catch (error: any) {
     console.error('PUT API Error:', error);
-    onCatch && onCatch(error);
+
+    // Extract message safely
+    const errorMessage =
+      typeof error === 'string'
+        ? error
+        : error?.message || 'Something went wrong';
+    console.log("error", error.message)
+    onCatch && onCatch({ error: errorMessage });
   }
 };
+
 
 export const deleteapi = async (
   url: string = '',

@@ -810,6 +810,7 @@ import { pickAndUploadImage } from '../components/FileUploadService';
 
 const UpdateProfileScreen = ({ navigation, route }) => {
   const isEditMode = route.params?.update ? true : false;
+  const [errors, setErrors] = useState([]);
   const [profileData, setProfileData] = useState(
     isEditMode ?
       route?.params?.teacher
@@ -818,7 +819,7 @@ const UpdateProfileScreen = ({ navigation, route }) => {
 
         firstName: '',
         lastName: '',
-        age: '',
+        age: 18,
         gender: '',
         addressLine1: '',
         addressCity: '',
@@ -904,14 +905,15 @@ const UpdateProfileScreen = ({ navigation, route }) => {
     try {
       const Token = await AsyncStorage.getItem('Token');
       const url = `teachers/${userId}`;
-
+  
       const headers = {
         Accept: 'application/json',
         'Content-Type': 'application/json',
         Authorization: `Bearer ${Token}`,
       };
-
-      const payload = {
+  
+      // Filter out empty or undefined values
+      const rawPayload = {
         firstName: profileData.firstName,
         lastName: profileData.lastName,
         age: profileData.age,
@@ -926,26 +928,33 @@ const UpdateProfileScreen = ({ navigation, route }) => {
         accountNumber: profileData.accountNumber,
         accountName: profileData.accountName,
         ifscCode: profileData.ifscCode,
-        email:profileData.email,
-        userName:profileData.userName,
-        password:profileData.password
-      }
-
+        email: profileData.email,
+        userName: profileData.userName,
+        password: profileData.password,
+      };
+  
+      // Remove keys with empty string or null or undefined values
+      const payload = Object.fromEntries(
+        Object.entries(rawPayload).filter(([_, value]) => value !== '' && value !== null && value !== undefined)
+      );
+  
       const onResponse = res => {
         console.log('Profile updated successfully');
         navigation.replace('Tabs');
       };
-
-      const onCatch = err => {
-        console.log('Error updating profile:', err);
+  
+      const onCatch = (err) => {
+        setErrors(err);
+        console.log(payload);
+        console.log('Error updating profile:', err.error);
       };
-
+  
       putapi(url, headers, payload, onResponse, onCatch);
     } catch (error) {
       console.error('Error submitting profile:', error);
     }
   };
-
+  
   const renderInput = (icon, placeholder, field, keyboardType = 'default') => (
     <View style={styles.inputContainer}>
       <Feather name={icon} size={20} color="#001d3d" style={styles.inputIcon} />
@@ -959,6 +968,7 @@ const UpdateProfileScreen = ({ navigation, route }) => {
       />
     </View>
   );
+
 
   // Radio button component for gender selection
   const RadioButton = ({ label, selected, onPress }) => (
@@ -992,7 +1002,14 @@ const UpdateProfileScreen = ({ navigation, route }) => {
     </View>
   );
 
+  
+  const renderError = error => {
+    if (!error) return null;
+    return <Text style={styles.errorText}>{error}</Text>;
+  };
+
   return (
+    
     <View style={styles.container}>
       <StatusBar backgroundColor="#1D49A7" barStyle="light-content" />
       <KeyboardAvoidingView
@@ -1055,7 +1072,7 @@ const UpdateProfileScreen = ({ navigation, route }) => {
             <Text style={styles.sectionTitle}>Personal Information</Text>
             {renderInput('user', 'First Name', 'firstName')}
             {renderInput('user', 'Last Name', 'lastName')}
-            {renderInput('calendar', 'Age', 'age', 'numeric')}
+            {renderInput('calendar', '18', 'age', 'numeric')}
             {renderGenderSelection()}
             {renderInput('phone', 'Phone Number', 'phoneNumber', 'phone-pad')}
           </View>
@@ -1075,6 +1092,9 @@ const UpdateProfileScreen = ({ navigation, route }) => {
             {renderInput('hash', 'IFSC Code', 'ifscCode')}
             {renderInput('smartphone', 'UPI ID', 'upiId')}
           </View>
+
+          {renderError(errors)}
+
 
           <TouchableOpacity
             onPress={handleSubmit}
@@ -1108,6 +1128,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
     marginTop: 20,
+  },
+  errorText: {
+    color: '#dc3545',
+    fontSize: 12,
+    marginBottom: 10,
+    marginLeft: 5,
   },
   section: {
     marginBottom: 20,

@@ -41,7 +41,7 @@ const ChatsScreen = ({navigation}) => {
 
     dispatch(batch_id(batch.id));
     dispatch(selectBatch(batch));
-
+    await fetchConversations()
     // Close the bottom sheet
     refRBSheet.current.close();
   };
@@ -134,7 +134,7 @@ const ChatsScreen = ({navigation}) => {
 
   const filteredConversations = conversations.filter(
     conversation =>
-      conversation.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      conversation.receiverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       getLastMessage(conversation)
         .toLowerCase()
         .includes(searchQuery.toLowerCase()),

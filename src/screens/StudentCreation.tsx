@@ -54,6 +54,7 @@ const StudentCreation = ({ navigation, route }) => {
   const [profileImageUrl, setProfileImageUrl] = useState(null);
   const [update, setUpdate] = useState(false)
   const [errors, setErrors] = useState({});
+  const [jsonError, setJsonError] = useState([])
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -93,7 +94,8 @@ const StudentCreation = ({ navigation, route }) => {
     if (!student.userName.trim()) newErrors.userName = 'Username is required';
     if (student.password.length < 6)
       newErrors.password = 'Password must be at least 6 characters';
-
+    if (!student.parent1Phone && !validatePhone(student.parent1Phone))
+      newErrors.parent1Phone = 'Valid 10-digit phone required';
     // Optional but validated if provided
     if (student.age && isNaN(student.age))
       newErrors.age = 'Age must be a number';
@@ -151,7 +153,7 @@ const StudentCreation = ({ navigation, route }) => {
 
     try {
       // Prepare API payload
-      const payload = {
+      const rawPayload = {
         firstName: student.firstName,
         lastName: student.lastName,
         age: student.age ? parseInt(student.age) : null,
@@ -172,6 +174,10 @@ const StudentCreation = ({ navigation, route }) => {
         parent2Email: student.parent2Email || null,
       };
 
+      const payload = Object.fromEntries(
+        Object.entries(rawPayload).filter(([_, value]) => value !== '' && value !== null && value !== undefined)
+      );
+
       // Use the postApi function
       const Token = await AsyncStorage.getItem('Token');
 
@@ -184,19 +190,20 @@ const StudentCreation = ({ navigation, route }) => {
 
       const onResponse = res => {
         console.log('Student updated successfully:', res);
-        setShowSuccessMessage(true);
-        animateSuccess();
-        setTimeout(() => {
-          setShowSuccessMessage(false);
-          navigation.goBack();
-        }, 2000);
+      
+          setShowSuccessMessage(true);
+          animateSuccess();
+          setTimeout(() => {
+            setShowSuccessMessage(false);
+            navigation.goBack();
+          }, 2000);
+      
       };
 
-      const onCatch = error => {
-        console.error('Error updating student:', error);
-        Alert.alert('Error', 'Failed to update student. Please try again.', [
-          { text: 'OK' },
-        ]);
+      const onCatch = (err) => {
+        // Only store the error message (not the whole object)
+        setJsonError(err?.error || 'Something went wrong');
+        console.log('Error updating Student:', err?.error);
       };
 
       putapi(url, headers, payload, onResponse, onCatch);
@@ -218,7 +225,7 @@ const StudentCreation = ({ navigation, route }) => {
 
     try {
       // Prepare API payload
-      const payload = {
+      const rawPayload = {
         firstName: student.firstName,
         lastName: student.lastName,
         age: student.age ? parseInt(student.age) : null,
@@ -239,6 +246,10 @@ const StudentCreation = ({ navigation, route }) => {
         parent2Email: student.parent2Email || null,
       };
 
+      const payload = Object.fromEntries(
+        Object.entries(rawPayload).filter(([_, value]) => value !== '' && value !== null && value !== undefined)
+      );
+
       // Use the postApi function
       const Token = await AsyncStorage.getItem('Token');
 
@@ -251,21 +262,25 @@ const StudentCreation = ({ navigation, route }) => {
 
       const onResponse = res => {
         addToBatch(res.id);
-        console.log('Student created successfully:', res);
-        setShowSuccessMessage(true);
-        animateSuccess();
-        setTimeout(() => {
-          setShowSuccessMessage(false);
-          navigation.goBack();
-        }, 2000);
+        if (res.ok) {
+          console.log('Student created successfully:', res);
+          setShowSuccessMessage(true);
+          animateSuccess();
+          setTimeout(() => {
+            setShowSuccessMessage(false);
+            navigation.goBack();
+          }, 2000);
+        }
+
       };
 
-      const onCatch = error => {
-        console.error('Error creating student:', error);
-        Alert.alert('Error', 'Failed to create student. Please try again.', [
-          { text: 'OK' },
-        ]);
+      const onCatch = (err) => {
+        // Only store the error message (not the whole object)
+        setJsonError(err?.error || 'Something went wrong');
+        console.log(Token);
+        console.log('Error creating profile:', err?.error);
       };
+
 
       postApi(url, headers, payload, onResponse, onCatch);
     } catch (error) {
@@ -279,7 +294,8 @@ const StudentCreation = ({ navigation, route }) => {
   };
 
   useEffect(() => {
-    setProfileImage(route.params?.student?.profilePicUrl)
+    setProfileImage(route.params?.student?.profilePicUrl),
+      setProfileImageUrl(route.params?.student?.profilePicUrl)
   }, [route.params?.student?.profilePicUrl])
 
 
@@ -330,6 +346,12 @@ const StudentCreation = ({ navigation, route }) => {
     }
   };
 
+  const renderError = error => {
+    if (!error) return null;
+    return <Text style={styles.errorText1}>{jsonError}</Text>;
+  };
+
+
   const renderInput = (
     field,
     label,
@@ -339,8 +361,8 @@ const StudentCreation = ({ navigation, route }) => {
     required = false,
   ) => {
     const [showPassword, setShowPassword] = useState(false);
-  
-  return (
+
+    return (
       <View style={styles.inputGroup}>
         <Text style={styles.label}>
           {label} {required && '*'}
@@ -362,19 +384,19 @@ const StudentCreation = ({ navigation, route }) => {
             <TouchableOpacity
               style={styles.toggleButton}
               onPress={() => setShowPassword(!showPassword)}>
-            <Feather
-                           name={showPassword ? 'eye' : 'eye-off'}
-                           size={20}
-                           color="#001d3d"
-             />
-           </TouchableOpacity>
-         )}
-       </View>
-       {errors[field] && <Text style={styles.errorText}>{errors[field]}</Text>}
-     </View>
-  )
+              <Feather
+                name={showPassword ? 'eye' : 'eye-off'}
+                size={20}
+                color="#001d3d"
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+        {errors[field] && <Text style={styles.errorText}>{errors[field]}</Text>}
+      </View>
+    )
 
-}
+  }
 
   return (
     <View style={styles.screen}>
@@ -540,11 +562,14 @@ const StudentCreation = ({ navigation, route }) => {
               'Password',
               'Enter password',
               'default',
-              true, 
+              true,
               true
             )}
           </View>
         </ScrollView>
+
+
+        {renderError(jsonError)}
 
         <View style={styles.actionButtons}>
           <TouchableOpacity
@@ -649,9 +674,16 @@ const styles = StyleSheet.create({
     borderColor: '#EF4444',
   },
   errorText: {
-    color: '#EF4444',
-    fontSize: 14,
-    marginTop: 4,
+    color: '#dc3545',
+    fontSize: 12,
+    marginBottom: 10,
+    marginLeft: 5,
+  },
+  errorText1: {
+    color: '#dc3545',
+    fontSize: 15,
+    marginBottom: 20,
+    marginLeft: 20,
   },
   passwordContainer: {
     position: 'relative',
