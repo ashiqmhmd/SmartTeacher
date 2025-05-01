@@ -294,6 +294,12 @@ const CreateAssignment = ({navigation, route}) => {
       const formData = new FormData();
       formData.append('file', fileData);
 
+      const userId = await AsyncStorage.getItem('TeacherId');
+
+      formData.append('userType', 'TEACHER');
+      formData.append('userId', userId);
+      formData.append('uploadType', 'assignments');
+
       const url = `${base_url}uploads`;
 
       const response = await fetch(url, {
@@ -304,6 +310,8 @@ const CreateAssignment = ({navigation, route}) => {
         },
         body: formData,
       });
+
+      console.log('formdata:  ', formData);
 
       console.log('Status Code:', response.status);
 
