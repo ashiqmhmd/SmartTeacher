@@ -14,16 +14,22 @@ import {
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome'
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import BottomNavigation from '../components/BottomNavBar';
 import RBSheet from 'react-native-raw-bottom-sheet';
-import { useFocusEffect, useRoute } from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {getapi} from '../utils/api';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
 import {useDispatch, useSelector} from 'react-redux';
-import {batch_id, fetch_batchs, logout, selectBatch, setBatchCreated} from '../utils/authslice';
+import {
+  batch_id,
+  fetch_batchs,
+  logout,
+  selectBatch,
+  setBatchCreated,
+} from '../utils/authslice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 
@@ -36,13 +42,29 @@ const HomeScreen = ({navigation}) => {
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [isBatchSelected, setIsBatchSelected] = useState(true); // Track if batch is selected
   const dispatch = useDispatch();
 
   const students_fetch = async () => {
     setLoading(true);
     const Token = await AsyncStorage.getItem('Token');
     const Batch_id = await AsyncStorage.getItem('batch_id');
-    const url = `students/batch/${Batch_id ? Batch_id : selectedBatch_id}`;
+
+    // Check if batch_id is available
+    const currentBatchId = Batch_id ? Batch_id : selectedBatch_id;
+
+    if (!currentBatchId) {
+      console.log('No batch selected yet');
+      setLoading(false);
+      setIsBatchSelected(false);
+      setStudents([]);
+      setFilteredStudents([]);
+      setRefreshing(false);
+      return;
+    }
+
+    setIsBatchSelected(true);
+    const url = `students/batch/${currentBatchId}`;
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
@@ -54,7 +76,7 @@ const HomeScreen = ({navigation}) => {
       setLoading(false);
       setRefreshing(false);
     };
-    
+
     const onCatch = res => {
       console.error('Error fetching students:', res);
       setLoading(false);
@@ -71,31 +93,35 @@ const HomeScreen = ({navigation}) => {
     setSearchText('');
   }, []);
 
-  const handleBatchSelect = async (batch) => {
+  const handleBatchSelect = async batch => {
     await AsyncStorage.setItem('batch_id', batch.id.toString());
     await AsyncStorage.setItem('batch', JSON.stringify(batch));
     dispatch(batch_id(batch.id));
     dispatch(selectBatch(batch));
     setSearchText('');
+    setIsBatchSelected(true);
     await students_fetch();
     refRBSheet.current.close();
   };
 
   // Search functionality
-  const handleSearch = (text) => {
+  const handleSearch = text => {
     setSearchText(text);
     if (text.trim() === '') {
       setFilteredStudents(students);
     } else {
       const filtered = students.filter(student => {
-        const fullName = `${student.firstName} ${student.lastName}`.toLowerCase();
+        const fullName =
+          `${student.firstName} ${student.lastName}`.toLowerCase();
         const searchQuery = text.toLowerCase();
         const parentName = (student.parent1Name || '').toLowerCase();
         const parentPhone = (student.parent1Phone || '').toLowerCase();
-        
-        return fullName.includes(searchQuery) || 
-               parentName.includes(searchQuery) || 
-               parentPhone.includes(searchQuery);
+
+        return (
+          fullName.includes(searchQuery) ||
+          parentName.includes(searchQuery) ||
+          parentPhone.includes(searchQuery)
+        );
       });
       setFilteredStudents(filtered);
     }
@@ -108,6 +134,17 @@ const HomeScreen = ({navigation}) => {
   };
 
   useEffect(() => {
+    // Check if a batch is selected when component mounts
+    const checkBatchSelection = async () => {
+      const Batch_id = await AsyncStorage.getItem('batch_id');
+      if (!Batch_id && !selectedBatch_id) {
+        setIsBatchSelected(false);
+      } else {
+        setIsBatchSelected(true);
+      }
+    };
+
+    checkBatchSelection();
     students_fetch();
     fetch_batchs();
   }, []);
@@ -119,7 +156,7 @@ const HomeScreen = ({navigation}) => {
       return () => {
         console.log('Screen is unfocused');
       };
-    }, [])
+    }, []),
   );
 
   const renderStudentCard = ({item}) => {
@@ -148,12 +185,26 @@ const HomeScreen = ({navigation}) => {
     );
   };
 
+  const renderNoBatchSelected = () => (
+    <View style={styles.noBatchContainer}>
+      <MaterialIcons name="class" size={64} color="#ccc" />
+      <Text style={styles.noBatchText}>No batch selected</Text>
+      <Text style={styles.noBatchSubtext}>
+        Please select a batch to view students
+      </Text>
+      <TouchableOpacity
+        style={styles.selectBatchButton}
+        onPress={() => refRBSheet.current.open()}>
+        <Text style={styles.selectBatchButtonText}>Select Batch</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <View style={styles.screen}>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
       <View style={styles.appBar}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Profile')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
           <Image
             style={styles.avatarImg}
             source={{
@@ -211,14 +262,24 @@ const HomeScreen = ({navigation}) => {
                   />
                 </LinearGradient>
               </TouchableOpacity>
-              <Text style={styles.batchCardTitle}>{selectedBatchString?.name}</Text>
-              <Text style={styles.batchCardSubtitle}>
-                {selectedBatchString?.subject}
+              <Text style={styles.batchCardTitle}>
+                {isBatchSelected && selectedBatchString
+                  ? selectedBatchString.name
+                  : 'Select a batch'}
               </Text>
-              <Text style={styles.batchCardCount}>{students.length}</Text>
+              <Text style={styles.batchCardSubtitle}>
+                {isBatchSelected && selectedBatchString
+                  ? selectedBatchString.subject
+                  : 'No batch selected'}
+              </Text>
+              <Text style={styles.batchCardCount}>
+                {isBatchSelected ? students.length : 0}
+              </Text>
               <View style={styles.createBatch}>
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('Batch_Create',{update:false})}
+                  onPress={() =>
+                    navigation.navigate('Batch_Create', {update: false})
+                  }
                   style={styles.createBatchButton}>
                   <Text style={styles.createBatchButtonText}>
                     Create New Batch
@@ -228,65 +289,73 @@ const HomeScreen = ({navigation}) => {
             </LinearGradient>
           </View>
 
-          <View style={styles.header}>
-            <View style={styles.searchBar}>
-              <Ionicons name="search" size={24} color="#666" />
-              <TextInput
-                placeholder="Search Student"
-                placeholderTextColor="#666"
-                style={styles.searchInput}
-                value={searchText}
-                onChangeText={handleSearch}
-              />
-              {searchText ? (
-                <TouchableOpacity onPress={clearSearch}>
-                  <Ionicons name="close-circle" size={24} color="#666" />
-                </TouchableOpacity>
-              ) : null}
-            </View>
-            <TouchableOpacity
-              style={styles.addStudentButton}
-              accessibilityLabel="Add new student"
-              onPress={() => navigation.navigate('Student_Create',{update:false})}>
-              <Text style={styles.addStudentButtonText}>Add Student</Text>
-            </TouchableOpacity>
-          </View>
-
-          {filteredStudents.length === 0 ? (
-            <View style={styles.noStudentsContainer}>
-              <FontAwesome name="user" size={48} color="#ccc" />
-              <Text style={styles.noStudentsText}>
-                {searchText ? "No matching students found" : "No students in this batch"}
-              </Text>
-              {searchText ? (
-                <TouchableOpacity 
-                  style={styles.clearSearchButton} 
-                  onPress={clearSearch}>
-                  <Text style={styles.clearSearchText}>Clear Search</Text>
-                </TouchableOpacity>
-              ) : null}
-            </View>
+          {!isBatchSelected ? (
+            renderNoBatchSelected()
           ) : (
-            <FlatList
-              data={filteredStudents}
-              renderItem={renderStudentCard}
-              keyExtractor={(item, index) => `${item.firstName}-${index}`}
-              contentContainerStyle={styles.list}
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={onRefresh}
-                  colors={['#001d3d']}
-                  tintColor="#001d3d"
+            <>
+              <View style={styles.header}>
+                <View style={styles.searchBar}>
+                  <Ionicons name="search" size={24} color="#666" />
+                  <TextInput
+                    placeholder="Search Student"
+                    placeholderTextColor="#666"
+                    style={styles.searchInput}
+                    value={searchText}
+                    onChangeText={handleSearch}
+                  />
+                  {searchText ? (
+                    <TouchableOpacity onPress={clearSearch}>
+                      <Ionicons name="close-circle" size={24} color="#666" />
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+                <TouchableOpacity
+                  style={styles.addStudentButton}
+                  accessibilityLabel="Add new student"
+                  onPress={() =>
+                    navigation.navigate('Student_Create', {update: false})
+                  }>
+                  <Text style={styles.addStudentButtonText}>Add Student</Text>
+                </TouchableOpacity>
+              </View>
+
+              {filteredStudents.length === 0 ? (
+                <View style={styles.noStudentsContainer}>
+                  <FontAwesome name="user" size={48} color="#ccc" />
+                  <Text style={styles.noStudentsText}>
+                    {searchText
+                      ? 'No matching students found'
+                      : 'No students in this batch'}
+                  </Text>
+                  {searchText ? (
+                    <TouchableOpacity
+                      style={styles.clearSearchButton}
+                      onPress={clearSearch}>
+                      <Text style={styles.clearSearchText}>Clear Search</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              ) : (
+                <FlatList
+                  data={filteredStudents}
+                  renderItem={renderStudentCard}
+                  keyExtractor={(item, index) => `${item.firstName}-${index}`}
+                  contentContainerStyle={styles.list}
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={onRefresh}
+                      colors={['#001d3d']}
+                      tintColor="#001d3d"
+                    />
+                  }
                 />
-              }
-            />
+              )}
+            </>
           )}
         </View>
       )}
-      <BatchSelectorSheet
-        ref={refRBSheet}
-        onBatchSelect={handleBatchSelect}/>
+      <BatchSelectorSheet ref={refRBSheet} onBatchSelect={handleBatchSelect} />
     </View>
   );
 };
@@ -556,5 +625,40 @@ const styles = StyleSheet.create({
   clearSearchText: {
     color: '#1D49A7',
     fontWeight: '500',
-  }
+  },
+  noBatchContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  noBatchText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#333',
+    marginTop: 16,
+  },
+  noBatchSubtext: {
+    fontSize: 16,
+    color: '#888',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  selectBatchButton: {
+    backgroundColor: '#001d3d',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    marginTop: 24,
+    shadowColor: '#1D49A7',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 8,
+  },
+  selectBatchButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
