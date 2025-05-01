@@ -20,6 +20,7 @@ import {base_url} from '../utils/store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {postApi, putapi} from '../utils/api';
 import moment from 'moment';
+import Toast from 'react-native-toast-message';
 
 const NoteCreateScreen = ({navigation, route}) => {
   const isEditMode = route.params?.note ? true : false;
@@ -270,10 +271,20 @@ const NoteCreateScreen = ({navigation, route}) => {
 
     const onResponse = res => {
       setNote(res);
+      Toast.show({
+        type: 'success',
+        text1: 'New Note',
+        text2: 'Created Succecssfully',
+      });
       navigation.goBack();
     };
 
     const onCatch = res => {
+      Toast.show({
+        type: 'error',
+        text1: 'Failed',
+        text2: 'Note creation failed',
+      });
       console.log('Error', res);
     };
 
@@ -299,10 +310,20 @@ const NoteCreateScreen = ({navigation, route}) => {
 
     const onResponse = res => {
       setNote(res);
+      Toast.show({
+        type: 'success',
+        text1: 'Note',
+        text2: 'Updated Succecssfully',
+      });
       navigation.goBack();
     };
 
     const onCatch = res => {
+      Toast.show({
+        type: 'error',
+        text1: 'Failed',
+        text2: 'Note update failed',
+      });
       console.log('Error', res);
     };
 
