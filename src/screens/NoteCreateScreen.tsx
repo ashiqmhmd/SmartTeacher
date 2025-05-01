@@ -213,6 +213,12 @@ const NoteCreateScreen = ({navigation, route}) => {
       const formData = new FormData();
       formData.append('file', fileData);
 
+      const userId = await AsyncStorage.getItem('TeacherId');
+
+      formData.append('userType', 'TEACHER');
+      formData.append('userId', userId);
+      formData.append('uploadType', 'notes');
+
       const url = `${base_url}uploads`;
 
       const response = await fetch(url, {
