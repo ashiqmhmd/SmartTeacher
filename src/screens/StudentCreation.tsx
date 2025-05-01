@@ -58,24 +58,6 @@ const StudentCreation = ({navigation, route}) => {
   const [jsonError, setJsonError] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [fadeAnim] = useState(new Animated.Value(0));
-
-  const animateSuccess = () => {
-    Animated.sequence([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.delay(2000),
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
 
   const validateEmail = email => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -137,10 +119,11 @@ const StudentCreation = ({navigation, route}) => {
       }
     } catch (error) {
       console.error('Error in image upload process:', error);
-      Alert.alert(
-        'Error',
-        'An unexpected error occurred while uploading image',
-      );
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'An unexpected error occurred while uploading image',
+      });
     } finally {
       setIsUploading(false);
     }
@@ -192,27 +175,33 @@ const StudentCreation = ({navigation, route}) => {
 
       const onResponse = res => {
         console.log('Student updated successfully:', res);
-
-        setShowSuccessMessage(true);
-        animateSuccess();
-        setTimeout(() => {
-          setShowSuccessMessage(false);
-          navigation.goBack();
-        }, 2000);
+        Toast.show({
+          type: 'success',
+          text1: 'Student',
+          text2: 'Student updated successfully',
+        });
+        navigation.goBack();
       };
 
       const onCatch = err => {
         // Only store the error message (not the whole object)
         setJsonError(err?.error || 'Something went wrong');
         console.log('Error updating Student:', err?.error);
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Failed to update student. Please try again.',
+        });
       };
 
       putapi(url, headers, payload, onResponse, onCatch);
     } catch (error) {
       console.error('Error update student:', error);
-      Alert.alert('Error', 'Failed to update student. Please try again.', [
-        {text: 'OK'},
-      ]);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to update student. Please try again.',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -266,13 +255,8 @@ const StudentCreation = ({navigation, route}) => {
         addToBatch(res.id);
         if (res.ok) {
           console.log('Student created successfully:', res);
-          setShowSuccessMessage(true);
-          animateSuccess();
-          setTimeout(() => {
-            setShowSuccessMessage(false);
-            navigation.goBack();
-          }, 2000);
         }
+        navigation.goBack();
       };
 
       const onCatch = err => {
@@ -280,14 +264,21 @@ const StudentCreation = ({navigation, route}) => {
         setJsonError(err?.error || 'Something went wrong');
         console.log(Token);
         console.log('Error creating profile:', err?.error);
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Failed to create student. Please try again.',
+        });
       };
 
       postApi(url, headers, payload, onResponse, onCatch);
     } catch (error) {
       console.error('Error creating student:', error);
-      Alert.alert('Error', 'Failed to create student. Please try again.', [
-        {text: 'OK'},
-      ]);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to create student. Please try again.',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -321,12 +312,6 @@ const StudentCreation = ({navigation, route}) => {
           text1: 'New Student',
           text2: 'Student added successfully',
         });
-        setShowSuccessMessage(true);
-        animateSuccess();
-        setTimeout(() => {
-          setShowSuccessMessage(false);
-          navigation.goBack();
-        }, 2000);
       };
 
       const onCatch = error => {
@@ -418,17 +403,6 @@ const StudentCreation = ({navigation, route}) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}>
         <ScrollView style={styles.scrollView}>
-          {showSuccessMessage && (
-            <Animated.View style={[styles.successMessage, {opacity: fadeAnim}]}>
-              <MaterialIcons name="check-circle" size={24} color="#059669" />
-              <Text style={styles.successText}>
-                {update
-                  ? 'Student Detail updated successfully'
-                  : 'Student added successfully'}
-              </Text>
-            </Animated.View>
-          )}
-
           <View style={styles.formContainer}>
             <View style={styles.profilePicContainer}>
               <TouchableOpacity
@@ -446,7 +420,7 @@ const StudentCreation = ({navigation, route}) => {
                   <>
                     <MaterialIcons
                       name="add-a-photo"
-                      size={32}
+                      size={28}
                       color="#6B7280"
                     />
                     <Text style={styles.profilePicText}>
@@ -656,7 +630,7 @@ const styles = StyleSheet.create({
   },
   profilePicText: {
     marginTop: 8,
-    fontSize: 14,
+    fontSize: 12,
     color: '#6B7280',
   },
   inputGroup: {
