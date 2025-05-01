@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -16,45 +16,45 @@ import {
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { patchApi, postApi, putapi } from '../utils/api';
-import { pickAndUploadImage } from '../components/FileUploadService';
+import {patchApi, postApi, putapi} from '../utils/api';
+import {pickAndUploadImage} from '../components/FileUploadService';
 import Feather from 'react-native-vector-icons/Feather';
 
-const StudentCreation = ({ navigation, route }) => {
+const StudentCreation = ({navigation, route}) => {
   const isEditMode = route.params?.student ? true : false;
 
   const [student, setStudent] = useState(
     isEditMode
       ? route?.params?.student
-      :
-      {
-        id: '',
-        firstName: '',
-        lastName: '',
-        age: '',
-        addressLine1: '',
-        addressCity: '',
-        addressState: '',
-        pinCode: '',
-        gender: '',
-        parent1Name: '',
-        parent1Phone: '',
-        parent1Email: '',
-        parent2Name: '',
-        parent2Phone: '',
-        parent2Email: '',
-        userName: '',
-        password: '',
-        email: '',
-        profilePicUrl: '',
-      });
+      : {
+          id: '',
+          firstName: '',
+          lastName: '',
+          age: '',
+          addressLine1: '',
+          addressCity: '',
+          addressState: '',
+          pinCode: '',
+          gender: '',
+          parent1Name: '',
+          parent1Phone: '',
+          parent1Email: '',
+          parent2Name: '',
+          parent2Phone: '',
+          parent2Email: '',
+          userName: '',
+          password: '',
+          email: '',
+          profilePicUrl: '',
+        },
+  );
 
   // State for profile image
   const [profileImage, setProfileImage] = useState(null);
   const [profileImageUrl, setProfileImageUrl] = useState(null);
-  const [update, setUpdate] = useState(false)
+  const [update, setUpdate] = useState(false);
   const [errors, setErrors] = useState({});
-  const [jsonError, setJsonError] = useState([])
+  const [jsonError, setJsonError] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -121,7 +121,7 @@ const StudentCreation = ({ navigation, route }) => {
       setIsUploading(true);
 
       // Use pickAndUploadImage from FileUploadService
-      const result = await pickAndUploadImage();
+      const result = await pickAndUploadImage({}, 'profile');
 
       if (result.success) {
         // Set the image URI for display
@@ -146,7 +146,6 @@ const StudentCreation = ({ navigation, route }) => {
   };
 
   const updatestudent = async () => {
-
     if (!validateForm()) return;
 
     setIsSaving(true);
@@ -175,7 +174,9 @@ const StudentCreation = ({ navigation, route }) => {
       };
 
       const payload = Object.fromEntries(
-        Object.entries(rawPayload).filter(([_, value]) => value !== '' && value !== null && value !== undefined)
+        Object.entries(rawPayload).filter(
+          ([_, value]) => value !== '' && value !== null && value !== undefined,
+        ),
       );
 
       // Use the postApi function
@@ -190,17 +191,16 @@ const StudentCreation = ({ navigation, route }) => {
 
       const onResponse = res => {
         console.log('Student updated successfully:', res);
-      
-          setShowSuccessMessage(true);
-          animateSuccess();
-          setTimeout(() => {
-            setShowSuccessMessage(false);
-            navigation.goBack();
-          }, 2000);
-      
+
+        setShowSuccessMessage(true);
+        animateSuccess();
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+          navigation.goBack();
+        }, 2000);
       };
 
-      const onCatch = (err) => {
+      const onCatch = err => {
         // Only store the error message (not the whole object)
         setJsonError(err?.error || 'Something went wrong');
         console.log('Error updating Student:', err?.error);
@@ -210,13 +210,12 @@ const StudentCreation = ({ navigation, route }) => {
     } catch (error) {
       console.error('Error update student:', error);
       Alert.alert('Error', 'Failed to update student. Please try again.', [
-        { text: 'OK' },
+        {text: 'OK'},
       ]);
     } finally {
       setIsSaving(false);
     }
-
-  }
+  };
 
   const handleSave = async () => {
     if (!validateForm()) return;
@@ -247,7 +246,9 @@ const StudentCreation = ({ navigation, route }) => {
       };
 
       const payload = Object.fromEntries(
-        Object.entries(rawPayload).filter(([_, value]) => value !== '' && value !== null && value !== undefined)
+        Object.entries(rawPayload).filter(
+          ([_, value]) => value !== '' && value !== null && value !== undefined,
+        ),
       );
 
       // Use the postApi function
@@ -271,22 +272,20 @@ const StudentCreation = ({ navigation, route }) => {
             navigation.goBack();
           }, 2000);
         }
-
       };
 
-      const onCatch = (err) => {
+      const onCatch = err => {
         // Only store the error message (not the whole object)
         setJsonError(err?.error || 'Something went wrong');
         console.log(Token);
         console.log('Error creating profile:', err?.error);
       };
 
-
       postApi(url, headers, payload, onResponse, onCatch);
     } catch (error) {
       console.error('Error creating student:', error);
       Alert.alert('Error', 'Failed to create student. Please try again.', [
-        { text: 'OK' },
+        {text: 'OK'},
       ]);
     } finally {
       setIsSaving(false);
@@ -295,14 +294,12 @@ const StudentCreation = ({ navigation, route }) => {
 
   useEffect(() => {
     setProfileImage(route.params?.student?.profilePicUrl),
-      setProfileImageUrl(route.params?.student?.profilePicUrl)
-  }, [route.params?.student?.profilePicUrl])
-
+      setProfileImageUrl(route.params?.student?.profilePicUrl);
+  }, [route.params?.student?.profilePicUrl]);
 
   useEffect(() => {
-    setUpdate(route?.params?.update)
-  }, [route?.params?.update])
-
+    setUpdate(route?.params?.update);
+  }, [route?.params?.update]);
 
   const addToBatch = async student => {
     try {
@@ -331,7 +328,7 @@ const StudentCreation = ({ navigation, route }) => {
         Alert.alert(
           'Error',
           'Failed to add student to batch. Please try again.',
-          [{ text: 'OK' }],
+          [{text: 'OK'}],
         );
       };
 
@@ -341,7 +338,7 @@ const StudentCreation = ({ navigation, route }) => {
       Alert.alert(
         'Error',
         'Failed to add student to batch. Please try again.',
-        [{ text: 'OK' }],
+        [{text: 'OK'}],
       );
     }
   };
@@ -350,7 +347,6 @@ const StudentCreation = ({ navigation, route }) => {
     if (!error) return null;
     return <Text style={styles.errorText1}>{jsonError}</Text>;
   };
-
 
   const renderInput = (
     field,
@@ -370,10 +366,13 @@ const StudentCreation = ({ navigation, route }) => {
         <View style={styles.passwordContainer}>
           <TextInput
             style={[styles.input, errors[field] && styles.inputError]}
-            value={field === 'age' ? student[field]?.toString() : student[field]}
-            onChangeText={(text) => {
-              setStudent((prev) => ({ ...prev, [field]: text }));
-              if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+            value={
+              field === 'age' ? student[field]?.toString() : student[field]
+            }
+            onChangeText={text => {
+              setStudent(prev => ({...prev, [field]: text}));
+              if (errors[field])
+                setErrors(prev => ({...prev, [field]: undefined}));
             }}
             placeholder={placeholder}
             placeholderTextColor="#9CA3AF"
@@ -394,9 +393,8 @@ const StudentCreation = ({ navigation, route }) => {
         </View>
         {errors[field] && <Text style={styles.errorText}>{errors[field]}</Text>}
       </View>
-    )
-
-  }
+    );
+  };
 
   return (
     <View style={styles.screen}>
@@ -407,7 +405,7 @@ const StudentCreation = ({ navigation, route }) => {
           <MaterialIcons name="arrow-back" size={24} color="#001d3d" />
         </TouchableOpacity>
         <Text style={styles.appBarTitle}>Add New Student</Text>
-        <View style={{ width: 24 }} />
+        <View style={{width: 24}} />
       </View>
 
       <KeyboardAvoidingView
@@ -415,9 +413,13 @@ const StudentCreation = ({ navigation, route }) => {
         style={styles.container}>
         <ScrollView style={styles.scrollView}>
           {showSuccessMessage && (
-            <Animated.View style={[styles.successMessage, { opacity: fadeAnim }]}>
+            <Animated.View style={[styles.successMessage, {opacity: fadeAnim}]}>
               <MaterialIcons name="check-circle" size={24} color="#059669" />
-              <Text style={styles.successText}>{update ? "Student Detail updated successfully" : 'Student added successfully'}</Text>
+              <Text style={styles.successText}>
+                {update
+                  ? 'Student Detail updated successfully'
+                  : 'Student added successfully'}
+              </Text>
             </Animated.View>
           )}
 
@@ -431,7 +433,7 @@ const StudentCreation = ({ navigation, route }) => {
                   <ActivityIndicator size="large" color="#001d3d" />
                 ) : profileImage ? (
                   <Image
-                    source={{ uri: profileImage }}
+                    source={{uri: profileImage}}
                     style={styles.profilePic}
                   />
                 ) : (
@@ -483,12 +485,12 @@ const StudentCreation = ({ navigation, route }) => {
                       styles.genderButton,
                       student.gender === gender && styles.genderButtonSelected,
                     ]}
-                    onPress={() => setStudent(prev => ({ ...prev, gender }))}>
+                    onPress={() => setStudent(prev => ({...prev, gender}))}>
                     <Text
                       style={[
                         styles.genderButtonText,
                         student.gender === gender &&
-                        styles.genderButtonTextSelected,
+                          styles.genderButtonTextSelected,
                       ]}>
                       {gender.charAt(0).toUpperCase() + gender.slice(1)}
                     </Text>
@@ -563,11 +565,10 @@ const StudentCreation = ({ navigation, route }) => {
               'Enter password',
               'default',
               true,
-              true
+              true,
             )}
           </View>
         </ScrollView>
-
 
         {renderError(jsonError)}
 
@@ -584,7 +585,7 @@ const StudentCreation = ({ navigation, route }) => {
               styles.saveButton,
               (isSaving || isUploading) && styles.saveButtonDisabled,
             ]}
-            onPress={() => update ? updatestudent() : handleSave()}
+            onPress={() => (update ? updatestudent() : handleSave())}
             disabled={isSaving || isUploading}>
             {isSaving ? (
               <ActivityIndicator color="#FFFFFF" />
@@ -734,7 +735,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
+    shadowOffset: {width: 0, height: -2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 5,
@@ -757,7 +758,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#001d3d',
     shadowColor: '#001d3d',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
