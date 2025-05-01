@@ -20,6 +20,7 @@ import {base_url} from '../utils/store';
 import {postApi, putapi} from '../utils/api';
 import {currentdate} from '../components/moment';
 import moment from 'moment';
+import Toast from 'react-native-toast-message';
 
 const CreateAssignment = ({navigation, route}) => {
   const isEditMode = route.params?.assignment ? true : false;
@@ -186,11 +187,13 @@ const CreateAssignment = ({navigation, route}) => {
 
       // Show success message
       setIsSaving(false);
+
       setShowSuccessMessage(true);
       animateSuccess();
       setTimeout(() => setShowSuccessMessage(false), 3000);
     } catch (error) {
       console.error('Error during save:', error.message);
+
       setIsSaving(false);
     }
   };
@@ -365,10 +368,20 @@ const CreateAssignment = ({navigation, route}) => {
 
       const onResponse = res => {
         setAssignment(res);
+        Toast.show({
+          type: 'success',
+          text1: 'New Assignment',
+          text2: 'Created Succecssfully',
+        });
         navigation.goBack();
       };
 
       const onCatch = error => {
+        Toast.show({
+          type: 'error',
+          text1: 'Failed',
+          text2: 'Assigment creation failed',
+        });
         console.error('Error submitting assignment:', error);
       };
 
@@ -400,11 +413,21 @@ const CreateAssignment = ({navigation, route}) => {
 
     const onResponse = res => {
       setAssignment(res);
+      Toast.show({
+        type: 'success',
+        text1: 'Assignment',
+        text2: 'Updated Succecssfully',
+      });
       navigation.goBack();
     };
 
     const onCatch = res => {
       console.log('Error');
+      Toast.show({
+        type: 'error',
+        text1: 'Failed',
+        text2: 'Assigment update failed',
+      });
       console.log(res);
     };
 
