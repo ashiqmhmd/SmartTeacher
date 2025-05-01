@@ -62,7 +62,7 @@ export const pickImage = async (options = {}) => {
  * @param {FormData} formData - FormData object containing the file to upload
  * @returns {Promise<Object>} - Returns the uploaded file URL if successful
  */
-export const uploadFile = async formData => {
+export const uploadFile = async (formData, uploadType) => {
   try {
     if (!formData) {
       return {
@@ -70,6 +70,12 @@ export const uploadFile = async formData => {
         message: 'No file data provided for upload',
       };
     }
+
+    const userId = await AsyncStorage.getItem('TeacherId');
+
+    formData.append('userType', 'TEACHER');
+    formData.append('userId', userId);
+    formData.append('uploadType', uploadType);
 
     const token = await AsyncStorage.getItem('Token');
     if (!token) {
@@ -133,7 +139,7 @@ export const uploadFile = async formData => {
  * @param {Object} options - Options for the image picker (optional)
  * @returns {Promise<Object>} - Returns the uploaded file URL if successful
  */
-export const pickAndUploadImage = async (options = {}) => {
+export const pickAndUploadImage = async (options = {}, uploadType) => {
   // First pick the image
   const pickResult = await pickImage(options);
 
@@ -142,7 +148,7 @@ export const pickAndUploadImage = async (options = {}) => {
   }
 
   // Then upload the image
-  const uploadResult = await uploadFile(pickResult.formData);
+  const uploadResult = await uploadFile(pickResult.formData, uploadType);
 
   // Return combined result
   return {
