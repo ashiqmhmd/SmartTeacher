@@ -19,6 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {patchApi, postApi, putapi} from '../utils/api';
 import {pickAndUploadImage} from '../components/FileUploadService';
 import Feather from 'react-native-vector-icons/Feather';
+import Toast from 'react-native-toast-message';
 
 const StudentCreation = ({navigation, route}) => {
   const isEditMode = route.params?.student ? true : false;
@@ -315,6 +316,11 @@ const StudentCreation = ({navigation, route}) => {
 
       const onResponse = res => {
         console.log('Student added successfully:', res);
+        Toast.show({
+          type: 'success',
+          text1: 'New Student',
+          text2: 'Student added successfully',
+        });
         setShowSuccessMessage(true);
         animateSuccess();
         setTimeout(() => {
@@ -325,21 +331,21 @@ const StudentCreation = ({navigation, route}) => {
 
       const onCatch = error => {
         console.error('Error adding student to batch:', error);
-        Alert.alert(
-          'Error',
-          'Failed to add student to batch. Please try again.',
-          [{text: 'OK'}],
-        );
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Failed to add student to batch. Please try again.',
+        });
       };
 
       patchApi(url, headers, null, onResponse, onCatch);
     } catch (error) {
       console.error('Error adding student to batch:', error);
-      Alert.alert(
-        'Error',
-        'Failed to add student to batch. Please try again.',
-        [{text: 'OK'}],
-      );
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to add student to batch. Please try again.',
+      });
     }
   };
 
