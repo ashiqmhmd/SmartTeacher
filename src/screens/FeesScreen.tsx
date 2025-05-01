@@ -24,7 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useDispatch, useSelector} from 'react-redux';
 import {batch_id, selectBatch} from '../utils/authslice';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
-import { useFocusEffect } from '@react-navigation/core';
+import {useFocusEffect} from '@react-navigation/core';
 
 interface StudentDetails {
   [studentId: string]: string;
@@ -73,13 +73,13 @@ const FeesScreen = ({navigation}) => {
 
       res.forEach(record => {
         const amount = Number(record.amount);
-    
-        totalAmount += amount; 
+
+        totalAmount += amount;
         if (record.status === 'paid') {
           receivedAmount += amount;
         }
       });
-    
+
       setTotalFees(totalAmount);
       setReceivedFees(receivedAmount);
       setRefreshing(false);
@@ -237,7 +237,7 @@ const FeesScreen = ({navigation}) => {
                   marginLeft: 5,
                 },
               ]}>
-              {record.teacherAcknowledgement ? 'Approved' : 'Pending'}
+              {record.teacherAcknowledgement ? 'Approved' : 'Approval Pending'}
             </Text>
           )}
         </View>
@@ -453,10 +453,7 @@ const FeesScreen = ({navigation}) => {
           )}
         </ScrollView>
       )}
-      <BatchSelectorSheet
-        ref={refRBSheet}
-        onBatchSelect={handleBatchSelect}
-      />
+      <BatchSelectorSheet ref={refRBSheet} onBatchSelect={handleBatchSelect} />
     </View>
   );
 };
