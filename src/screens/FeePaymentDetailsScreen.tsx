@@ -26,9 +26,8 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
 
   const handleMarkAsReceived = async () => {
     setIsSaving(true);
-  
-      Fees_update()
-    
+
+    Fees_update();
   };
 
   const isImageFile = url => {
@@ -75,7 +74,7 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
           text: 'Yes',
           style: 'destructive',
           onPress: async () => {
-           await Delete_FeeRecord(id)
+            await Delete_FeeRecord(id);
           },
         },
       ],
@@ -90,7 +89,6 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
     //   setLoading(false);
     // }, 10000);
 
-
     const Token = await AsyncStorage.getItem('Token');
     const url = `fee-records/${id}`;
     const headers = {
@@ -98,15 +96,14 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${Token}`,
     };
-    const onResponse = async (res) => {
+    const onResponse = async res => {
+      console.log('deleted successfully');
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating API call
+      navigation.goBack();
 
-      console.log("deleted successfully")
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating API call
-        navigation.goBack();
-      
       setLoading(false);
     };
-    
+
     const onCatch = res => {
       console.error('Error deleting fee:', res);
       setLoading(false);
@@ -114,7 +111,6 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
     deleteapi(url, headers, onResponse, onCatch);
   };
 
-  
   const Fees_update = async () => {
     try {
       const Token = await AsyncStorage.getItem('Token');
@@ -122,7 +118,6 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
         throw new Error('No token found, authentication required');
       }
 
-     
       const url = `fee-records/${feeRecord.id}`;
       const headers = {
         Accept: 'application/json',
@@ -130,15 +125,16 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
         Authorization: `Bearer ${Token}`,
       };
 
-      const { id,batchId,createdAt,studentId,amount, ...filteredFeeRecord } = feeRecord;  
+      const {id, batchId, createdAt, studentId, amount, ...filteredFeeRecord} =
+        feeRecord;
       const body = {
         ...filteredFeeRecord,
-        status: 'paid', 
-        notes: "Payment received in full.",
-        teacherAcknowledgement: true
+        status: 'paid',
+        notes: 'Payment received in full.',
+        teacherAcknowledgement: true,
       };
 
-      const onResponse = async (res) => {
+      const onResponse = async res => {
         // Show Toast Message
         Toast.show({
           type: 'success',
@@ -151,10 +147,9 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
         await new Promise(resolve => setTimeout(resolve, 1000));
         // Alert.alert('Success', 'Fee payment marked as received');
         navigation.goBack();
-
       };
 
-      const onCatch = async (error) => {
+      const onCatch = async error => {
         console.error('Fee Marking Failed:', error);
         Toast.show({
           type: 'error',
@@ -168,13 +163,12 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
       };
 
       await patchApi(url, headers, body, onResponse, onCatch);
-      console.log(body)
+      console.log(body);
     } catch (error) {
       console.error('Fees marking Error:', error.message);
       Alert.alert('Error', error.message);
     }
   };
- 
 
   const renderAttachment = () => {
     if (!feeRecord.attachmentUrl) {
@@ -287,21 +281,22 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
         </View>
 
         <View style={styles.actionButtons}>
-          {feeRecord.status !== 'paid' && !feeRecord.teacherAcknowledgement && (
-            <TouchableOpacity
-              style={[styles.button, styles.receiveButton]}
-              onPress={handleMarkAsReceived}
-              disabled={isSaving}>
-              {isSaving ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <>
-                  <MaterialIcons name="check-circle" size={24} color="#fff" />
-                  <Text style={styles.buttonText}>Mark as Received</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          )}
+          {feeRecord.status == 'paid' &&
+            feeRecord.teacherAcknowledgement !== true && (
+              <TouchableOpacity
+                style={[styles.button, styles.receiveButton]}
+                onPress={handleMarkAsReceived}
+                disabled={isSaving}>
+                {isSaving ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <>
+                    <MaterialIcons name="check-circle" size={24} color="#fff" />
+                    <Text style={styles.buttonText}>Mark as Received</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
 
           <TouchableOpacity
             style={[styles.button, styles.deleteButton]}
