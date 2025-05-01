@@ -807,6 +807,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import {putapi} from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {pickAndUploadImage} from '../components/FileUploadService';
+import Toast from 'react-native-toast-message';
 
 const UpdateProfileScreen = ({navigation, route}) => {
   const isEditMode = route.params?.update ? true : false;
@@ -934,6 +935,11 @@ const UpdateProfileScreen = ({navigation, route}) => {
 
       const onResponse = res => {
         console.log('Profile updated successfully');
+        Toast.show({
+          type: 'success',
+          text1: 'Profile Update',
+          text2: 'Profile has been successfully updated!',
+        });
         navigation.replace('Tabs');
       };
 
@@ -941,11 +947,21 @@ const UpdateProfileScreen = ({navigation, route}) => {
         setErrors(err);
         console.log(payload);
         console.log('Error updating profile:', err.error);
+        Toast.show({
+          type: 'error',
+          text1: 'Failed',
+          text2: 'Update failed',
+        });
       };
 
       putapi(url, headers, payload, onResponse, onCatch);
     } catch (error) {
       console.error('Error submitting profile:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Failed',
+        text2: 'Update failed',
+      });
     }
   };
 
