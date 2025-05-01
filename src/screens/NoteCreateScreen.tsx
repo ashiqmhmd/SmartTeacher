@@ -376,13 +376,6 @@ const NoteCreateScreen = ({navigation, route}) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}>
         <ScrollView style={styles.scrollView}>
-          {showSuccessMessage && (
-            <Animated.View style={[styles.successMessage, {opacity: fadeAnim}]}>
-              <MaterialIcons name="check-circle" size={24} color="#059669" />
-              <Text style={styles.successText}>Note saved successfully</Text>
-            </Animated.View>
-          )}
-
           <View style={styles.formContainer}>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Title *</Text>
