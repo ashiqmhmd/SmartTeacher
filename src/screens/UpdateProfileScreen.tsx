@@ -790,7 +790,7 @@
 
 // export default UpdateProfileScreen;
 
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -804,46 +804,41 @@ import {
   StatusBar,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
-import { putapi } from '../utils/api';
+import {putapi} from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { pickAndUploadImage } from '../components/FileUploadService';
+import {pickAndUploadImage} from '../components/FileUploadService';
 
-const UpdateProfileScreen = ({ navigation, route }) => {
+const UpdateProfileScreen = ({navigation, route}) => {
   const isEditMode = route.params?.update ? true : false;
   const [errors, setErrors] = useState([]);
   const [profileData, setProfileData] = useState(
-    isEditMode ?
-      route?.params?.teacher
-      :
-      {
-
-        firstName: '',
-        lastName: '',
-        age: 18,
-        gender: '',
-        addressLine1: '',
-        addressCity: '',
-        addressState: '',
-        pinCode: '',
-        profilePicUrl: '',
-        phoneNumber: '',
-        upiId: '',
-        accountNumber: '',
-        accountName: '',
-        ifscCode: '',
-      });
+    isEditMode
+      ? route?.params?.teacher
+      : {
+          firstName: '',
+          lastName: '',
+          age: 18,
+          gender: '',
+          addressLine1: '',
+          addressCity: '',
+          addressState: '',
+          pinCode: '',
+          profilePicUrl: '',
+          phoneNumber: '',
+          upiId: '',
+          accountNumber: '',
+          accountName: '',
+          ifscCode: '',
+        },
+  );
 
   const [profileImage, setProfileImage] = useState();
   const [isUploading, setIsUploading] = useState(false);
   const [userId, setUserId] = useState(
-    isEditMode ?
-      route?.params?.teacher?.id
-      :
-
-      route?.params?.userId
+    isEditMode ? route?.params?.teacher?.id : route?.params?.userId,
   );
 
-  const [update, setUpdate] = useState(false)
+  const [update, setUpdate] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState('');
 
@@ -868,7 +863,7 @@ const UpdateProfileScreen = ({ navigation, route }) => {
   const handleImagePicker = async () => {
     try {
       setIsUploading(true);
-      const result = await pickAndUploadImage();
+      const result = await pickAndUploadImage({}, 'profile');
 
       if (result.success) {
         // Update profile image state
@@ -890,28 +885,25 @@ const UpdateProfileScreen = ({ navigation, route }) => {
     }
   };
 
-
+  useEffect(() => {
+    setUpdate(route?.params?.update);
+  }, [route?.params?.update]);
 
   useEffect(() => {
-    setUpdate(route?.params?.update)
-  }, [route?.params?.update])
-
-
-  useEffect(() => {
-    setProfileImage(route.params?.teacher?.profilePicUrl)
-  }, [route.params?.teacher?.profilePicUrl])
+    setProfileImage(route.params?.teacher?.profilePicUrl);
+  }, [route.params?.teacher?.profilePicUrl]);
 
   const handleSubmit = async () => {
     try {
       const Token = await AsyncStorage.getItem('Token');
       const url = `teachers/${userId}`;
-  
+
       const headers = {
         Accept: 'application/json',
         'Content-Type': 'application/json',
         Authorization: `Bearer ${Token}`,
       };
-  
+
       // Filter out empty or undefined values
       const rawPayload = {
         firstName: profileData.firstName,
@@ -932,29 +924,31 @@ const UpdateProfileScreen = ({ navigation, route }) => {
         userName: profileData.userName,
         password: profileData.password,
       };
-  
+
       // Remove keys with empty string or null or undefined values
       const payload = Object.fromEntries(
-        Object.entries(rawPayload).filter(([_, value]) => value !== '' && value !== null && value !== undefined)
+        Object.entries(rawPayload).filter(
+          ([_, value]) => value !== '' && value !== null && value !== undefined,
+        ),
       );
-  
+
       const onResponse = res => {
         console.log('Profile updated successfully');
         navigation.replace('Tabs');
       };
-  
-      const onCatch = (err) => {
+
+      const onCatch = err => {
         setErrors(err);
         console.log(payload);
         console.log('Error updating profile:', err.error);
       };
-  
+
       putapi(url, headers, payload, onResponse, onCatch);
     } catch (error) {
       console.error('Error submitting profile:', error);
     }
   };
-  
+
   const renderInput = (icon, placeholder, field, keyboardType = 'default') => (
     <View style={styles.inputContainer}>
       <Feather name={icon} size={20} color="#001d3d" style={styles.inputIcon} />
@@ -962,16 +956,21 @@ const UpdateProfileScreen = ({ navigation, route }) => {
         style={styles.input}
         placeholder={placeholder}
         placeholderTextColor="#888"
-        value={field == 'age' ? profileData[field]?.toString() : field == 'pinCode' ? profileData[field]?.toString() : profileData[field]}
+        value={
+          field == 'age'
+            ? profileData[field]?.toString()
+            : field == 'pinCode'
+            ? profileData[field]?.toString()
+            : profileData[field]
+        }
         onChangeText={value => handleInputChange(field, value)}
         keyboardType={keyboardType}
       />
     </View>
   );
 
-
   // Radio button component for gender selection
-  const RadioButton = ({ label, selected, onPress }) => (
+  const RadioButton = ({label, selected, onPress}) => (
     <TouchableOpacity style={styles.radioButtonContainer} onPress={onPress}>
       <View style={styles.radioButton}>
         {selected && <View style={styles.radioButtonSelected} />}
@@ -1002,14 +1001,12 @@ const UpdateProfileScreen = ({ navigation, route }) => {
     </View>
   );
 
-  
   const renderError = error => {
     if (!error) return null;
     return <Text style={styles.errorText}>{error}</Text>;
   };
 
   return (
-    
     <View style={styles.container}>
       <StatusBar backgroundColor="#1D49A7" barStyle="light-content" />
       <KeyboardAvoidingView
@@ -1025,7 +1022,7 @@ const UpdateProfileScreen = ({ navigation, route }) => {
             onPress={handleImagePicker}
             disabled={isUploading}>
             {profileImage ? (
-              <Image source={{ uri: profileImage }} style={styles.profileImage} />
+              <Image source={{uri: profileImage}} style={styles.profileImage} />
             ) : (
               <View style={styles.imagePlaceholder}>
                 <Feather name="camera" size={40} color="#001d3d" />
@@ -1035,7 +1032,7 @@ const UpdateProfileScreen = ({ navigation, route }) => {
               </View>
             )}
           </TouchableOpacity>
-          {update &&
+          {update && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Login Details</Text>
               {renderInput('user', 'User Name', 'userName')}
@@ -1065,9 +1062,8 @@ const UpdateProfileScreen = ({ navigation, route }) => {
                   />
                 </TouchableOpacity>
               </View>
-
             </View>
-          }
+          )}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Personal Information</Text>
             {renderInput('user', 'First Name', 'firstName')}
@@ -1094,7 +1090,6 @@ const UpdateProfileScreen = ({ navigation, route }) => {
           </View>
 
           {renderError(errors)}
-
 
           <TouchableOpacity
             onPress={handleSubmit}
