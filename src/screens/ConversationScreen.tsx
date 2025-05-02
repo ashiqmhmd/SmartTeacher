@@ -372,7 +372,12 @@ const ConversationScreen = ({route, navigation}) => {
             ? conversationData?.senderName
             : conversationData?.receiverName,
         senderType: 'TEACHER',
-        content: messageContent,
+        content:
+          messageContent.length > 0
+            ? messageContent
+            : selectedAttachments.length > 0
+            ? ' '
+            : '',
         timestamp: new Date().toISOString(),
         attachmentUrls: attachmentUrls,
       };
@@ -411,6 +416,12 @@ const ConversationScreen = ({route, navigation}) => {
         attachmentUrls: attachmentUrls,
       };
 
+      const fliteredData = Object.fromEntries(
+        Object.entries(data).filter(
+          ([_, value]) => value !== '' && value !== null && value !== undefined,
+        ),
+      );
+
       const onResponse = res => {
         console.log('Message sent successfully:', res);
         setSendingMessage(false);
@@ -430,7 +441,7 @@ const ConversationScreen = ({route, navigation}) => {
         setNewMessage(messageContent);
       };
 
-      patchApi(url, headers, data, onResponse, onCatch);
+      patchApi(url, headers, fliteredData, onResponse, onCatch);
     } catch (error) {
       console.error('Exception when sending message:', error);
       setSendingMessage(false);
