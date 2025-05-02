@@ -26,7 +26,7 @@ const NotesScreen = ({ navigation }) => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false); // State for refresh control
-
+ const [isBatchSelected, setIsBatchSelected] = useState(true);
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
 
@@ -46,8 +46,18 @@ const NotesScreen = ({ navigation }) => {
     setLoading(true);
     const Token = await AsyncStorage.getItem('Token');
     const Batch_id = await AsyncStorage.getItem('batch_id');
+    const currentBatchId = Batch_id ? Batch_id : selectedBatch_id;
 
-    const url = `/notes/batch/${Batch_id}`;
+    if (!currentBatchId) {
+      console.log('No batch selected yet');
+      setLoading(false);
+      setIsBatchSelected(false);
+      setNotes([]);
+      setRefreshing(false);
+      return;
+    }
+    setIsBatchSelected(true);
+    const url = `/notes/batch/${currentBatchId}`;
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
@@ -118,6 +128,20 @@ const NotesScreen = ({ navigation }) => {
       </View>
     </TouchableOpacity>
   );
+    const renderNoBatchSelected = () => (
+      <View style={styles.noBatchContainer}>
+        <MaterialIcons name="class" size={64} color="#ccc" />
+        <Text style={styles.noBatchText}>No batch selected</Text>
+        <Text style={styles.noBatchSubtext}>
+          Please select a batch to view notes
+        </Text>
+        <TouchableOpacity
+          style={styles.selectBatchButton}
+          onPress={() => refRBSheet.current.open()}>
+          <Text style={styles.selectBatchButtonText}>Select Batch</Text>
+        </TouchableOpacity>
+      </View>
+    );
 
   return (
     <View style={styles.screen}>
@@ -150,7 +174,11 @@ const NotesScreen = ({ navigation }) => {
           />
         </TouchableOpacity>
       </View>
-      {loading ? (
+      {!isBatchSelected ? (
+        renderNoBatchSelected()
+      ) :
+
+      loading ? (
         <View style={styles.container}>
           {/* Search Bar Shimmer */}
           <View style={styles.searchSection}>
@@ -343,6 +371,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     marginTop: 10,
+  },
+  noBatchContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  noBatchText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#333',
+    marginTop: 16,
+  },
+  noBatchSubtext: {
+    fontSize: 16,
+    color: '#888',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  selectBatchButton: {
+    backgroundColor: '#001d3d',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    marginTop: 24,
+    shadowColor: '#1D49A7',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 8,
+  },
+  selectBatchButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

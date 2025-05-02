@@ -25,7 +25,7 @@ const AssignmentsScreen = ({ navigation }) => {
   const [assignment, setAssignment] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false); // State for refresh control
-
+  const [isBatchSelected, setIsBatchSelected] = useState(true); // Track if batch is selected
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
 
@@ -51,7 +51,20 @@ const AssignmentsScreen = ({ navigation }) => {
     setLoading(true);
     const Token = await AsyncStorage.getItem('Token');
     const Batch_id = await AsyncStorage.getItem('batch_id');
-    const url = `assignments/batch/${Batch_id}`;
+
+    const currentBatchId = Batch_id ? Batch_id : selectedBatch_id;
+
+    if (!currentBatchId) {
+      console.log('No batch selected yet');
+      setLoading(false);
+      setIsBatchSelected(false);
+      setAssignment([]);
+      setRefreshing(false);
+      return;
+    }
+
+    setIsBatchSelected(true);
+    const url = `assignments/batch/${currentBatchId}`;
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
@@ -147,6 +160,21 @@ const AssignmentsScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
+  const renderNoBatchSelected = () => (
+    <View style={styles.noBatchContainer}>
+      <MaterialIcons name="class" size={64} color="#ccc" />
+      <Text style={styles.noBatchText}>No batch selected</Text>
+      <Text style={styles.noBatchSubtext}>
+        Please select a batch to view assignments
+      </Text>
+      <TouchableOpacity
+        style={styles.selectBatchButton}
+        onPress={() => refRBSheet.current.open()}>
+        <Text style={styles.selectBatchButtonText}>Select Batch</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <View style={styles.screen}>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
@@ -178,75 +206,79 @@ const AssignmentsScreen = ({ navigation }) => {
           />
         </TouchableOpacity>
       </View>
-      {loading ? (
-        <View style={styles.container}>
-          {/* Search Bar Shimmer */}
-          <View style={styles.searchSection}>
-            <ShimmerPlaceholder style={styles.searchBar} />
-          </View>
+      {!isBatchSelected ? (
+        renderNoBatchSelected()
+      ) :
 
-          {/* Student List Shimmer */}
-          {[1, 2, 3, 4, 5].map((_, index) => (
-            <View style={styles.assignmentCard}>
-              <View key={index} style={styles.assignmentHeader}>
-                <ShimmerPlaceholder style={styles.assignmentTitle} />
-              </View>
-              <View style={styles.assignmentDetails}>
-                <ShimmerPlaceholder style={styles.detailItem} />
-                <ShimmerPlaceholder style={styles.detailItem} />
-              </View>
+        loading ? (
+          <View style={styles.container}>
+            {/* Search Bar Shimmer */}
+            <View style={styles.searchSection}>
+              <ShimmerPlaceholder style={styles.searchBar} />
             </View>
-          ))}
-        </View>
-      ) : (
-        <ScrollView
-          style={styles.container}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing} // Controlled by refreshing state
-              onRefresh={onRefresh} // Callback when user pulls to refresh
-              colors={['#001d3d']} // Customize refresh spinner color
-              tintColor="#001d3d" // Customize spinner color (iOS)
-            />
-          }>
-          <View style={styles.searchSection}>
-            <View style={styles.searchBar}>
-              <MaterialIcons name="search" size={24} color="#666" />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search assignments"
-                placeholderTextColor="#666"
-                value={searchQuery}
-                onChangeText={setSearchQuery} // Updates searchQuery when user types
+
+            {/* Student List Shimmer */}
+            {[1, 2, 3, 4, 5].map((_, index) => (
+              <View style={styles.assignmentCard}>
+                <View key={index} style={styles.assignmentHeader}>
+                  <ShimmerPlaceholder style={styles.assignmentTitle} />
+                </View>
+                <View style={styles.assignmentDetails}>
+                  <ShimmerPlaceholder style={styles.detailItem} />
+                  <ShimmerPlaceholder style={styles.detailItem} />
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <ScrollView
+            style={styles.container}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing} // Controlled by refreshing state
+                onRefresh={onRefresh} // Callback when user pulls to refresh
+                colors={['#001d3d']} // Customize refresh spinner color
+                tintColor="#001d3d" // Customize spinner color (iOS)
               />
+            }>
+            <View style={styles.searchSection}>
+              <View style={styles.searchBar}>
+                <MaterialIcons name="search" size={24} color="#666" />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search assignments"
+                  placeholderTextColor="#666"
+                  value={searchQuery}
+                  onChangeText={setSearchQuery} // Updates searchQuery when user types
+                />
+              </View>
+              <TouchableOpacity
+                style={styles.createButton}
+                onPress={() =>
+                  navigation.navigate('Assignment_Creation', { update: false })
+                }>
+                <Text style={styles.createButtonText}>Create</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={styles.createButton}
-              onPress={() =>
-                navigation.navigate('Assignment_Creation', { update: false })
-              }>
-              <Text style={styles.createButtonText}>Create</Text>
-            </TouchableOpacity>
-          </View>
 
-          {assignment.length === 0 ? (
-            <View style={styles.noAssignmentsContainer}>
-              <MaterialIcons name="assignment" size={48} color="#ccc" />
-              <Text style={styles.noAssignmentsText}>
-                No assignments in this batch
-              </Text>
-            </View>
-          ) : (
-            <FlatList
-              data={filteredAssignments}
-              renderItem={({ item }) => <AssignmentCard item={item} />}
-              keyExtractor={item => item?.id.toString()}
-              scrollEnabled={false}
-              style={styles.assignmentsList}
-            />
-          )}
-        </ScrollView>
-      )}
+            {assignment.length === 0 ? (
+              <View style={styles.noAssignmentsContainer}>
+                <MaterialIcons name="assignment" size={48} color="#ccc" />
+                <Text style={styles.noAssignmentsText}>
+                  No assignments in this batch
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={filteredAssignments}
+                renderItem={({ item }) => <AssignmentCard item={item} />}
+                keyExtractor={item => item?.id.toString()}
+                scrollEnabled={false}
+                style={styles.assignmentsList}
+              />
+            )}
+          </ScrollView>
+        )}
       <BatchSelectorSheet ref={refRBSheet} onBatchSelect={handleBatchSelect} />
     </View>
   );
@@ -378,6 +410,42 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 10,
   },
+  noBatchContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  noBatchText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#333',
+    marginTop: 16,
+  },
+  noBatchSubtext: {
+    fontSize: 16,
+    color: '#888',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  selectBatchButton: {
+    backgroundColor: '#001d3d',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    marginTop: 24,
+    shadowColor: '#1D49A7',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 8,
+  },
+  selectBatchButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+
 });
 
 export default AssignmentsScreen;
