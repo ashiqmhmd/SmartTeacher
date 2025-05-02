@@ -11,7 +11,7 @@ import {
 import React, { useEffect, useState } from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { logout } from '../utils/authslice';
+import { fetch_batchs, logout } from '../utils/authslice';
 import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getapi, deleteapi } from '../utils/api';
@@ -39,7 +39,7 @@ const ProfileScreen = ({ navigation, item }) => {
     accountNumber: '',
     ifscCode: '',
     upiId: '',
-    profilePicUrl: 'https://via.placeholder.com/150',
+    profilePicUrl: '',
   };
 
   const [teacher, setTeacher] = useState(defaultTeacher);
@@ -133,6 +133,11 @@ const ProfileScreen = ({ navigation, item }) => {
               setBatches(prevBatches =>
                 prevBatches.filter(batch => batch.id !== batchId),
               );
+
+              dispatch(fetch_batchs())
+              dispatch({
+                type: 'Clearbatches'
+              });
               console.log("Batch deleted successfully")
               Alert.alert('Success', 'Batch deleted successfully');
               await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating API call
@@ -225,7 +230,7 @@ const ProfileScreen = ({ navigation, item }) => {
             <Image
               source={
                 !teacher.profilePicUrl
-                  ? require('../resources/logo.png')
+                  ? require('../resources/user.png')
                   : { uri: teacher.profilePicUrl }
               }
               style={styles.profileImage}
@@ -300,7 +305,7 @@ const ProfileScreen = ({ navigation, item }) => {
           </View>
           <View style={styles.batchList}>
             {
-              batches.length > 0?
+              batches.length > 0 ?
 
                 batches.map((batch, index) => (
                   <View key={index} style={styles.batchCard}>
@@ -330,8 +335,8 @@ const ProfileScreen = ({ navigation, item }) => {
                 ))
 
                 :
-                <View style={{justifyContent:"center",alignItems:'center'}}>
-                  <Text style={{fontSize: 15,fontWeight:"500", color: '#0F1F4B',}}>
+                <View style={{ justifyContent: "center", alignItems: 'center' }}>
+                  <Text style={{ fontSize: 15, fontWeight: "500", color: '#0F1F4B', }}>
                     No Batches Available
                   </Text>
                 </View>

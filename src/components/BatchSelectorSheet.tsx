@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useCallback} from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,12 +11,12 @@ import RBSheet from 'react-native-raw-bottom-sheet';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {getapi} from '../utils/api';
+import { getapi } from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useDispatch, useSelector} from 'react-redux';
-import {batch_id, fetch_batchs, selectBatch} from '../utils/authslice';
+import { useDispatch, useSelector } from 'react-redux';
+import { batch_id, fetch_batchs, selectBatch } from '../utils/authslice';
 
-const BatchItem = ({item, selectedBatch, onSelect}) => (
+const BatchItem = ({ item, selectedBatch, onSelect }) => (
   <TouchableOpacity
     style={[
       styles.batchItem,
@@ -28,7 +28,7 @@ const BatchItem = ({item, selectedBatch, onSelect}) => (
         <View
           style={[
             styles.batchIcon,
-            selectedBatch?.id === item.id && {backgroundColor: '#1A3366'},
+            selectedBatch?.id === item.id && { backgroundColor: '#1A3366' },
           ]}>
           <MaterialCommunityIcons
             name="book-education"
@@ -62,7 +62,7 @@ const BatchItem = ({item, selectedBatch, onSelect}) => (
   </TouchableOpacity>
 );
 
-const BatchSelectorSheet = React.forwardRef(({onBatchSelect}, ref) => {
+const BatchSelectorSheet = React.forwardRef(({ onBatchSelect, }, ref) => {
   const dispatch = useDispatch();
   const batchs = useSelector(state => state.auth.batches) || [];
   const reduxSelectedBatch = useSelector(state => state.auth.selectBatch);
@@ -189,7 +189,7 @@ const BatchSelectorSheet = React.forwardRef(({onBatchSelect}, ref) => {
         </View>
         <FlatList
           data={filteredBatches}
-          renderItem={({item}) => (
+          renderItem={({ item }) => (
             <BatchItem
               item={item}
               selectedBatch={selectedBatch}
@@ -200,15 +200,24 @@ const BatchSelectorSheet = React.forwardRef(({onBatchSelect}, ref) => {
           contentContainerStyle={styles.batchList}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <Text style={styles.emptyText}>
-              {searchQuery
-                ? 'No matching batches found'
-                : 'No batches available'}
-            </Text>
+
+            searchQuery ?
+
+              <Text style={styles.emptyText}>No matching batches found </Text>
+              :
+              <View style={{justifyContent:"center",alignItems:"center"}}>
+                <Text style={styles.emptyText}>No batches available</Text>
+                <TouchableOpacity
+                  style={styles.selectBatchButton}
+                 
+                  >
+                  <Text style={styles.selectBatchButtonText}>Select Batch</Text>
+                </TouchableOpacity>
+              </View>
           }
         />
       </View>
-    </RBSheet>
+    </RBSheet >
   );
 });
 
@@ -301,6 +310,26 @@ const styles = StyleSheet.create({
   },
   selectedSubText: {
     color: '#E5E7EB',
+  },
+  selectBatchButton: {
+    width:"50%",
+    backgroundColor: '#001d3d',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    marginTop: 24,
+    shadowColor: '#1D49A7',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 8,
+    justifyContent:"center",
+    alignItems:"center"
+  },
+  selectBatchButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

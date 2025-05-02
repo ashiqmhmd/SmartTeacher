@@ -63,7 +63,7 @@ const HomeScreen = ({navigation}) => {
       return;
     }
 
-    setIsBatchSelected(true);
+ 
     const url = `students/batch/${currentBatchId}`;
     const headers = {
       Accept: 'application/json',
@@ -71,6 +71,7 @@ const HomeScreen = ({navigation}) => {
       Authorization: `Bearer ${Token}`,
     };
     const onResponse = res => {
+      setIsBatchSelected(true);
       setStudents(res || []);
       setFilteredStudents(res || []);
       setLoading(false);
@@ -153,6 +154,7 @@ const HomeScreen = ({navigation}) => {
     useCallback(() => {
       console.log('Screen is focused');
       students_fetch();
+      dispatch(fetch_batchs())
       return () => {
         console.log('Screen is unfocused');
       };

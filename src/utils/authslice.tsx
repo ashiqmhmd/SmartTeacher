@@ -111,6 +111,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { getapi } from '../utils/api'; // Ensure this import is correct
+import { State } from 'react-native-gesture-handler';
 
 // Define initial state with refresh token
 interface AuthState {
@@ -120,7 +121,7 @@ interface AuthState {
   refreshToken: string | null; // Added refresh token
   batch_id: string | null;
   Teacher_id: string | null;
-  Teacher_name:string | null;
+  Teacher_name: string | null;
   selectBatch: any | null;
   batches: any[];
   loading: boolean;
@@ -172,7 +173,7 @@ const initialState: AuthState = {
   refreshToken: null, // Added refresh token
   batch_id: null,
   Teacher_id: null,
-  Teacher_name:null,
+  Teacher_name: null,
   selectBatch: null,
   batches: [],
   loading: false,
@@ -189,7 +190,7 @@ const authSlice = createSlice({
       state.refreshToken = action.payload.refreshToken || null; // Handle refresh token
       state.Teacher_id = action.payload.Teacher_id;
       state.Teacher_name = action.payload.Teacher_name;
-      
+
       // Store tokens in AsyncStorage
       AsyncStorage.setItem('Token', action.payload.token);
       if (action.payload.refreshToken) {
@@ -205,7 +206,7 @@ const authSlice = createSlice({
       state.batches = [];
       state.batch_id = null;
       state.selectBatch = null;
-      
+
       // Clear AsyncStorage
       AsyncStorage.removeItem('Token');
       AsyncStorage.removeItem('RefreshToken');
@@ -248,7 +249,13 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
         state.batches = [];
-      });
+      })
+      .addCase("Clearbatches", (state, action) => {
+        state.batch_id = null
+        state.selectBatch = null
+        AsyncStorage.removeItem('batch_id');
+        AsyncStorage.removeItem('selectedBatch');
+      })
   },
 });
 

@@ -73,7 +73,7 @@ const FeesScreen = ({ navigation }) => {
       return;
     }
 
-    setIsBatchSelected(true);
+    // setIsBatchSelected(true);
 
 
     const url = `fee-records/batches/${currentBatchId}`;
@@ -83,6 +83,7 @@ const FeesScreen = ({ navigation }) => {
       Authorization: `Bearer ${Token}`,
     };
     const onResponse = res => {
+      setIsBatchSelected(true);
       setFees(res || []);
       student_details_fetch(res);
 
