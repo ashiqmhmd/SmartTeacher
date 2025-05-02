@@ -9,15 +9,15 @@ import {
   Linking,
   Animated,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {notificationz} from '../dumyDb';
-import {getapi, patchApi} from '../utils/api';
+import { notificationz } from '../dumyDb';
+import { getapi, patchApi } from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const NotificationScreen = ({navigation}) => {
+const NotificationScreen = ({ navigation }) => {
   const [notifications, setNotifications] = useState();
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -40,7 +40,7 @@ const NotificationScreen = ({navigation}) => {
 
   const handleNotificationPress = notification => {
     const updatedNotifications = notifications.map(item =>
-      item.id === notification.id ? {...item, seen: true} : item,
+      item.id === notification.id ? { ...item, seen: true } : item,
     );
     console.log(notification);
     Notification_marking(notification.id);
@@ -73,7 +73,7 @@ const NotificationScreen = ({navigation}) => {
           });
           break;
         case 'FEE':
-          navigation.navigate('Fees_Detail', {feeId: objectId, deeplink: true});
+          navigation.navigate('Fees_Detail', { feeId: objectId, deeplink: true });
           break;
         case 'STUDENT':
           navigation.navigate('Student_Detail', {
@@ -120,7 +120,7 @@ const NotificationScreen = ({navigation}) => {
       const onCatch = error => {
         console.error('Error in notification marking:', error);
         Alert.alert('Error', 'Failed to mark notification. Please try again.', [
-          {text: 'OK'},
+          { text: 'OK' },
         ]);
       };
 
@@ -128,7 +128,7 @@ const NotificationScreen = ({navigation}) => {
     } catch (error) {
       console.error('Error marking notification:', error);
       Alert.alert('Error', 'Failed to mark notification. Please try again.', [
-        {text: 'OK'},
+        { text: 'OK' },
       ]);
     }
   };
@@ -161,7 +161,7 @@ const NotificationScreen = ({navigation}) => {
     Notification_fetch();
   }, [1]);
 
-  const renderNotificationCard = ({item}) => (
+  const renderNotificationCard = ({ item }) => (
     <TouchableOpacity
       style={[
         styles.notificationCard,
@@ -171,7 +171,7 @@ const NotificationScreen = ({navigation}) => {
       <View
         style={[
           styles.iconContainer,
-          {backgroundColor: `${item.iconColor}15`},
+          { backgroundColor: `${item.iconColor}15` },
         ]}>
         {item.type === 'MESSAGE' ? (
           <MaterialIcons name="message" size={24} color="#4CAF50" />
@@ -191,8 +191,8 @@ const NotificationScreen = ({navigation}) => {
             {item.type === 'MESSAGE'
               ? 'NEW MESSAGE'
               : item.type === 'FEE_PAID'
-              ? 'FEE PAID'
-              : 'NEW STUDENT'}
+                ? 'FEE PAID'
+                : 'NEW STUDENT'}
           </Text>
           <Text style={styles.timeText}>{item.time}</Text>
         </View>
@@ -212,19 +212,26 @@ const NotificationScreen = ({navigation}) => {
         <MaterialIcons name="arrow-back" size={24} color="rgba(0, 0, 0, 0)" />
       </View>
       {showSuccessMessage && (
-        <Animated.View style={[styles.successMessage, {opacity: fadeAnim}]}>
+        <Animated.View style={[styles.successMessage, { opacity: fadeAnim }]}>
           <MaterialIcons name="check-circle" size={24} color="#059669" />
           <Text style={styles.successText}>{'Notification read marked'}</Text>
         </Animated.View>
       )}
 
-      <FlatList
-        data={notifications}
-        renderItem={renderNotificationCard}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.notificationList}
-        showsVerticalScrollIndicator={false}
-      />
+      {notifications && notifications?.length > 0 ? (
+        <FlatList
+          data={notifications}
+          renderItem={renderNotificationCard}
+          keyExtractor={item => item.id}
+          contentContainerStyle={styles.notificationList}
+          showsVerticalScrollIndicator={false}
+        />
+      ) : (
+        <View style={styles.noNotificationContainer}>
+          <Text style={styles.noNotificationText}>No notifications in this batch</Text>
+        </View>
+      )}
+
     </View>
   );
 };
@@ -259,7 +266,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     alignItems: 'center',
     shadowColor: 'rgb(105, 144, 252)',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 12,
@@ -324,6 +331,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  noNotificationContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  noNotificationText: {
+    fontSize: 18,
+    color: '#888',
+    textAlign: 'center',
+  },
+  
 });
 
 export default NotificationScreen;

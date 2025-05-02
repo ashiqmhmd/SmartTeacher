@@ -139,7 +139,7 @@ const NotesScreen = ({ navigation }) => {
             borderColor: '#e0e0e0',
           }}>
           <Text style={{ color: '#001d3d', fontWeight: 'bold', fontSize: 16 }}>
-            {selectedBatchString?.name}
+          {selectedBatch_id ? selectedBatchString?.name : 'Select Batch'}
           </Text>
 
           <MaterialIcons

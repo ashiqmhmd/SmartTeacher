@@ -35,7 +35,8 @@ const UpdateProfileScreen = ({navigation, route}) => {
           addressState: '',
           pinCode: '',
           profilePicUrl: '',
-          phoneNumber: '',
+          phoneNumber: route?.params?.phoneNumber ? route?.params?.phoneNumber : '',
+          email:'',
           upiId: '',
           accountNumber: '',
           accountName: '',
@@ -47,6 +48,7 @@ const UpdateProfileScreen = ({navigation, route}) => {
   const lastNameRef = useRef(null);
   const ageRef = useRef(null);
   const phoneNumberRef = useRef(null);
+  const emailRef = useRef(null);
   const addressLine1Ref = useRef(null);
   const addressCityRef = useRef(null);
   const addressStateRef = useRef(null);
@@ -205,20 +207,20 @@ const UpdateProfileScreen = ({navigation, route}) => {
     }
 
     // Validate phone number (simple validation)
-    if (profileData.phoneNumber && profileData.phoneNumber.length < 10) {
+    if (profileData?.phoneNumber && profileData.phoneNumber.length < 10) {
       newErrors.phoneNumber = 'Enter a valid phone number';
       isValid = false;
     }
 
     // Validate PIN code (simple validation for example)
-    if (profileData.pinCode && profileData.pinCode.length !== 6) {
+    if (profileData?.pinCode && profileData.pinCode.length !== 6) {
       newErrors.pinCode = 'PIN code must be 6 digits';
       isValid = false;
     }
 
     // Validate IFSC code format (simple validation)
     if (
-      profileData.ifscCode &&
+      profileData?.ifscCode &&
       !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(profileData.ifscCode)
     ) {
       newErrors.ifscCode = 'Enter a valid IFSC code';
@@ -227,8 +229,7 @@ const UpdateProfileScreen = ({navigation, route}) => {
 
     // Email validation
     if (
-      update &&
-      profileData.email &&
+      profileData?.email &&
       !/\S+@\S+\.\S+/.test(profileData.email)
     ) {
       newErrors.email = 'Enter a valid email address';
@@ -508,7 +509,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Login Details</Text>
               {renderInput('user', 'User Name', 'userName')}
-              {renderInput('mail', 'Email', 'email', 'email')}
               <View>
                 <View
                   style={[
@@ -578,8 +578,16 @@ const UpdateProfileScreen = ({navigation, route}) => {
               'phoneNumber',
               'phone-pad',
               phoneNumberRef,
-              addressLine1Ref,
+              emailRef,
             )}
+             {renderInput(
+              'mail', 
+              'Email',
+              'email', 
+              'email',
+              emailRef,
+              addressLine1Ref,
+              )}
           </View>
 
           <View style={styles.section}>

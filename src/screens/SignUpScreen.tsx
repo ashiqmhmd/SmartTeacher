@@ -89,7 +89,7 @@ const SignupScreen = ({navigation}) => {
   };
 
   const handleNavigation = id => {
-    navigation.navigate('Update_Profile', {userId: id, update: false});
+    navigation.navigate('Update_Profile', {userId: id, phoneNumber:phone,  update: false});
   };
 
   const teacherSignup = async () => {

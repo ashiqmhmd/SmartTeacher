@@ -8,7 +8,7 @@ import {
   StatusBar,
   RefreshControl,
 } from 'react-native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, {
@@ -18,13 +18,13 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
-import {getapi} from '../utils/api';
+import { getapi } from '../utils/api';
 import dateconvert from '../components/moment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useDispatch, useSelector} from 'react-redux';
-import {batch_id, selectBatch} from '../utils/authslice';
+import { useDispatch, useSelector } from 'react-redux';
+import { batch_id, selectBatch } from '../utils/authslice';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
-import {useFocusEffect} from '@react-navigation/core';
+import { useFocusEffect } from '@react-navigation/core';
 
 interface StudentDetails {
   [studentId: string]: string;
@@ -38,7 +38,7 @@ interface Fees {
   teacherAcknowledgement?: boolean;
 }
 
-const FeesScreen = ({navigation}) => {
+const FeesScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('Current Month');
   const [paymentFilter, setPaymentFilter] = useState('All');
@@ -48,6 +48,7 @@ const FeesScreen = ({navigation}) => {
   const [receivedFees, setReceivedFees] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [isBatchSelected, setIsBatchSelected] = useState(true); // Track if batch is selected
 
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
@@ -58,7 +59,24 @@ const FeesScreen = ({navigation}) => {
     setLoading(true);
     const Batch_id = await AsyncStorage.getItem('batch_id');
     const Token = await AsyncStorage.getItem('Token');
-    const url = `fee-records/batches/${Batch_id}`;
+
+    // Check if batch_id is available
+    const currentBatchId = Batch_id ? Batch_id : selectedBatch_id;
+
+    if (!currentBatchId) {
+      console.log('No batch selected yet');
+      setLoading(false);
+      setIsBatchSelected(false);
+      setFees([]);
+      // setFilteredStudents([]);
+      setRefreshing(false);
+      return;
+    }
+
+    setIsBatchSelected(true);
+
+
+    const url = `fee-records/batches/${currentBatchId}`;
     const headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
@@ -132,7 +150,7 @@ const FeesScreen = ({navigation}) => {
 
     const details = studentDetailsResponse
       .filter(Boolean)
-      .reduce((acc, {studentId, name}) => {
+      .reduce((acc, { studentId, name }) => {
         acc[studentId] = name;
         return acc;
       }, {});
@@ -185,6 +203,7 @@ const FeesScreen = ({navigation}) => {
     dispatch(selectBatch(batch));
     await Fees_fetch();
     refRBSheet.current.close();
+    setIsBatchSelected(true)
   };
 
   const filteredFees = useMemo(() => {
@@ -205,7 +224,7 @@ const FeesScreen = ({navigation}) => {
     });
   }, [fees, searchQuery, paymentFilter, selectedMonth, studentDetails]);
 
-  const FeeCard = ({record}) => (
+  const FeeCard = ({ record }) => (
     <TouchableOpacity
       onPress={() =>
         navigation.navigate('Fees_Detail', {
@@ -223,7 +242,7 @@ const FeesScreen = ({navigation}) => {
           <Text
             style={[
               styles.status,
-              {color: record.status === 'paid' ? '#43A047' : '#E53935'},
+              { color: record.status === 'paid' ? '#43A047' : '#E53935' },
             ]}>
             {record.status}
           </Text>
@@ -274,6 +293,22 @@ const FeesScreen = ({navigation}) => {
     </Svg>
   );
 
+  const renderNoBatchSelected = () => (
+    <View style={styles.noBatchContainer}>
+      <MaterialIcons name="class" size={64} color="#ccc" />
+      <Text style={styles.noBatchText}>No batch selected</Text>
+      <Text style={styles.noBatchSubtext}>
+        Please select a batch to view fees details
+      </Text>
+      <TouchableOpacity
+        style={styles.selectBatchButton}
+        onPress={() => refRBSheet.current.open()}>
+        <Text style={styles.selectBatchButtonText}>Select Batch</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+
   return (
     <View style={styles.screen}>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
@@ -282,7 +317,7 @@ const FeesScreen = ({navigation}) => {
         <Text style={styles.headerTitle}>Fee Tracker</Text>
 
         <TouchableOpacity
-          onPress={() => refRBSheet.current.open()}
+          onPress={() => refRBSheet.current?.open()}
           style={{
             borderRadius: 12,
             paddingHorizontal: 10,
@@ -293,7 +328,7 @@ const FeesScreen = ({navigation}) => {
             borderWidth: 1,
             borderColor: '#e0e0e0',
           }}>
-          <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
+          <Text style={{ color: '#001d3d', fontWeight: 'bold', fontSize: 16 }}>
             {selectedBatchString ? selectedBatchString.name : 'Select a Batch'}
           </Text>
 
@@ -301,14 +336,13 @@ const FeesScreen = ({navigation}) => {
             name="keyboard-arrow-down"
             size={20}
             color="#001d3d"
-            style={{paddingLeft: 5}}
+            style={{ paddingLeft: 5 }}
           />
         </TouchableOpacity>
       </View>
 
       {loading ? (
         <View style={styles.container}>
-          {/* Shimmer Placeholders */}
           <ShimmerPlaceholder style={styles.feesummeryCard} />
           <View style={styles.filterSection}>
             <ShimmerPlaceholder style={styles.searchInput} />
@@ -326,6 +360,8 @@ const FeesScreen = ({navigation}) => {
             </View>
           ))}
         </View>
+      ) : !isBatchSelected ? (
+        renderNoBatchSelected()
       ) : (
         <ScrollView
           style={styles.container}
@@ -349,8 +385,8 @@ const FeesScreen = ({navigation}) => {
               <View style={styles.feesummeryCard}>
                 <LinearGradient
                   colors={['rgb(255,255,255)', 'rgb(229,235,252)']}
-                  start={{x: 0, y: 0}}
-                  end={{x: 1, y: 1}}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
                   style={styles.card}>
                   <BackgroundGraph />
                   <View style={styles.summaryContent}>
@@ -361,14 +397,14 @@ const FeesScreen = ({navigation}) => {
                     <View style={styles.divider} />
                     <View style={styles.summaryItem}>
                       <Text style={styles.summaryLabel}>Received</Text>
-                      <Text style={[styles.summaryAmount, {color: '#43A047'}]}>
+                      <Text style={[styles.summaryAmount, { color: '#43A047' }]}>
                         ₹{receivedFees}
                       </Text>
                     </View>
                     <View style={styles.divider} />
                     <View style={styles.summaryItem}>
                       <Text style={styles.summaryLabel}>Balance</Text>
-                      <Text style={[styles.summaryAmount, {color: '#E53935'}]}>
+                      <Text style={[styles.summaryAmount, { color: '#E53935' }]}>
                         ₹{totalFees - receivedFees}
                       </Text>
                     </View>
@@ -453,11 +489,11 @@ const FeesScreen = ({navigation}) => {
           )}
         </ScrollView>
       )}
+
       <BatchSelectorSheet ref={refRBSheet} onBatchSelect={handleBatchSelect} />
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
@@ -488,7 +524,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(255,255,255)',
     borderRadius: 10,
     shadowColor: '#1D49A7',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 15,
@@ -581,7 +617,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 15,
     shadowColor: '#1D49A7',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
@@ -644,6 +680,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     marginTop: 10,
+  },
+  noBatchContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  noBatchText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#333',
+    marginTop: 16,
+  },
+  noBatchSubtext: {
+    fontSize: 16,
+    color: '#888',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  selectBatchButton: {
+    backgroundColor: '#001d3d',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    marginTop: 24,
+    shadowColor: '#1D49A7',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 8,
+  },
+  selectBatchButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

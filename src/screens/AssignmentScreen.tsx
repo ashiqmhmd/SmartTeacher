@@ -9,18 +9,18 @@ import {
   FlatList,
   RefreshControl,
 } from 'react-native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {getapi} from '../utils/api';
+import { getapi } from '../utils/api';
 import dateconvert from '../components/moment';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useDispatch, useSelector} from 'react-redux';
-import {batch_id, selectBatch} from '../utils/authslice';
+import { useDispatch, useSelector } from 'react-redux';
+import { batch_id, selectBatch } from '../utils/authslice';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
-import {useFocusEffect} from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 
-const AssignmentsScreen = ({navigation}) => {
+const AssignmentsScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [assignment, setAssignment] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -101,10 +101,10 @@ const AssignmentsScreen = ({navigation}) => {
     Assignment_fetch(); // Fetch data
   }, []);
 
-  const AssignmentCard = ({item}) => (
+  const AssignmentCard = ({ item }) => (
     <TouchableOpacity
       onPress={() =>
-        navigation.navigate('Assignment_Detail', {assignment: item})
+        navigation.navigate('Assignment_Detail', { assignment: item })
       }
       style={styles.assignmentCard}>
       <View style={styles.assignmentHeader}>
@@ -166,15 +166,15 @@ const AssignmentsScreen = ({navigation}) => {
             borderWidth: 1,
             borderColor: '#e0e0e0',
           }}>
-          <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
-            {selectedBatchString?.name}
+          <Text style={{ color: '#001d3d', fontWeight: 'bold', fontSize: 16 }}>
+            {selectedBatch_id ? selectedBatchString?.name : 'Select Batch'}
           </Text>
 
           <MaterialIcons
             name="keyboard-arrow-down"
             size={20}
             color="#001d3d"
-            style={{paddingLeft: 5}}
+            style={{ paddingLeft: 5 }}
           />
         </TouchableOpacity>
       </View>
@@ -223,7 +223,7 @@ const AssignmentsScreen = ({navigation}) => {
             <TouchableOpacity
               style={styles.createButton}
               onPress={() =>
-                navigation.navigate('Assignment_Creation', {update: false})
+                navigation.navigate('Assignment_Creation', { update: false })
               }>
               <Text style={styles.createButtonText}>Create</Text>
             </TouchableOpacity>
@@ -239,7 +239,7 @@ const AssignmentsScreen = ({navigation}) => {
           ) : (
             <FlatList
               data={filteredAssignments}
-              renderItem={({item}) => <AssignmentCard item={item} />}
+              renderItem={({ item }) => <AssignmentCard item={item} />}
               keyExtractor={item => item?.id.toString()}
               scrollEnabled={false}
               style={styles.assignmentsList}
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     marginBottom: 15,
     shadowColor: '#1D49A7',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 15,

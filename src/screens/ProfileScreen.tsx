@@ -299,32 +299,43 @@ const ProfileScreen = ({ navigation, item }) => {
             </TouchableOpacity> */}
           </View>
           <View style={styles.batchList}>
-            {batches.map((batch, index) => (
-              <View key={index} style={styles.batchCard}>
-                <LinearGradient
-                  colors={['#f8f9ff', '#ffffff']}
-                  style={styles.batchContent}>
-                  <View style={styles.batchInfo}>
-                    <Text style={styles.batchName}>{batch.name}</Text>
-                    <Text style={styles.batchId}>{batch.subject}</Text>
+            {
+              batches.length > 0?
+
+                batches.map((batch, index) => (
+                  <View key={index} style={styles.batchCard}>
+                    <LinearGradient
+                      colors={['#f8f9ff', '#ffffff']}
+                      style={styles.batchContent}>
+                      <View style={styles.batchInfo}>
+                        <Text style={styles.batchName}>{batch.name}</Text>
+                        <Text style={styles.batchId}>{batch.subject}</Text>
+                      </View>
+                      <View style={styles.batchActions}>
+                        <TouchableOpacity
+                          style={styles.editBatchButton}
+                          onPress={() =>
+                            navigation.navigate('Batch_Create', { batch, update: true })
+                          }>
+                          <MaterialIcons name="edit" size={24} color="#0F1F4B" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.deleteBatchButton}
+                          onPress={() => handleDeleteBatch(batch.id)}>
+                          <MaterialIcons name="delete" size={24} color="#DC2626" />
+                        </TouchableOpacity>
+                      </View>
+                    </LinearGradient>
                   </View>
-                  <View style={styles.batchActions}>
-                    <TouchableOpacity
-                      style={styles.editBatchButton}
-                      onPress={() =>
-                        navigation.navigate('Batch_Create', { batch,update:true })
-                      }>
-                      <MaterialIcons name="edit" size={24} color="#0F1F4B" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.deleteBatchButton}
-                      onPress={() => handleDeleteBatch(batch.id)}>
-                      <MaterialIcons name="delete" size={24} color="#DC2626" />
-                    </TouchableOpacity>
-                  </View>
-                </LinearGradient>
-              </View>
-            ))}
+                ))
+
+                :
+                <View style={{justifyContent:"center",alignItems:'center'}}>
+                  <Text style={{fontSize: 15,fontWeight:"500", color: '#0F1F4B',}}>
+                    No Batches Available
+                  </Text>
+                </View>
+            }
           </View>
         </View>
 
