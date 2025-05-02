@@ -242,11 +242,15 @@ const ConversationScreen = ({route, navigation}) => {
       console.log('Uploading attachment...');
 
       const Token = await AsyncStorage.getItem('Token');
+      const userId = await AsyncStorage.getItem('TeacherId');
       const fileData = selectedAttachments[0]; // Get the file data from selected attachments
 
       // Create FormData - this is the key fix
       const formDataToUpload = new FormData();
       formDataToUpload.append('file', fileData);
+      formDataToUpload.append('userType', 'TEACHER');
+      formDataToUpload.append('userId', userId);
+      formDataToUpload.append('uploadType', 'messages');
 
       const url = `${base_url}uploads`;
 
