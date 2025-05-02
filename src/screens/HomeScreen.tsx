@@ -63,7 +63,6 @@ const HomeScreen = ({navigation}) => {
       return;
     }
 
- 
     const url = `students/batch/${currentBatchId}`;
     const headers = {
       Accept: 'application/json',
@@ -154,7 +153,7 @@ const HomeScreen = ({navigation}) => {
     useCallback(() => {
       console.log('Screen is focused');
       students_fetch();
-      dispatch(fetch_batchs())
+      dispatch(fetch_batchs());
       return () => {
         console.log('Screen is unfocused');
       };
@@ -357,7 +356,11 @@ const HomeScreen = ({navigation}) => {
           )}
         </View>
       )}
-      <BatchSelectorSheet ref={refRBSheet} onBatchSelect={handleBatchSelect} />
+      <BatchSelectorSheet
+        ref={refRBSheet}
+        onBatchSelect={handleBatchSelect}
+        navigation={navigation}
+      />
     </View>
   );
 };
