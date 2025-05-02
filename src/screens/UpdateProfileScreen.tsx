@@ -1,796 +1,4 @@
-// import React, { useEffect, useState } from 'react';
-// import {
-//   View,
-//   Text,
-//   TextInput,
-//   TouchableOpacity,
-//   StyleSheet,
-//   KeyboardAvoidingView,
-//   Platform,
-//   ScrollView,
-//   Image,
-//   StatusBar,
-// } from 'react-native';
-// import Feather from 'react-native-vector-icons/Feather';
-// import { launchImageLibrary } from 'react-native-image-picker';
-// import { postApi, putapi } from '../utils/api';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
-// import { base_url } from '../utils/store';
-
-// const UpdateProfileScreen = ({ navigation, route }) => {
-
-//   const [profileData, setProfileData] = useState({
-//     firstName: '',
-//     lastName: '',
-//     age: '',
-//     gender: '',
-//     addressLine1: '',
-//     addressCity: '',
-//     addressState: '',
-//     pinCode: '',
-//     profilePicUrl: '',
-//     phoneNumber: '',
-//     upiId: '',
-//     accountNumber: '',
-//     accountName: '',
-//     ifscCode: '',
-//   });
-
-//   const [profileImage, setProfileImage] = useState();
-//   const [uploadedprofileImage, setUploadedProfileImage] = useState('');
-
-//   const [formdatas, setformdata] = useState()
-//   const { userId } = route.params;
-//   const handleInputChange = (field: any, value: string) => {
-//     setProfileData(prev => ({
-//       ...prev,
-//       [field]: value,
-//     }));
-//   };
-
-//   const handleImagePicker = async () => {
-//     const result = await launchImageLibrary({
-//       mediaType: 'photo',
-//       quality: 1,
-//     });
-
-//     if (!result.didCancel && result.assets?.[0]?.uri) {
-
-//       const profileImage = result?.assets?.length ? result.assets[0] : null;
-
-//       if (!profileImage || !profileImage.uri) {
-//         console.log("No valid image selected!");
-//         return;
-//       }
-
-//       const fileData = {
-//         uri: Platform.OS === 'android' ? profileImage.uri : profileImage.uri.replace('file://', ''),
-//         type: profileImage.type || 'image/jpeg',
-//         name: profileImage.fileName || 'file.jpg',
-//       };
-
-//       console.log("File Data Before Append:", fileData);
-
-//       // Create FormData
-//       const formData = new FormData();
-//       formData.append('file', fileData);
-
-//       console.log("FormData Object:", formData);
-
-//       // Save Image & FormData
-//       setProfileImage(fileData.uri);
-//       setformdata(formData); // Store FormData directly, NOT as JSON!
-//     }
-
-//   };
-
-//   useEffect(() => {
-//     console.log(userId)
-//   }, [1])
-
-//   const profilephoto_upload = async () => {
-//     try {
-//       const Token = await AsyncStorage.getItem('Token');
-
-//       if (!formdatas) {
-//         console.log("No image selected for upload!");
-//         return;
-//       }
-
-//       // Replace with the actual API base URL
-//       const url = `${base_url}uploads`;
-
-//       console.log("Uploading Image to:", url);
-//       console.log("FormData Before Upload:", formdatas);
-
-//       const response = await fetch(url, {
-//         method: "POST",
-//         headers: {
-//           Authorization: `Bearer ${Token}`,
-//           "Content-Type": "multipart/form-data", // Required for FormData uploads
-//         },
-//         body: formdatas, // Sending FormData directly
-//       });
-
-//       console.log("Status Code:", response.status);
-
-//       const textResponse = await response.text(); // Read raw response first
-//       console.log("Raw Response:", textResponse);
-
-//       // Parse JSON only if response is valid
-//       let responseData;
-//       try {
-//         responseData = JSON.parse(textResponse);
-//       } catch (error) {
-//         console.error("Error parsing JSON response:", error);
-//         responseData = { message: "Invalid JSON response from server" };
-//       }
-
-//       console.log("Parsed Response:", responseData);
-
-//       if (!response.ok) {
-//         throw new Error(`Upload failed: ${responseData.message || "Unknown error"}`);
-//       }
-
-//       console.log("Upload Successful!", responseData.url);
-//       setUploadedProfileImage(responseData.url)
-//       submitButton(responseData.url)
-//       return responseData.url;
-
-//     } catch (error) {
-//       console.error("Error updating profile:", error.message);
-//     }
-//   };
-
-//   const handleSubmit = async () => {
-
-//     profileImage ?
-//       profilephoto_upload()
-
-//       :
-//       submitButton()
-
-//   }
-
-//   const submitButton = async (profilePicUrl: any) => {
-//     const Token = await AsyncStorage.getItem('Token');
-//     const url = `teachers/${userId}`;
-//     const headers = {
-//       Accept: 'application/json',
-//       'Content-Type': 'application/json',
-//       Authorization: `Bearer ${Token}`,
-//     };
-
-//     const body = profileImage ? {
-//       ...profileData,
-//       profilePicUrl: profilePicUrl ? profilePicUrl : uploadedprofileImage,
-//     }
-
-//       :
-//       {
-//         ...profileData,
-//       }
-//       ;
-
-//     const onResponse = (res: any) => {
-//       console.log(res)
-//       console.log('Profile updated successfully');
-//       console.log(Token)
-//       navigation.replace('Tabs');
-
-//     };
-
-//     const onCatch = (err: any) => {
-//       console.log('Error updating profile:', err);
-//     };
-
-//     putapi(url, headers, body, onResponse, onCatch);
-//   };
-
-//   const renderInput = (icon: string, placeholder: string | undefined, field: string, keyboardType = 'default') => (
-//     <View style={styles.inputContainer}>
-//       <Feather name={icon} size={20} color="#001d3d" style={styles.inputIcon} />
-//       <TextInput
-//         style={styles.input}
-//         placeholder={placeholder}
-//         placeholderTextColor="#888"
-//         value={profileData[field]}
-//         onChangeText={value => handleInputChange(field, value)}
-//         keyboardType={keyboardType}
-//       />
-//     </View>
-//   );
-
-//   return (
-//     <View style={styles.container}>
-//       <StatusBar backgroundColor="#1D49A7" barStyle="light-content" />
-//       <KeyboardAvoidingView
-//         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-//         style={styles.keyboardContainer}>
-//         <ScrollView
-//           contentContainerStyle={styles.scrollContainer}
-//           keyboardShouldPersistTaps="handled">
-//           <Text style={styles.title}>Complete Your Profile</Text>
-
-//           <TouchableOpacity
-//             style={styles.imagePickerContainer}
-//             onPress={handleImagePicker}>
-//             {profileImage ? (
-//               <Image source={{ uri: profileImage }} style={styles.profileImage} />
-//             ) : (
-//               <View style={styles.imagePlaceholder}>
-//                 <Feather name="camera" size={40} color="#001d3d" />
-//                 <Text style={styles.imagePlaceholderText}>
-//                   Add Profile Photo
-//                 </Text>
-//               </View>
-//             )}
-//           </TouchableOpacity>
-
-//           <View style={styles.section}>
-//             <Text style={styles.sectionTitle}>Personal Information</Text>
-//             {renderInput('user', 'First Name', 'firstName')}
-//             {renderInput('user', 'Last Name', 'lastName')}
-//             {renderInput('calendar', 'Age', 'age', 'numeric')}
-//             {renderInput('users', 'Gender', 'gender')}
-//             {renderInput('phone', 'Phone Number', 'phoneNumber', 'phone-pad')}
-//           </View>
-
-//           <View style={styles.section}>
-//             <Text style={styles.sectionTitle}>Address Details</Text>
-//             {renderInput('home', 'Address Line 1', 'addressLine1')}
-//             {renderInput('map-pin', 'City', 'addressCity')}
-//             {renderInput('map', 'State', 'addressState')}
-//             {renderInput('hash', 'Pin Code', 'pinCode', 'numeric')}
-//           </View>
-
-//           <View style={styles.section}>
-//             <Text style={styles.sectionTitle}>Banking Details</Text>
-//             {renderInput('credit-card', 'Account Number', 'accountNumber')}
-//             {renderInput('user', 'Account Holder Name', 'accountName')}
-//             {renderInput('hash', 'IFSC Code', 'ifscCode')}
-//             {renderInput('smartphone', 'UPI ID', 'upiId')}
-//           </View>
-
-//           <TouchableOpacity
-//             onPress={() => handleSubmit}
-//             // onPress={() => navigation.navigate('Tabs')}
-//             style={styles.submitButton}>
-//             <Text style={styles.submitButtonText}>Save Profile</Text>
-//           </TouchableOpacity>
-//         </ScrollView>
-//       </KeyboardAvoidingView>
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: '#fff',
-//   },
-//   keyboardContainer: {
-//     flex: 1,
-//   },
-//   scrollContainer: {
-//     flexGrow: 1,
-//     paddingHorizontal: '5%',
-//     paddingVertical: 20,
-//   },
-//   title: {
-//     fontSize: 24,
-//     fontWeight: 'bold',
-//     color: '#001d3d',
-//     textAlign: 'center',
-//     marginBottom: 20,
-//     marginTop: 20,
-//   },
-//   section: {
-//     marginBottom: 20,
-//   },
-//   sectionTitle: {
-//     fontSize: 18,
-//     fontWeight: '600',
-//     color: '#001d3d',
-//     marginBottom: 15,
-//   },
-//   imagePickerContainer: {
-//     alignItems: 'center',
-//     marginBottom: 20,
-//   },
-//   profileImage: {
-//     width: 120,
-//     height: 120,
-//     borderRadius: 60,
-//   },
-//   imagePlaceholder: {
-//     width: 120,
-//     height: 120,
-//     borderRadius: 60,
-//     backgroundColor: '#f8f9fa',
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     borderWidth: 1,
-//     borderColor: '#ddd',
-//   },
-//   imagePlaceholderText: {
-//     color: '#001d3d',
-//     marginTop: 5,
-//     fontSize: 12,
-//   },
-//   inputContainer: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     backgroundColor: '#f8f9fa',
-//     borderRadius: 10,
-//     marginBottom: 15,
-//     paddingHorizontal: 15,
-//     borderWidth: 1,
-//     borderColor: '#ddd',
-//   },
-//   inputIcon: {
-//     marginRight: 10,
-//   },
-//   input: {
-//     flex: 1,
-//     height: 50,
-//     color: '#333',
-//   },
-//   submitButton: {
-//     backgroundColor: '#001d3d',
-//     borderRadius: 10,
-//     padding: 15,
-//     alignItems: 'center',
-//     marginTop: 20,
-//     marginBottom: 30,
-//   },
-//   submitButtonText: {
-//     color: 'white',
-//     fontWeight: 'bold',
-//     fontSize: 16,
-//   },
-// });
-
-// export default UpdateProfileScreen;
-
-// import React, {useEffect, useState} from 'react';
-// import {
-//   View,
-//   Text,
-//   TextInput,
-//   TouchableOpacity,
-//   StyleSheet,
-//   KeyboardAvoidingView,
-//   Platform,
-//   ScrollView,
-//   Image,
-//   StatusBar,
-// } from 'react-native';
-// import Feather from 'react-native-vector-icons/Feather';
-// import {launchImageLibrary} from 'react-native-image-picker';
-// import {postApi, putapi} from '../utils/api';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
-// import {base_url} from '../utils/store';
-
-// const UpdateProfileScreen = ({navigation, route}) => {
-//   const [profileData, setProfileData] = useState({
-//     firstName: '',
-//     lastName: '',
-//     age: '',
-//     gender: '',
-//     addressLine1: '',
-//     addressCity: '',
-//     addressState: '',
-//     pinCode: '',
-//     profilePicUrl: '',
-//     phoneNumber: '',
-//     upiId: '',
-//     accountNumber: '',
-//     accountName: '',
-//     ifscCode: '',
-//   });
-
-//   const [profileImage, setProfileImage] = useState();
-//   const [uploadedprofileImage, setUploadedProfileImage] = useState('');
-
-//   const [formdatas, setformdata] = useState();
-//   const {userId} = route.params;
-//   const handleInputChange = (field: any, value: string) => {
-//     setProfileData(prev => ({
-//       ...prev,
-//       [field]: value,
-//     }));
-//   };
-
-//   // Gender options
-//   const genderOptions = ['male', 'female', 'Other'];
-
-//   // Handle gender selection
-//   const handleGenderSelect = value => {
-//     setProfileData(prev => ({
-//       ...prev,
-//       gender: value,
-//     }));
-//   };
-
-//   const handleImagePicker = async () => {
-//     const result = await launchImageLibrary({
-//       mediaType: 'photo',
-//       quality: 1,
-//     });
-
-//     if (!result.didCancel && result.assets?.[0]?.uri) {
-//       const profileImage = result?.assets?.length ? result.assets[0] : null;
-
-//       if (!profileImage || !profileImage.uri) {
-//         console.log('No valid image selected!');
-//         return;
-//       }
-
-//       const fileData = {
-//         uri:
-//           Platform.OS === 'android'
-//             ? profileImage.uri
-//             : profileImage.uri.replace('file://', ''),
-//         type: profileImage.type || 'image/jpeg',
-//         name: profileImage.fileName || 'file.jpg',
-//       };
-
-//       console.log('File Data Before Append:', fileData);
-
-//       // Create FormData
-//       const formData = new FormData();
-//       formData.append('file', fileData);
-
-//       console.log('FormData Object:', formData);
-
-//       // Save Image & FormData
-//       setProfileImage(fileData.uri);
-//       setformdata(formData); // Store FormData directly, NOT as JSON!
-//     }
-//   };
-
-//   useEffect(() => {
-//     console.log(userId);
-//   }, [1]);
-
-//   const profilephoto_upload = async () => {
-//     try {
-//       const Token = await AsyncStorage.getItem('Token');
-
-//       if (!formdatas) {
-//         console.log('No image selected for upload!');
-//         return;
-//       }
-
-//       // Replace with the actual API base URL
-//       const url = `${base_url}uploads`;
-
-//       console.log('Uploading Image to:', url);
-//       console.log('FormData Before Upload:', formdatas);
-
-//       const response = await fetch(url, {
-//         method: 'POST',
-//         headers: {
-//           Authorization: `Bearer ${Token}`,
-//           'Content-Type': 'multipart/form-data', // Required for FormData uploads
-//         },
-//         body: formdatas, // Sending FormData directly
-//       });
-
-//       console.log('Status Code:', response.status);
-
-//       const textResponse = await response.text(); // Read raw response first
-//       console.log('Raw Response:', textResponse);
-
-//       // Parse JSON only if response is valid
-//       let responseData;
-//       try {
-//         responseData = JSON.parse(textResponse);
-//       } catch (error) {
-//         console.error('Error parsing JSON response:', error);
-//         responseData = {message: 'Invalid JSON response from server'};
-//       }
-
-//       console.log('Parsed Response:', responseData);
-
-//       if (!response.ok) {
-//         throw new Error(
-//           `Upload failed: ${responseData.message || 'Unknown error'}`,
-//         );
-//       }
-
-//       console.log('Upload Successful!', responseData.url);
-//       setUploadedProfileImage(responseData.url);
-//       submitButton(responseData.url);
-//       return responseData.url;
-//     } catch (error) {
-//       console.error('Error updating profile:', error.message);
-//     }
-//   };
-
-//   const handleSubmit = async () => {
-//     profileImage ? profilephoto_upload() : submitButton();
-//   };
-
-//   const submitButton = async (profilePicUrl: any) => {
-//     const Token = await AsyncStorage.getItem('Token');
-//     const url = `teachers/${userId}`;
-//     const headers = {
-//       Accept: 'application/json',
-//       'Content-Type': 'application/json',
-//       Authorization: `Bearer ${Token}`,
-//     };
-
-//     const body = profileImage
-//       ? {
-//           ...profileData,
-//           profilePicUrl: profilePicUrl ? profilePicUrl : uploadedprofileImage,
-//         }
-//       : {
-//           ...profileData,
-//         };
-//     const onResponse = (res: any) => {
-//       console.log(res);
-//       console.log('Profile updated successfully');
-//       console.log(Token);
-//       navigation.replace('Tabs');
-//     };
-
-//     const onCatch = (err: any) => {
-//       console.log('Error updating profile:', err);
-//     };
-
-//     putapi(url, headers, body, onResponse, onCatch);
-//   };
-
-//   const renderInput = (
-//     icon: string,
-//     placeholder: string | undefined,
-//     field: string,
-//     keyboardType = 'default',
-//   ) => (
-//     <View style={styles.inputContainer}>
-//       <Feather name={icon} size={20} color="#001d3d" style={styles.inputIcon} />
-//       <TextInput
-//         style={styles.input}
-//         placeholder={placeholder}
-//         placeholderTextColor="#888"
-//         value={profileData[field]}
-//         onChangeText={value => handleInputChange(field, value)}
-//         keyboardType={keyboardType}
-//       />
-//     </View>
-//   );
-
-//   // Radio button component for gender selection
-//   const RadioButton = ({label, selected, onPress}) => (
-//     <TouchableOpacity style={styles.radioButtonContainer} onPress={onPress}>
-//       <View style={styles.radioButton}>
-//         {selected && <View style={styles.radioButtonSelected} />}
-//       </View>
-//       <Text style={styles.radioButtonLabel}>{label}</Text>
-//     </TouchableOpacity>
-//   );
-
-//   // Render gender selection component
-//   const renderGenderSelection = () => (
-//     <View style={styles.genderContainer}>
-//       <Feather
-//         name="users"
-//         size={20}
-//         color="#001d3d"
-//         style={styles.genderIcon}
-//       />
-//       <View style={styles.radioGroup}>
-//         {genderOptions.map(option => (
-//           <RadioButton
-//             key={option}
-//             label={option}
-//             selected={profileData.gender === option}
-//             onPress={() => handleGenderSelect(option)}
-//           />
-//         ))}
-//       </View>
-//     </View>
-//   );
-
-//   return (
-//     <View style={styles.container}>
-//       <StatusBar backgroundColor="#1D49A7" barStyle="light-content" />
-//       <KeyboardAvoidingView
-//         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-//         style={styles.keyboardContainer}>
-//         <ScrollView
-//           contentContainerStyle={styles.scrollContainer}
-//           keyboardShouldPersistTaps="handled">
-//           <Text style={styles.title}>Complete Your Profile</Text>
-
-//           <TouchableOpacity
-//             style={styles.imagePickerContainer}
-//             onPress={handleImagePicker}>
-//             {profileImage ? (
-//               <Image source={{uri: profileImage}} style={styles.profileImage} />
-//             ) : (
-//               <View style={styles.imagePlaceholder}>
-//                 <Feather name="camera" size={40} color="#001d3d" />
-//                 <Text style={styles.imagePlaceholderText}>
-//                   Add Profile Photo
-//                 </Text>
-//               </View>
-//             )}
-//           </TouchableOpacity>
-
-//           <View style={styles.section}>
-//             <Text style={styles.sectionTitle}>Personal Information</Text>
-//             {renderInput('user', 'First Name', 'firstName')}
-//             {renderInput('user', 'Last Name', 'lastName')}
-//             {renderInput('calendar', 'Age', 'age', 'numeric')}
-//             {renderGenderSelection()}
-//             {renderInput('phone', 'Phone Number', 'phoneNumber', 'phone-pad')}
-//           </View>
-
-//           <View style={styles.section}>
-//             <Text style={styles.sectionTitle}>Address Details</Text>
-//             {renderInput('home', 'Address Line 1', 'addressLine1')}
-//             {renderInput('map-pin', 'City', 'addressCity')}
-//             {renderInput('map', 'State', 'addressState')}
-//             {renderInput('hash', 'Pin Code', 'pinCode', 'numeric')}
-//           </View>
-
-//           <View style={styles.section}>
-//             <Text style={styles.sectionTitle}>Banking Details</Text>
-//             {renderInput('credit-card', 'Account Number', 'accountNumber')}
-//             {renderInput('user', 'Account Holder Name', 'accountName')}
-//             {renderInput('hash', 'IFSC Code', 'ifscCode')}
-//             {renderInput('smartphone', 'UPI ID', 'upiId')}
-//           </View>
-
-//           <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
-//             <Text style={styles.submitButtonText}>Save Profile</Text>
-//           </TouchableOpacity>
-//         </ScrollView>
-//       </KeyboardAvoidingView>
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: '#fff',
-//   },
-//   keyboardContainer: {
-//     flex: 1,
-//   },
-//   scrollContainer: {
-//     flexGrow: 1,
-//     paddingHorizontal: '5%',
-//     paddingVertical: 20,
-//   },
-//   title: {
-//     fontSize: 24,
-//     fontWeight: 'bold',
-//     color: '#001d3d',
-//     textAlign: 'center',
-//     marginBottom: 20,
-//     marginTop: 20,
-//   },
-//   section: {
-//     marginBottom: 20,
-//   },
-//   sectionTitle: {
-//     fontSize: 18,
-//     fontWeight: '600',
-//     color: '#001d3d',
-//     marginBottom: 15,
-//   },
-//   imagePickerContainer: {
-//     alignItems: 'center',
-//     marginBottom: 20,
-//   },
-//   profileImage: {
-//     width: 120,
-//     height: 120,
-//     borderRadius: 60,
-//   },
-//   imagePlaceholder: {
-//     width: 120,
-//     height: 120,
-//     borderRadius: 60,
-//     backgroundColor: '#f8f9fa',
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     borderWidth: 1,
-//     borderColor: '#ddd',
-//   },
-//   imagePlaceholderText: {
-//     color: '#001d3d',
-//     marginTop: 5,
-//     fontSize: 12,
-//   },
-//   inputContainer: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     backgroundColor: '#f8f9fa',
-//     borderRadius: 10,
-//     marginBottom: 15,
-//     paddingHorizontal: 15,
-//     borderWidth: 1,
-//     borderColor: '#ddd',
-//   },
-//   inputIcon: {
-//     marginRight: 10,
-//   },
-//   input: {
-//     flex: 1,
-//     height: 50,
-//     color: '#333',
-//   },
-//   submitButton: {
-//     backgroundColor: '#001d3d',
-//     borderRadius: 10,
-//     padding: 15,
-//     alignItems: 'center',
-//     marginTop: 20,
-//     marginBottom: 30,
-//   },
-//   submitButtonText: {
-//     color: 'white',
-//     fontWeight: 'bold',
-//     fontSize: 16,
-//   },
-//   // Styles for gender radio button
-//   genderContainer: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     backgroundColor: '#f8f9fa',
-//     borderRadius: 10,
-//     marginBottom: 15,
-//     paddingHorizontal: 15,
-//     paddingVertical: 10,
-//     borderWidth: 1,
-//     borderColor: '#ddd',
-//   },
-//   genderIcon: {
-//     marginRight: 10,
-//   },
-//   radioGroup: {
-//     flex: 1,
-//     flexDirection: 'row',
-//     justifyContent: 'space-between',
-//     paddingRight: 20,
-//   },
-//   radioButtonContainer: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     marginVertical: 5,
-//   },
-//   radioButton: {
-//     height: 20,
-//     width: 20,
-//     borderRadius: 10,
-//     borderWidth: 2,
-//     borderColor: '#001d3d',
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//     marginRight: 8,
-//   },
-//   radioButtonSelected: {
-//     height: 10,
-//     width: 10,
-//     borderRadius: 5,
-//     backgroundColor: '#001d3d',
-//   },
-//   radioButtonLabel: {
-//     fontSize: 14,
-//     color: '#333',
-//   },
-// });
-
-// export default UpdateProfileScreen;
-
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {
   View,
   Text,
@@ -802,6 +10,7 @@ import {
   ScrollView,
   Image,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import {putapi} from '../utils/api';
@@ -811,14 +20,15 @@ import Toast from 'react-native-toast-message';
 
 const UpdateProfileScreen = ({navigation, route}) => {
   const isEditMode = route.params?.update ? true : false;
-  const [errors, setErrors] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
   const [profileData, setProfileData] = useState(
     isEditMode
       ? route?.params?.teacher
       : {
           firstName: '',
           lastName: '',
-          age: 18,
+          age: '',
           gender: '',
           addressLine1: '',
           addressCity: '',
@@ -833,6 +43,19 @@ const UpdateProfileScreen = ({navigation, route}) => {
         },
   );
 
+  // Input refs for auto focus
+  const lastNameRef = useRef(null);
+  const ageRef = useRef(null);
+  const phoneNumberRef = useRef(null);
+  const addressLine1Ref = useRef(null);
+  const addressCityRef = useRef(null);
+  const addressStateRef = useRef(null);
+  const pinCodeRef = useRef(null);
+  const accountNumberRef = useRef(null);
+  const accountNameRef = useRef(null);
+  const ifscCodeRef = useRef(null);
+  const upiIdRef = useRef(null);
+
   const [profileImage, setProfileImage] = useState();
   const [isUploading, setIsUploading] = useState(false);
   const [userId, setUserId] = useState(
@@ -843,11 +66,52 @@ const UpdateProfileScreen = ({navigation, route}) => {
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState('');
 
+  // Define required fields
+  const requiredFields = [
+    'firstName',
+    'lastName',
+    'age',
+    'gender',
+    'phoneNumber',
+    'addressLine1',
+    'addressCity',
+    'addressState',
+    'pinCode',
+    'accountNumber',
+    'accountName',
+    'ifscCode',
+    'upiId',
+  ];
+
+  // Additional required fields if in update mode
+  const updateRequiredFields = update ? ['userName', 'email', 'password'] : [];
+
+  // All required fields combined
+  const allRequiredFields = [...requiredFields, ...updateRequiredFields];
+
   const handleInputChange = (field, value) => {
-    setProfileData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
+    // Handle age field specifically - convert to number if needed
+    if (field === 'age') {
+      // Only allow numeric values
+      const numericValue = value.replace(/[^0-9]/g, '');
+      setProfileData(prev => ({
+        ...prev,
+        [field]: numericValue,
+      }));
+    } else {
+      setProfileData(prev => ({
+        ...prev,
+        [field]: value,
+      }));
+    }
+
+    // Clear field-specific error when user types
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: null,
+      }));
+    }
   };
 
   // Gender options
@@ -859,6 +123,14 @@ const UpdateProfileScreen = ({navigation, route}) => {
       ...prev,
       gender: value,
     }));
+
+    // Clear gender error if it exists
+    if (errors.gender) {
+      setErrors(prev => ({
+        ...prev,
+        gender: null,
+      }));
+    }
   };
 
   const handleImagePicker = async () => {
@@ -875,12 +147,27 @@ const UpdateProfileScreen = ({navigation, route}) => {
           ...prev,
           profilePicUrl: result.url,
         }));
+
+        // Clear profilePicUrl error if it exists
+        if (errors.profilePicUrl) {
+          setErrors(prev => ({
+            ...prev,
+            profilePicUrl: null,
+          }));
+        }
       } else {
         console.log('Image upload failed:', result.message);
-        // You might want to show an error message to the user here
+        setErrors(prev => ({
+          ...prev,
+          profilePicUrl: 'Failed to upload profile image. Please try again.',
+        }));
       }
     } catch (error) {
       console.error('Error in image picking/uploading:', error);
+      setErrors(prev => ({
+        ...prev,
+        profilePicUrl: 'Error uploading image. Please try again.',
+      }));
     } finally {
       setIsUploading(false);
     }
@@ -894,8 +181,109 @@ const UpdateProfileScreen = ({navigation, route}) => {
     setProfileImage(route.params?.teacher?.profilePicUrl);
   }, [route.params?.teacher?.profilePicUrl]);
 
+  const validateForm = () => {
+    const newErrors = {};
+    let isValid = true;
+
+    // Check all required fields
+    allRequiredFields.forEach(field => {
+      if (!profileData[field] || profileData[field].trim() === '') {
+        newErrors[field] = `${fieldToLabel(field)} is required`;
+        isValid = false;
+      }
+    });
+
+    // Remove the validation for profile picture as it's optional
+
+    // Validate numeric fields
+    if (profileData.age) {
+      const ageNum = parseInt(profileData.age, 10);
+      if (isNaN(ageNum) || ageNum < 18 || ageNum > 100) {
+        newErrors.age = 'Age must be between 18 and 100';
+        isValid = false;
+      }
+    }
+
+    // Validate phone number (simple validation)
+    if (profileData.phoneNumber && profileData.phoneNumber.length < 10) {
+      newErrors.phoneNumber = 'Enter a valid phone number';
+      isValid = false;
+    }
+
+    // Validate PIN code (simple validation for example)
+    if (profileData.pinCode && profileData.pinCode.length !== 6) {
+      newErrors.pinCode = 'PIN code must be 6 digits';
+      isValid = false;
+    }
+
+    // Validate IFSC code format (simple validation)
+    if (
+      profileData.ifscCode &&
+      !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(profileData.ifscCode)
+    ) {
+      newErrors.ifscCode = 'Enter a valid IFSC code';
+      isValid = false;
+    }
+
+    // Email validation
+    if (
+      update &&
+      profileData.email &&
+      !/\S+@\S+\.\S+/.test(profileData.email)
+    ) {
+      newErrors.email = 'Enter a valid email address';
+      isValid = false;
+    }
+
+    // Password validation if in update mode
+    if (update && profileData.password && profileData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  // Convert field names to user-friendly labels
+  const fieldToLabel = field => {
+    const labels = {
+      firstName: 'First name',
+      lastName: 'Last name',
+      age: 'Age',
+      gender: 'Gender',
+      phoneNumber: 'Phone number',
+      addressLine1: 'Address',
+      addressCity: 'City',
+      addressState: 'State',
+      pinCode: 'PIN code',
+      accountNumber: 'Account number',
+      accountName: 'Account holder name',
+      ifscCode: 'IFSC code',
+      upiId: 'UPI ID',
+      userName: 'Username',
+      email: 'Email',
+      password: 'Password',
+      profilePicUrl: 'Profile picture',
+    };
+    return labels[field] || field;
+  };
+
   const handleSubmit = async () => {
     try {
+      // Validate the form
+      if (!validateForm()) {
+        // Scroll to first error
+        Toast.show({
+          type: 'error',
+          text1: 'Form Validation Error',
+          text2: 'Please fill in all required fields correctly',
+        });
+        return;
+      }
+
+      setIsLoading(true);
+
       const Token = await AsyncStorage.getItem('Token');
       const url = `teachers/${userId}`;
 
@@ -909,7 +297,7 @@ const UpdateProfileScreen = ({navigation, route}) => {
       const rawPayload = {
         firstName: profileData.firstName,
         lastName: profileData.lastName,
-        age: profileData.age,
+        age: profileData.age ? parseInt(profileData.age, 10) : undefined,
         gender: profileData.gender,
         addressLine1: profileData.addressLine1,
         addressCity: profileData.addressCity,
@@ -934,6 +322,7 @@ const UpdateProfileScreen = ({navigation, route}) => {
       );
 
       const onResponse = res => {
+        setIsLoading(false);
         console.log('Profile updated successfully');
         Toast.show({
           type: 'success',
@@ -944,44 +333,83 @@ const UpdateProfileScreen = ({navigation, route}) => {
       };
 
       const onCatch = err => {
-        setErrors(err);
-        console.log(payload);
-        console.log('Error updating profile:', err.error);
-        Toast.show({
-          type: 'error',
-          text1: 'Failed',
-          text2: 'Update failed',
-        });
+        setIsLoading(false);
+
+        // Handle API error responses
+        if (err.error) {
+          // If the API returns field-specific errors
+          if (typeof err.error === 'object') {
+            setErrors(err.error);
+          } else {
+            // General error
+            Toast.show({
+              type: 'error',
+              text1: 'Update Failed',
+              text2: err.error || 'An error occurred while updating profile',
+            });
+          }
+        } else {
+          Toast.show({
+            type: 'error',
+            text1: 'Failed',
+            text2: 'Update failed. Please try again.',
+          });
+        }
+
+        console.log('Error updating profile:', err);
       };
 
       putapi(url, headers, payload, onResponse, onCatch);
     } catch (error) {
+      setIsLoading(false);
       console.error('Error submitting profile:', error);
       Toast.show({
         type: 'error',
         text1: 'Failed',
-        text2: 'Update failed',
+        text2: 'Update failed. Please try again.',
       });
     }
   };
 
-  const renderInput = (icon, placeholder, field, keyboardType = 'default') => (
-    <View style={styles.inputContainer}>
-      <Feather name={icon} size={20} color="#001d3d" style={styles.inputIcon} />
-      <TextInput
-        style={styles.input}
-        placeholder={placeholder}
-        placeholderTextColor="#888"
-        value={
-          field == 'age'
-            ? profileData[field]?.toString()
-            : field == 'pinCode'
-            ? profileData[field]?.toString()
-            : profileData[field]
-        }
-        onChangeText={value => handleInputChange(field, value)}
-        keyboardType={keyboardType}
-      />
+  const renderInput = (
+    icon,
+    placeholder,
+    field,
+    keyboardType = 'default',
+    ref = null,
+    nextFieldRef = null,
+    isRequired = allRequiredFields.includes(field),
+  ) => (
+    <View>
+      <View
+        style={[
+          styles.inputContainer,
+          errors[field] ? styles.inputError : null,
+        ]}>
+        <Feather
+          name={icon}
+          size={20}
+          color="#001d3d"
+          style={styles.inputIcon}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder={`${placeholder}${isRequired ? '*' : ''}`}
+          placeholderTextColor="#888"
+          value={profileData[field]?.toString() || ''}
+          onChangeText={value => handleInputChange(field, value)}
+          keyboardType={keyboardType}
+          ref={ref}
+          returnKeyType={nextFieldRef ? 'next' : 'done'}
+          onSubmitEditing={() => {
+            if (nextFieldRef && nextFieldRef.current) {
+              nextFieldRef.current.focus();
+            }
+          }}
+          blurOnSubmit={!nextFieldRef}
+        />
+      </View>
+      {errors[field] && <Text style={styles.errorText}>{errors[field]}</Text>}
     </View>
   );
 
@@ -997,34 +425,48 @@ const UpdateProfileScreen = ({navigation, route}) => {
 
   // Render gender selection component
   const renderGenderSelection = () => (
-    <View style={styles.genderContainer}>
-      <Feather
-        name="users"
-        size={20}
-        color="#001d3d"
-        style={styles.genderIcon}
-      />
-      <View style={styles.radioGroup}>
-        {genderOptions.map(option => (
-          <RadioButton
-            key={option}
-            label={option}
-            selected={profileData.gender === option}
-            onPress={() => handleGenderSelect(option)}
-          />
-        ))}
+    <View>
+      <View
+        style={[
+          styles.genderContainer,
+          errors.gender ? styles.inputError : null,
+        ]}>
+        <Feather
+          name="users"
+          size={20}
+          color="#001d3d"
+          style={styles.genderIcon}
+        />
+        <View style={styles.radioGroup}>
+          {genderOptions.map(option => (
+            <RadioButton
+              key={option}
+              label={option}
+              selected={profileData.gender === option}
+              onPress={() => handleGenderSelect(option)}
+            />
+          ))}
+        </View>
       </View>
+      {errors.gender && <Text style={styles.errorText}>{errors.gender}</Text>}
     </View>
   );
-
-  const renderError = error => {
-    if (!error) return null;
-    return <Text style={styles.errorText}>{error}</Text>;
-  };
 
   return (
     <View style={styles.container}>
       <StatusBar backgroundColor="#1D49A7" barStyle="light-content" />
+
+      {isEditMode && (
+        <View style={styles.headerContainer}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}>
+            <Feather name="arrow-left" size={24} color="#001d3d" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Edit Profile</Text>
+        </View>
+      )}
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardContainer}>
@@ -1033,85 +475,190 @@ const UpdateProfileScreen = ({navigation, route}) => {
           keyboardShouldPersistTaps="handled">
           <Text style={styles.title}>Complete Your Profile</Text>
 
-          <TouchableOpacity
-            style={styles.imagePickerContainer}
-            onPress={handleImagePicker}
-            disabled={isUploading}>
-            {profileImage ? (
-              <Image source={{uri: profileImage}} style={styles.profileImage} />
-            ) : (
-              <View style={styles.imagePlaceholder}>
-                <Feather name="camera" size={40} color="#001d3d" />
-                <Text style={styles.imagePlaceholderText}>
-                  {isUploading ? 'Uploading...' : 'Add Profile Photo'}
-                </Text>
-              </View>
+          <View>
+            <TouchableOpacity
+              style={[
+                styles.imagePickerContainer,
+                errors.profilePicUrl ? styles.imageContainerError : null,
+              ]}
+              onPress={handleImagePicker}
+              disabled={isUploading}>
+              {profileImage ? (
+                <Image
+                  source={{uri: profileImage}}
+                  style={styles.profileImage}
+                />
+              ) : (
+                <View style={styles.imagePlaceholder}>
+                  <Feather name="camera" size={40} color="#001d3d" />
+                  <Text style={styles.imagePlaceholderText}>
+                    {isUploading ? 'Uploading...' : 'Add Profile Photo'}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            {errors.profilePicUrl && (
+              <Text style={[styles.errorText, styles.imageErrorText]}>
+                {errors.profilePicUrl}
+              </Text>
             )}
-          </TouchableOpacity>
+          </View>
+
           {update && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Login Details</Text>
               {renderInput('user', 'User Name', 'userName')}
-              {renderInput('mail', 'Email', 'email')}
-              <View style={styles.inputContainer}>
-                <Feather
-                  name="lock"
-                  size={20}
-                  color="#001d3d"
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Password"
-                  placeholderTextColor="#888"
-                  secureTextEntry={!showPassword}
-                  value={profileData.password}
-                  onChangeText={value => handleInputChange('password', value)}
-                />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
-                  style={styles.showPasswordIcon}>
+              {renderInput('mail', 'Email', 'email', 'email')}
+              <View>
+                <View
+                  style={[
+                    styles.inputContainer,
+                    errors.password ? styles.inputError : null,
+                  ]}>
                   <Feather
-                    name={showPassword ? 'eye' : 'eye-off'}
+                    name="lock"
                     size={20}
                     color="#001d3d"
+                    style={styles.inputIcon}
                   />
-                </TouchableOpacity>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Password*"
+                    placeholderTextColor="#888"
+                    secureTextEntry={!showPassword}
+                    value={profileData.password}
+                    onChangeText={value => handleInputChange('password', value)}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                    style={styles.showPasswordIcon}>
+                    <Feather
+                      name={showPassword ? 'eye' : 'eye-off'}
+                      size={20}
+                      color="#001d3d"
+                    />
+                  </TouchableOpacity>
+                </View>
+                {errors.password && (
+                  <Text style={styles.errorText}>{errors.password}</Text>
+                )}
               </View>
             </View>
           )}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Personal Information</Text>
-            {renderInput('user', 'First Name', 'firstName')}
-            {renderInput('user', 'Last Name', 'lastName')}
-            {renderInput('calendar', '18', 'age', 'numeric')}
+            {renderInput(
+              'user',
+              'First Name',
+              'firstName',
+              'default',
+              null,
+              lastNameRef,
+            )}
+            {renderInput(
+              'user',
+              'Last Name',
+              'lastName',
+              'default',
+              lastNameRef,
+              ageRef,
+            )}
+            {renderInput(
+              'calendar',
+              'Age',
+              'age',
+              'numeric',
+              ageRef,
+              phoneNumberRef,
+            )}
             {renderGenderSelection()}
-            {renderInput('phone', 'Phone Number', 'phoneNumber', 'phone-pad')}
+            {renderInput(
+              'phone',
+              'Phone Number',
+              'phoneNumber',
+              'phone-pad',
+              phoneNumberRef,
+              addressLine1Ref,
+            )}
           </View>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Address Details</Text>
-            {renderInput('home', 'Address Line 1', 'addressLine1')}
-            {renderInput('map-pin', 'City', 'addressCity')}
-            {renderInput('map', 'State', 'addressState')}
-            {renderInput('hash', 'Pin Code', 'pinCode', 'numeric')}
+            {renderInput(
+              'home',
+              'Address Line 1',
+              'addressLine1',
+              'default',
+              addressLine1Ref,
+              addressCityRef,
+            )}
+            {renderInput(
+              'map-pin',
+              'City',
+              'addressCity',
+              'default',
+              addressCityRef,
+              addressStateRef,
+            )}
+            {renderInput(
+              'map',
+              'State',
+              'addressState',
+              'default',
+              addressStateRef,
+              pinCodeRef,
+            )}
+            {renderInput(
+              'hash',
+              'Pin Code',
+              'pinCode',
+              'numeric',
+              pinCodeRef,
+              accountNumberRef,
+            )}
           </View>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Banking Details</Text>
-            {renderInput('credit-card', 'Account Number', 'accountNumber')}
-            {renderInput('user', 'Account Holder Name', 'accountName')}
-            {renderInput('hash', 'IFSC Code', 'ifscCode')}
-            {renderInput('smartphone', 'UPI ID', 'upiId')}
+            {renderInput(
+              'credit-card',
+              'Account Number',
+              'accountNumber',
+              'default',
+              accountNumberRef,
+              accountNameRef,
+            )}
+            {renderInput(
+              'user',
+              'Account Holder Name',
+              'accountName',
+              'default',
+              accountNameRef,
+              ifscCodeRef,
+            )}
+            {renderInput(
+              'hash',
+              'IFSC Code',
+              'ifscCode',
+              'default',
+              ifscCodeRef,
+              upiIdRef,
+            )}
+            {renderInput('smartphone', 'UPI ID', 'upiId', 'default', upiIdRef)}
           </View>
-
-          {renderError(errors)}
 
           <TouchableOpacity
             onPress={handleSubmit}
             style={styles.submitButton}
-            disabled={isUploading}>
-            <Text style={styles.submitButtonText}>Save Profile</Text>
+            disabled={isLoading || isUploading}>
+            {isLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color="#ffffff" />
+                <Text style={styles.submitButtonText}>Saving...</Text>
+              </View>
+            ) : (
+              <Text style={styles.submitButtonText}>Save Profile</Text>
+            )}
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -1123,6 +670,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    paddingTop: 10,
+    paddingBottom: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  backButton: {
+    padding: 5,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#001d3d',
+    marginLeft: 15,
   },
   keyboardContainer: {
     flex: 1,
@@ -1137,14 +702,27 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#001d3d',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
     marginTop: 20,
+  },
+  requiredNote: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  requiredNoteText: {
+    fontSize: 12,
+    color: '#666',
   },
   errorText: {
     color: '#dc3545',
     fontSize: 12,
+    marginTop: -10,
     marginBottom: 10,
     marginLeft: 5,
+  },
+  imageErrorText: {
+    marginTop: 5,
+    textAlign: 'center',
   },
   section: {
     marginBottom: 20,
@@ -1161,6 +739,12 @@ const styles = StyleSheet.create({
   imagePickerContainer: {
     alignItems: 'center',
     marginBottom: 20,
+  },
+  imageContainerError: {
+    borderWidth: 2,
+    borderColor: '#dc3545',
+    borderRadius: 60,
+    padding: 2,
   },
   profileImage: {
     width: 120,
@@ -1192,6 +776,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
   },
+  inputError: {
+    borderColor: '#dc3545',
+    borderWidth: 1,
+  },
   inputIcon: {
     marginRight: 10,
   },
@@ -1213,7 +801,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
-  // Styles for gender radio button
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   genderContainer: {
     flexDirection: 'row',
     alignItems: 'center',
