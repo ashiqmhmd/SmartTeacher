@@ -10,25 +10,25 @@ import {
   View,
   RefreshControl, // Add RefreshControl
 } from 'react-native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
-import { getapi } from '../utils/api';
-import { useDispatch, useSelector } from 'react-redux';
+import {getapi} from '../utils/api';
+import {useDispatch, useSelector} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
-import { batch_id, selectBatch } from '../utils/authslice';
-import { useFocusEffect } from '@react-navigation/core';
+import {batch_id, selectBatch} from '../utils/authslice';
+import {useFocusEffect} from '@react-navigation/core';
 
-const ChatsScreen = ({ navigation }) => {
+const ChatsScreen = ({navigation}) => {
   const [loading, setLoading] = useState(true);
   const [conversations, setConversations] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [userId, setUserId] = useState('');
   const [refreshing, setRefreshing] = useState(false); // State for refresh control
- const [isBatchSelected, setIsBatchSelected] = useState(true);
+  const [isBatchSelected, setIsBatchSelected] = useState(true);
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
 
@@ -41,7 +41,7 @@ const ChatsScreen = ({ navigation }) => {
 
     dispatch(batch_id(batch.id));
     dispatch(selectBatch(batch));
-    await fetchConversations()
+    await fetchConversations();
     // Close the bottom sheet
     refRBSheet.current.close();
   };
@@ -114,7 +114,7 @@ const ChatsScreen = ({ navigation }) => {
 
     // Check if the date is today
     if (date.toDateString() === now.toDateString()) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
     }
 
     // Check if the date is yesterday
@@ -125,7 +125,7 @@ const ChatsScreen = ({ navigation }) => {
     }
 
     // If it's earlier, show the date
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString([], {month: 'short', day: 'numeric'});
   };
 
   const getLastMessage = conversation => {
@@ -146,14 +146,15 @@ const ChatsScreen = ({ navigation }) => {
 
   const filteredConversations = conversations.filter(
     conversation =>
-      conversation.receiverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      conversation.receiverName
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
       getLastMessage(conversation)
         .toLowerCase()
         .includes(searchQuery.toLowerCase()),
-
   );
 
-  const renderConversationItem = ({ item }) => {
+  const renderConversationItem = ({item}) => {
     const lastMessage = getLastMessage(item);
     const lastMessageTime = getLastMessageTime(item);
     const hasAttachments =
@@ -162,7 +163,13 @@ const ChatsScreen = ({ navigation }) => {
     return (
       <TouchableOpacity
         style={styles.conversationCard}
-        onPress={() => navigation.navigate('Chat', { conversation: item, conversationId: item.id, create: false })}>
+        onPress={() =>
+          navigation.navigate('Chat', {
+            conversation: item,
+            conversationId: item.id,
+            create: false,
+          })
+        }>
         <View style={styles.avatarContainer}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
@@ -230,7 +237,7 @@ const ChatsScreen = ({ navigation }) => {
             borderWidth: 1,
             borderColor: '#e0e0e0',
           }}>
-          <Text style={{ color: '#001d3d', fontWeight: 'bold', fontSize: 16 }}>
+          <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
             {selectedBatch_id ? selectedBatchString?.name : 'Select Batch'}
           </Text>
 
@@ -238,16 +245,14 @@ const ChatsScreen = ({ navigation }) => {
             name="keyboard-arrow-down"
             size={20}
             color="#001d3d"
-            style={{ paddingLeft: 5 }}
+            style={{paddingLeft: 5}}
           />
         </TouchableOpacity>
       </View>
 
       {!isBatchSelected ? (
         renderNoBatchSelected()
-      ) :
-
-      loading ? (
+      ) : loading ? (
         <View style={styles.container}>
           <View style={styles.searchContainer}>
             <ShimmerPlaceholder style={styles.searchBarShimmer} />
@@ -388,7 +393,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginLeft: 10,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 15,
@@ -403,7 +408,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 12,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 12,
@@ -541,7 +546,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginTop: 24,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
