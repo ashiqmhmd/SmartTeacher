@@ -188,8 +188,19 @@ const UpdateProfileScreen = ({navigation, route}) => {
     let isValid = true;
 
     // Check all required fields
-    allRequiredFields.forEach(field => {
-      if (!profileData[field] || profileData[field].trim() === '') {
+    allRequiredFields?.forEach(field => {
+
+      if (field === 'age') {
+        const ageValue = profileData[field];
+        if (!ageValue || isNaN(Number(ageValue))) {
+          newErrors[field] = 'Please enter a valid age';
+          isValid = false;
+        }
+        return;
+      }
+     
+
+      if (!profileData[field] || profileData[field]?.trim() === '') {
         newErrors[field] = `${fieldToLabel(field)} is required`;
         isValid = false;
       }

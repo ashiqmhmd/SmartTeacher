@@ -32,6 +32,7 @@ import {
 } from '../utils/authslice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
+import { getUserId } from '../utils/TokenDecoder';
 
 const HomeScreen = ({navigation}) => {
   const refRBSheet = useRef();
@@ -39,6 +40,7 @@ const HomeScreen = ({navigation}) => {
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState([]);
+  const [profilePicUrl,setProfileImage] = useState('')
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -86,6 +88,43 @@ const HomeScreen = ({navigation}) => {
     };
     getapi(url, headers, onResponse, onCatch);
   };
+
+  const TeacherDetails = async () => {
+  
+      const Token = await AsyncStorage.getItem('Token');
+      if (!Token) {
+        throw new Error('No token found, authentication required');
+      }
+
+      const Teacherid = await getUserId(Token);
+      if (!Teacherid) {
+        throw new Error('Failed to fetch Teacher ID');
+      }
+
+      const url = `teachers/${Teacherid}`;
+      const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Token}`,
+      };
+
+      const onResponse = res => {
+        if (res) {
+          setProfileImage(res?.profilePicUrl)
+          console.log("res",res)
+          console.log("profilePicUrl",profilePicUrl)
+        }
+        setLoading(false);
+      };
+
+      const onCatch = error => {
+        console.error('API Error:', error);
+        setLoading(false);
+      };
+
+      getapi(url, headers, onResponse, onCatch);
+    }
+
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -146,6 +185,7 @@ const HomeScreen = ({navigation}) => {
 
     checkBatchSelection();
     students_fetch();
+    TeacherDetails()
     fetch_batchs();
   }, []);
 
@@ -153,6 +193,7 @@ const HomeScreen = ({navigation}) => {
     useCallback(() => {
       console.log('Screen is focused');
       students_fetch();
+      TeacherDetails()
       dispatch(fetch_batchs());
       return () => {
         console.log('Screen is unfocused');
