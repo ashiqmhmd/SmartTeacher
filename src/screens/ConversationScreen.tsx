@@ -297,9 +297,13 @@ const ConversationScreen = ({route, navigation}) => {
       console.log('Uploading attachments...');
 
       const Token = await AsyncStorage.getItem('Token');
+      const userId = await AsyncStorage.getItem('TeacherId');
       const uploadPromises = selectedAttachments.map(async fileData => {
         const formDataToUpload = new FormData();
         formDataToUpload.append('file', fileData);
+        formDataToUpload.append('userType', 'TEACHER');
+        formDataToUpload.append('userId', userId);
+        formDataToUpload.append('uploadType', 'messages');
 
         const url = `${base_url}uploads`;
 
@@ -403,6 +407,12 @@ const ConversationScreen = ({route, navigation}) => {
         attachmentUrls: attachmentUrls,
       };
 
+      const fliteredData = Object.fromEntries(
+        Object.entries(data).filter(
+          ([_, value]) => value !== '' && value !== null && value !== undefined,
+        ),
+      );
+
       const onResponse = res => {
         console.log('Message sent successfully:', res);
         setSendingMessage(false);
@@ -422,7 +432,7 @@ const ConversationScreen = ({route, navigation}) => {
         setNewMessage(messageContent);
       };
 
-      patchApi(url, headers, data, onResponse, onCatch);
+      patchApi(url, headers, fliteredData, onResponse, onCatch);
     } catch (error) {
       console.error('Exception when sending message:', error);
       setSendingMessage(false);
@@ -643,28 +653,32 @@ const ConversationScreen = ({route, navigation}) => {
           {item.attachmentUrls && item.attachmentUrls.length > 0 && (
             <View style={styles.attachmentsContainer}>
               {item.attachmentUrls.map((url, index) => (
-               <TouchableOpacity
-               key={index}
-               style={styles.attachment}
-               onPress={() => handleOpenAttachment(url)}>
-               {/* Check if attachment is an image */}
-               {url.match(/\.(jpeg|jpg|gif|png)$/) ? (
-                 <Image
-                   source={{ uri: url }}
-                   style={styles.attachmentImage}
-                   resizeMode="cover"
-                 />
-               ) : (
-                 <>
-                   <MaterialIcons name="attachment" size={20} color="#001d3d" />
-                   <Text style={styles.attachmentText}>
-                     {typeof url === 'string'
-                       ? url.split('/').pop()
-                       : url.name || 'Attachment'}
-                   </Text>
-                 </>
-               )}
-             </TouchableOpacity>
+                <TouchableOpacity
+                  key={index}
+                  style={styles.attachment}
+                  onPress={() => handleOpenAttachment(url)}>
+                  {/* Check if attachment is an image */}
+                  {url.match(/\.(jpeg|jpg|gif|png)$/) ? (
+                    <Image
+                      source={{uri: url}}
+                      style={styles.attachmentImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <>
+                      <MaterialIcons
+                        name="attachment"
+                        size={20}
+                        color="#001d3d"
+                      />
+                      <Text style={styles.attachmentText}>
+                        {typeof url === 'string'
+                          ? url.split('/').pop()
+                          : url.name || 'Attachment'}
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
               ))}
             </View>
           )}
