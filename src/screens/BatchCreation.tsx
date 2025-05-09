@@ -128,8 +128,6 @@ const BatchCreation = ({navigation, route}) => {
         setTimeout(() => {
           handleCreateBatch();
         }, 3000);
-
-        navigation.goBack();
       };
 
       const onCatch = error => {
@@ -327,13 +325,12 @@ const BatchCreation = ({navigation, route}) => {
               'decimal-pad',
             )}
 
-            {batch.paymentFrequency === 'Monthly' &&
-              inputField(
-                'paymentDayOfMonth',
-                'Payment Day of Month',
-                'Enter day (1-31)',
-                'numeric',
-              )}
+            {inputField(
+              'paymentDayOfMonth',
+              'Payment Day of Month',
+              'Enter day (1-31)',
+              'numeric',
+            )}
           </View>
         </ScrollView>
 
