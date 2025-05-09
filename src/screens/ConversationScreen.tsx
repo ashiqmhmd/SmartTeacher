@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   ActivityIndicator,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -37,7 +38,9 @@ const ConversationScreen = ({route, navigation}) => {
   const [formData, setFormData] = useState(null);
   const [conversationData, setConversationData] = useState(null);
   const [student, setstudent] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
   const flatListRef = useRef(null);
+
   const loadUserData = async () => {
     try {
       const id = (await AsyncStorage.getItem('TeacherId')) || '';
@@ -49,6 +52,27 @@ const ConversationScreen = ({route, navigation}) => {
       setError('Failed to load user data');
     }
   };
+
+  // Add polling mechanism to check for new messages
+  useEffect(() => {
+    let messagePolling;
+
+    // Start polling when conversation is loaded
+    if (conversationId) {
+      // Poll every 5 seconds to check for new messages
+      messagePolling = setInterval(() => {
+        // Only refresh if we're not currently loading or sending
+        if (!loading && !sendingMessage) {
+          refreshMessages();
+        }
+      }, 5000);
+    }
+
+    // Clean up interval when component unmounts
+    return () => {
+      if (messagePolling) clearInterval(messagePolling);
+    };
+  }, [conversationId, loading, sendingMessage]);
 
   useEffect(() => {
     const studentData = route?.params?.student;
@@ -78,6 +102,102 @@ const ConversationScreen = ({route, navigation}) => {
       }
     }
   }, [conversationId]);
+
+  // Add effect to scroll to bottom when messages change
+  useEffect(() => {
+    if (flatListRef.current && messages.length > 0) {
+      setTimeout(() => {
+        if (Platform.OS === 'android') {
+          flatListRef.current.scrollToOffset({
+            offset: 99999,
+            animated: true,
+          });
+        } else {
+          flatListRef.current.scrollToEnd({animated: true});
+        }
+      }, 100);
+    }
+  }, [messages]);
+
+  // Silent refresh function that doesn't show loading indicators
+  const refreshMessages = async () => {
+    try {
+      const Token = await AsyncStorage.getItem('Token');
+      const url = `/messages/${conversationId}`;
+      const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Token}`,
+      };
+
+      const onResponse = res => {
+        if (res) {
+          setConversationData(res);
+
+          const originalMessage = {
+            id: res.id,
+            sender: res.sender,
+            senderName: res.senderName,
+            senderType: res.senderType,
+            content: res.content,
+            timestamp: res.timestamp,
+            attachmentUrls: res.attachmentUrls || [],
+            isOriginal: true,
+          };
+
+          const replies = res.replies.map(reply => ({
+            id: reply.id || `reply-${Math.random()}`,
+            sender: reply.sender,
+            senderName: reply.senderName,
+            senderType: reply.senderType,
+            content: reply.content,
+            timestamp: reply.timestamp,
+            attachmentUrls: reply.attachmentUrls || [],
+            isOriginal: false,
+          }));
+
+          const allMessages = [originalMessage, ...replies];
+          allMessages.sort(
+            (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
+          );
+
+          // Compare with current messages to see if there are new ones
+          const currentMessagesIds = new Set(messages.map(msg => msg.id));
+          const hasNewMessages = allMessages.some(
+            msg => !currentMessagesIds.has(msg.id),
+          );
+
+          if (hasNewMessages) {
+            console.log('New messages received!');
+            setMessages(allMessages);
+
+            // Scroll to bottom when new messages arrive
+            setTimeout(() => {
+              if (flatListRef.current) {
+                flatListRef.current.scrollToEnd({animated: true});
+              }
+            }, 100);
+          }
+        }
+      };
+
+      const onCatch = err => {
+        console.error('Error refreshing messages:', err);
+        // Silent fail for background refresh
+      };
+
+      getapi(url, headers, onResponse, onCatch, navigation);
+    } catch (err) {
+      console.error('Exception when refreshing messages:', err);
+    }
+  };
+
+  // Pull-to-refresh handler
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refreshMessages();
+    setRefreshing(false);
+  };
 
   const getMessageById = async id => {
     setLoading(true);
@@ -416,6 +536,12 @@ const ConversationScreen = ({route, navigation}) => {
       const onResponse = res => {
         console.log('Message sent successfully:', res);
         setSendingMessage(false);
+
+        // Refresh the conversation to get the actual server data
+        // This ensures message IDs are correct and we have any server-side changes
+        setTimeout(() => {
+          refreshMessages();
+        }, 500);
       };
 
       const onCatch = err => {
@@ -739,6 +865,13 @@ const ConversationScreen = ({route, navigation}) => {
           renderItem={renderItem}
           keyExtractor={item => item.id || `temp-${Math.random()}`}
           contentContainerStyle={styles.messagesList}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#001d3d']}
+            />
+          }
           ListEmptyComponent={() => (
             <View style={styles.emptyConversationContainer}>
               <MaterialCommunityIcons
@@ -779,12 +912,18 @@ const ConversationScreen = ({route, navigation}) => {
           renderItem={renderItem}
           keyExtractor={item => item.id}
           contentContainerStyle={styles.messagesList}
-          onLayout={() =>
-            flatListRef.current.scrollToOffset({
-              offset: Number.MAX_VALUE,
-              animated: false,
-            })
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#001d3d']}
+            />
           }
+          onContentSizeChange={() => {
+            if (flatListRef.current) {
+              flatListRef.current.scrollToEnd({animated: true});
+            }
+          }}
         />
       )}
 
