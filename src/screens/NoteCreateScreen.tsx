@@ -288,7 +288,7 @@ const NoteCreateScreen = ({navigation, route}) => {
       console.log('Error', res);
     };
 
-    postApi(url, headers, body, onResponse, onCatch);
+    postApi(url, headers, body, onResponse, onCatch, navigation);
   };
 
   const Note_Update = async noteData => {
@@ -327,7 +327,7 @@ const NoteCreateScreen = ({navigation, route}) => {
       console.log('Error', res);
     };
 
-    putapi(url, headers, payload, onResponse, onCatch);
+    putapi(url, headers, payload, onResponse, onCatch, navigation);
   };
 
   const handleRemoveAttachment = (index, item) => {

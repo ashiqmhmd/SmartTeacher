@@ -8,17 +8,17 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { fetch_batchs, logout } from '../utils/authslice';
-import { useDispatch } from 'react-redux';
+import {fetch_batchs, logout} from '../utils/authslice';
+import {useDispatch} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getapi, deleteapi } from '../utils/api';
-import { getUserId } from '../utils/TokenDecoder';
+import {getapi, deleteapi} from '../utils/api';
+import {getUserId} from '../utils/TokenDecoder';
 import LinearGradient from 'react-native-linear-gradient';
 
-const ProfileScreen = ({ navigation, item }) => {
+const ProfileScreen = ({navigation, item}) => {
   const [imageError, setImageError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [batches, setBatches] = useState([]);
@@ -82,7 +82,7 @@ const ProfileScreen = ({ navigation, item }) => {
         setLoading(false);
       };
 
-      getapi(url, headers, onResponse, onCatch);
+      getapi(url, headers, onResponse, onCatch, navigation);
 
       // Fetch batches for the teacher
       const batchesUrl = `batches/teacher/${Teacherid}`;
@@ -92,7 +92,7 @@ const ProfileScreen = ({ navigation, item }) => {
         Authorization: `Bearer ${Token}`,
       };
 
-      console.log("Batches fetching apiii")
+      console.log('Batches fetching apiii');
 
       const onBatchesResponse = res => {
         if (res) {
@@ -104,7 +104,13 @@ const ProfileScreen = ({ navigation, item }) => {
         console.error('Batches API Error:', error);
       };
 
-      getapi(batchesUrl, batchesHeaders, onBatchesResponse, onBatchesCatch);
+      getapi(
+        batchesUrl,
+        batchesHeaders,
+        onBatchesResponse,
+        onBatchesCatch,
+        navigation,
+      );
     } catch (error) {
       console.error('TeacherDetails Error:', error.message);
       setLoading(false);
@@ -129,29 +135,27 @@ const ProfileScreen = ({ navigation, item }) => {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${Token}`,
             };
-            const onResponse = async (res) => {
+            const onResponse = async res => {
               setBatches(prevBatches =>
                 prevBatches.filter(batch => batch.id !== batchId),
               );
 
-              dispatch(fetch_batchs())
+              dispatch(fetch_batchs());
               dispatch({
-                type: 'Clearbatches'
+                type: 'Clearbatches',
               });
-              console.log("Batch deleted successfully")
+              console.log('Batch deleted successfully');
               Alert.alert('Success', 'Batch deleted successfully');
               await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating API call
               setLoading(false);
-            }
-
-
+            };
 
             const onCatch = res => {
               console.error('Delete Batch Error:', res);
               Alert.alert('Error', 'Failed to delete batch');
             };
 
-            deleteapi(url, headers, onResponse, onCatch);
+            deleteapi(url, headers, onResponse, onCatch, navigation);
           } catch (error) {
             console.error('Delete Batch Error:', error);
             Alert.alert('Error', 'Failed to delete batch');
@@ -180,7 +184,7 @@ const ProfileScreen = ({ navigation, item }) => {
   const logoutbutton_press = async () => {
     navigation.reset({
       index: 0,
-      routes: [{ name: 'Login' }],
+      routes: [{name: 'Login'}],
     });
     dispatch(logout());
     await AsyncStorage.removeItem('Token');
@@ -190,7 +194,7 @@ const ProfileScreen = ({ navigation, item }) => {
     TeacherDetails();
   }, []);
 
-  const InfoSection = ({ icon, title, value }) => (
+  const InfoSection = ({icon, title, value}) => (
     <View style={styles.infoSection}>
       <View style={styles.infoIcon}>
         <MaterialIcons name={icon} size={20} color="#0F1F4B" />
@@ -202,7 +206,7 @@ const ProfileScreen = ({ navigation, item }) => {
     </View>
   );
 
-  const Section = ({ title, children }) => (
+  const Section = ({title, children}) => (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
       <View style={styles.sectionContent}>{children}</View>
@@ -218,7 +222,7 @@ const ProfileScreen = ({ navigation, item }) => {
         <Text style={styles.appBarTitle}>Profile</Text>
         <TouchableOpacity
           onPress={() =>
-            navigation.navigate('Update_Profile', { teacher, update: true })
+            navigation.navigate('Update_Profile', {teacher, update: true})
           }>
           <MaterialIcons name="edit" size={24} color="#0F1F4B" />
         </TouchableOpacity>
@@ -231,7 +235,7 @@ const ProfileScreen = ({ navigation, item }) => {
               source={
                 !teacher.profilePicUrl
                   ? require('../resources/user.png')
-                  : { uri: teacher.profilePicUrl }
+                  : {uri: teacher.profilePicUrl}
               }
               style={styles.profileImage}
             />
@@ -304,43 +308,48 @@ const ProfileScreen = ({ navigation, item }) => {
             </TouchableOpacity> */}
           </View>
           <View style={styles.batchList}>
-            {
-              batches.length > 0 ?
-
-                batches.map((batch, index) => (
-                  <View key={index} style={styles.batchCard}>
-                    <LinearGradient
-                      colors={['#f8f9ff', '#ffffff']}
-                      style={styles.batchContent}>
-                      <View style={styles.batchInfo}>
-                        <Text style={styles.batchName}>{batch.name}</Text>
-                        <Text style={styles.batchId}>{batch.subject}</Text>
-                      </View>
-                      <View style={styles.batchActions}>
-                        <TouchableOpacity
-                          style={styles.editBatchButton}
-                          onPress={() =>
-                            navigation.navigate('Batch_Create', { batch, update: true })
-                          }>
-                          <MaterialIcons name="edit" size={24} color="#0F1F4B" />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={styles.deleteBatchButton}
-                          onPress={() => handleDeleteBatch(batch.id)}>
-                          <MaterialIcons name="delete" size={24} color="#DC2626" />
-                        </TouchableOpacity>
-                      </View>
-                    </LinearGradient>
-                  </View>
-                ))
-
-                :
-                <View style={{ justifyContent: "center", alignItems: 'center' }}>
-                  <Text style={{ fontSize: 15, fontWeight: "500", color: '#0F1F4B', }}>
-                    No Batches Available
-                  </Text>
+            {batches.length > 0 ? (
+              batches.map((batch, index) => (
+                <View key={index} style={styles.batchCard}>
+                  <LinearGradient
+                    colors={['#f8f9ff', '#ffffff']}
+                    style={styles.batchContent}>
+                    <View style={styles.batchInfo}>
+                      <Text style={styles.batchName}>{batch.name}</Text>
+                      <Text style={styles.batchId}>{batch.subject}</Text>
+                    </View>
+                    <View style={styles.batchActions}>
+                      <TouchableOpacity
+                        style={styles.editBatchButton}
+                        onPress={() =>
+                          navigation.navigate('Batch_Create', {
+                            batch,
+                            update: true,
+                          })
+                        }>
+                        <MaterialIcons name="edit" size={24} color="#0F1F4B" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.deleteBatchButton}
+                        onPress={() => handleDeleteBatch(batch.id)}>
+                        <MaterialIcons
+                          name="delete"
+                          size={24}
+                          color="#DC2626"
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </LinearGradient>
                 </View>
-            }
+              ))
+            ) : (
+              <View style={{justifyContent: 'center', alignItems: 'center'}}>
+                <Text
+                  style={{fontSize: 15, fontWeight: '500', color: '#0F1F4B'}}>
+                  No Batches Available
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -428,7 +437,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     shadowColor: 'rgb(105, 144, 252)',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 8,

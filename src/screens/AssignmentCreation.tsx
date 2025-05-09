@@ -385,7 +385,7 @@ const CreateAssignment = ({navigation, route}) => {
         console.error('Error submitting assignment:', error);
       };
 
-      postApi(url, headers, body, onResponse, onCatch);
+      postApi(url, headers, body, onResponse, onCatch, navigation);
       console.log('Assignment Submitted:', body);
     } catch (error) {
       console.error('Error during assignment submission:', error);
@@ -431,7 +431,7 @@ const CreateAssignment = ({navigation, route}) => {
       console.log(res);
     };
 
-    putapi(url, headers, payload, onResponse, onCatch);
+    putapi(url, headers, payload, onResponse, onCatch, navigation);
     console.log(payload);
   };
 

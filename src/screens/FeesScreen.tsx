@@ -109,7 +109,7 @@ const FeesScreen = ({navigation}) => {
       setLoading(false);
       setRefreshing(false);
     };
-    getapi(url, headers, onResponse, onCatch);
+    getapi(url, headers, onResponse, onCatch, navigation);
   };
 
   const student_details_fetch = async (records: any[]) => {
@@ -143,6 +143,7 @@ const FeesScreen = ({navigation}) => {
               console.error(`Error fetching student ${studentId}:`, error);
               resolve(null);
             },
+            navigation,
           );
         });
       }),

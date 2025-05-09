@@ -142,7 +142,7 @@ const BatchCreation = ({navigation, route}) => {
         });
       };
 
-      await postApi(url, headers, body, onResponse, onCatch);
+      await postApi(url, headers, body, onResponse, onCatch, navigation);
     } catch (error) {
       console.error('Batch_Creation Error:', error.message);
       Toast.show({
@@ -199,7 +199,14 @@ const BatchCreation = ({navigation, route}) => {
         });
       };
 
-      await putapi(url, headers, filteredBatch, onResponse, onCatch);
+      await putapi(
+        url,
+        headers,
+        filteredBatch,
+        onResponse,
+        onCatch,
+        navigation,
+      );
       console.log(filteredBatch);
     } catch (error) {
       console.error('Batch_Updation Error:', error.message);

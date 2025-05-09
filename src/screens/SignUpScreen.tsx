@@ -179,7 +179,7 @@ const SignupScreen = ({navigation}) => {
       });
     };
 
-    postApi(url, headers, body, onResponse, onCatch);
+    postApi(url, headers, body, onResponse, onCatch, navigation);
   };
 
   const renderError = error => {

@@ -468,8 +468,9 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import store from './store';
-import { logout } from './authslice';
-import { useNavigation } from '@react-navigation/native';
+import {logout} from './authslice';
+import {useNavigation} from '@react-navigation/native';
+import {Alert} from 'react-native';
 
 type Callback<T = any> = (data: T) => void;
 
@@ -486,35 +487,30 @@ interface RefreshTokenResponse {
 
 let base_url = 'https://zkbsgdbbhc.execute-api.us-east-1.amazonaws.com/Dev/';
 
-// export const handleLogout = async (navigation): Promise<void> => {
+export const handleLogout = async (navigation: any): Promise<void> => {
+  try {
+    await AsyncStorage.multiRemove([
+      'Token',
+      'RefreshToken',
+      'TeacherId',
+      'batch_id',
+      'selectedBatch',
+    ]);
 
-//   try {
-//     // First, clear AsyncStorage items
-//     await AsyncStorage.multiRemove([
-//       'Token',
-//       'RefreshToken',
-//       'TeacherId',
-//       'batch_id',
-//       'selectedBatch'
-//     ]);
+    store.dispatch(logout());
 
-//     // Then dispatch the logout action to Redux
-//     store.dispatch(logout());
+    console.log('User logged out due to expired refresh token');
 
-//     console.log('User logged out due to expired refresh token');
-
-//     // Navigate to login screen using the passed navigation object
-//     if (navigation) {
-//       // Reset navigation stack and go to Login
-//       navigation.reset({
-//         index: 0,
-//         routes: [{ name: 'Login' }],
-//       });
-//     }
-//   } catch (error) {
-//     console.error('Error during logout process:', error);
-//   }
-// };
+    if (navigation) {
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'Login'}],
+      });
+    }
+  } catch (error) {
+    console.error('Error during logout process:', error);
+  }
+};
 
 // Function to refresh the token
 export const refreshToken = async (): Promise<RefreshTokenResponse | null> => {
@@ -588,6 +584,7 @@ const handleTokenRefresh = async (
   body: Record<string, any> | null,
   onResponse: Callback | null,
   onCatch: Callback | null,
+  navigation?: any,
 ): Promise<void> => {
   try {
     const refreshResult = await refreshToken();
@@ -625,6 +622,21 @@ const handleTokenRefresh = async (
         onCatch(new Error('Session expired. Please login again.'));
         // handleLogout(navigation)
       }
+      if (navigation) {
+        Alert.alert(
+          'Session Expired', // Title
+          'Your session has expired. Please login again.', // Message
+          [
+            {
+              text: 'OK',
+              onPress: async () => {
+                await handleLogout(navigation);
+              }, // Action on OK
+            },
+          ],
+          {cancelable: false}, // Prevent closing alert by tapping outside
+        );
+      }
     }
   } catch (error) {
     console.error('Token refresh handling error:', error);
@@ -633,8 +645,24 @@ const handleTokenRefresh = async (
     if (onCatch) {
       onCatch(error);
     }
+    if (navigation) {
+      Alert.alert(
+        'Session Expired', // Title
+        'Your session has expired. Please login again.', // Message
+        [
+          {
+            text: 'OK',
+            onPress: async () => {
+              await handleLogout(navigation);
+            }, // Action on OK
+          },
+        ],
+        {cancelable: false}, // Prevent closing alert by tapping outside
+      );
+    }
   }
 };
+
 // Enhanced POST API with token refresh
 export const postApi = async (
   url: string = '',
@@ -642,6 +670,7 @@ export const postApi = async (
   body: Record<string, any> = {},
   onResponse: Callback | null = null,
   onCatch: Callback | null = null,
+  navigation?: any,
 ): Promise<any> => {
   try {
     const token = await AsyncStorage.getItem('Token');
@@ -664,7 +693,15 @@ export const postApi = async (
     });
 
     if (response.status === 401) {
-      await handleTokenRefresh(postApi, url, header, body, onResponse, onCatch);
+      await handleTokenRefresh(
+        postApi,
+        url,
+        header,
+        body,
+        onResponse,
+        onCatch,
+        navigation,
+      );
       return null;
     }
 
@@ -697,7 +734,6 @@ export const postApi = async (
     }
 
     onResponse && onResponse(responseJson);
-
   } catch (error: any) {
     const errorMessage =
       typeof error === 'string'
@@ -705,10 +741,9 @@ export const postApi = async (
         : error?.message || 'Something went wrong';
 
     console.error('POST API Error:', errorMessage);
-    onCatch && onCatch({ error: errorMessage });
+    onCatch && onCatch({error: errorMessage});
   }
 };
-
 
 // Enhanced GET API with token refresh
 export const getapi = async (
@@ -716,6 +751,7 @@ export const getapi = async (
   header: Record<string, string> = {},
   onResponse: Callback | null = null,
   onCatch: Callback | null = null,
+  navigation?: any,
 ): Promise<any> => {
   try {
     // Add authorization token if available
@@ -738,7 +774,15 @@ export const getapi = async (
 
     // Handle token expiration (401 Unauthorized)
     if (response.status === 401) {
-      await handleTokenRefresh(getapi, url, header, null, onResponse, onCatch);
+      await handleTokenRefresh(
+        getapi,
+        url,
+        header,
+        null,
+        onResponse,
+        onCatch,
+        navigation,
+      );
       return null;
     }
 
@@ -771,6 +815,7 @@ export const patchApi = async (
   body: Record<string, any> | null = null,
   onResponse: Callback | null = null,
   onCatch: Callback | null = null,
+  navigation?: any,
 ): Promise<any> => {
   const headers = {
     'Content-Type': 'application/json',
@@ -788,6 +833,20 @@ export const patchApi = async (
 
     const text = await response.text();
     console.log('Raw Response:', text);
+
+    // Handle token expiration (401 Unauthorized)
+    if (response.status === 401) {
+      await handleTokenRefresh(
+        getapi,
+        url,
+        header,
+        null,
+        onResponse,
+        onCatch,
+        navigation,
+      );
+      return null;
+    }
 
     // Check for HTTP error status codes
     if (!response.ok) {
@@ -841,6 +900,7 @@ export const putapi = async (
   body: Record<string, any> = {},
   onResponse: Callback | null = null,
   onCatch: Callback | null = null,
+  navigation?: any,
 ): Promise<any> => {
   try {
     const token = await AsyncStorage.getItem('Token');
@@ -862,7 +922,15 @@ export const putapi = async (
     });
 
     if (response.status === 401) {
-      await handleTokenRefresh(putapi, url, header, body, onResponse, onCatch);
+      await handleTokenRefresh(
+        putapi,
+        url,
+        header,
+        body,
+        onResponse,
+        onCatch,
+        navigation,
+      );
       return null;
     }
 
@@ -897,17 +965,17 @@ export const putapi = async (
       typeof error === 'string'
         ? error
         : error?.message || 'Something went wrong';
-    console.log("error", error.message)
-    onCatch && onCatch({ error: errorMessage });
+    console.log('error', error.message);
+    onCatch && onCatch({error: errorMessage});
   }
 };
-
 
 export const deleteapi = async (
   url: string = '',
   header: Record<string, string> = {},
   onResponse: Callback | null = null,
   onCatch: Callback | null = null,
+  navigation?: any,
 ): Promise<any> => {
   try {
     // Add authorization token if available
@@ -935,6 +1003,7 @@ export const deleteapi = async (
             null,
             onResponse,
             onCatch,
+            navigation,
           );
           return null;
         }

@@ -108,7 +108,7 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
       console.error('Error deleting fee:', res);
       setLoading(false);
     };
-    deleteapi(url, headers, onResponse, onCatch);
+    deleteapi(url, headers, onResponse, onCatch, navigation);
   };
 
   const Fees_update = async () => {
@@ -162,7 +162,7 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
         navigation.goBack();
       };
 
-      await patchApi(url, headers, body, onResponse, onCatch);
+      await patchApi(url, headers, body, onResponse, onCatch, navigation);
       console.log(body);
     } catch (error) {
       console.error('Fees marking Error:', error.message);

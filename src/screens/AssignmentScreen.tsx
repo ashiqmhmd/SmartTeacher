@@ -9,18 +9,18 @@ import {
   FlatList,
   RefreshControl,
 } from 'react-native';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { getapi } from '../utils/api';
+import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useDispatch, useSelector } from 'react-redux';
-import { batch_id, selectBatch } from '../utils/authslice';
+import {useDispatch, useSelector} from 'react-redux';
+import {batch_id, selectBatch} from '../utils/authslice';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
-import { useFocusEffect } from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 
-const AssignmentsScreen = ({ navigation }) => {
+const AssignmentsScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [assignment, setAssignment] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -82,7 +82,7 @@ const AssignmentsScreen = ({ navigation }) => {
       setLoading(false);
       setRefreshing(false); // Stop refreshing on error
     };
-    getapi(url, headers, onResponse, onCatch);
+    getapi(url, headers, onResponse, onCatch, navigation);
   };
 
   const getStatusColor = submissionDate => {
@@ -114,10 +114,10 @@ const AssignmentsScreen = ({ navigation }) => {
     Assignment_fetch(); // Fetch data
   }, []);
 
-  const AssignmentCard = ({ item }) => (
+  const AssignmentCard = ({item}) => (
     <TouchableOpacity
       onPress={() =>
-        navigation.navigate('Assignment_Detail', { assignment: item })
+        navigation.navigate('Assignment_Detail', {assignment: item})
       }
       style={styles.assignmentCard}>
       <View style={styles.assignmentHeader}>
@@ -194,7 +194,7 @@ const AssignmentsScreen = ({ navigation }) => {
             borderWidth: 1,
             borderColor: '#e0e0e0',
           }}>
-          <Text style={{ color: '#001d3d', fontWeight: 'bold', fontSize: 16 }}>
+          <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
             {selectedBatch_id ? selectedBatchString?.name : 'Select Batch'}
           </Text>
 
@@ -202,83 +202,81 @@ const AssignmentsScreen = ({ navigation }) => {
             name="keyboard-arrow-down"
             size={20}
             color="#001d3d"
-            style={{ paddingLeft: 5 }}
+            style={{paddingLeft: 5}}
           />
         </TouchableOpacity>
       </View>
       {!isBatchSelected ? (
         renderNoBatchSelected()
-      ) :
-
-        loading ? (
-          <View style={styles.container}>
-            {/* Search Bar Shimmer */}
-            <View style={styles.searchSection}>
-              <ShimmerPlaceholder style={styles.searchBar} />
-            </View>
-
-            {/* Student List Shimmer */}
-            {[1, 2, 3, 4, 5].map((_, index) => (
-              <View style={styles.assignmentCard}>
-                <View key={index} style={styles.assignmentHeader}>
-                  <ShimmerPlaceholder style={styles.assignmentTitle} />
-                </View>
-                <View style={styles.assignmentDetails}>
-                  <ShimmerPlaceholder style={styles.detailItem} />
-                  <ShimmerPlaceholder style={styles.detailItem} />
-                </View>
-              </View>
-            ))}
+      ) : loading ? (
+        <View style={styles.container}>
+          {/* Search Bar Shimmer */}
+          <View style={styles.searchSection}>
+            <ShimmerPlaceholder style={styles.searchBar} />
           </View>
-        ) : (
-          <ScrollView
-            style={styles.container}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing} // Controlled by refreshing state
-                onRefresh={onRefresh} // Callback when user pulls to refresh
-                colors={['#001d3d']} // Customize refresh spinner color
-                tintColor="#001d3d" // Customize spinner color (iOS)
-              />
-            }>
-            <View style={styles.searchSection}>
-              <View style={styles.searchBar}>
-                <MaterialIcons name="search" size={24} color="#666" />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Search assignments"
-                  placeholderTextColor="#666"
-                  value={searchQuery}
-                  onChangeText={setSearchQuery} // Updates searchQuery when user types
-                />
-              </View>
-              <TouchableOpacity
-                style={styles.createButton}
-                onPress={() =>
-                  navigation.navigate('Assignment_Creation', { update: false })
-                }>
-                <Text style={styles.createButtonText}>Create</Text>
-              </TouchableOpacity>
-            </View>
 
-            {assignment.length === 0 ? (
-              <View style={styles.noAssignmentsContainer}>
-                <MaterialIcons name="assignment" size={48} color="#ccc" />
-                <Text style={styles.noAssignmentsText}>
-                  No assignments in this batch
-                </Text>
+          {/* Student List Shimmer */}
+          {[1, 2, 3, 4, 5].map((_, index) => (
+            <View style={styles.assignmentCard}>
+              <View key={index} style={styles.assignmentHeader}>
+                <ShimmerPlaceholder style={styles.assignmentTitle} />
               </View>
-            ) : (
-              <FlatList
-                data={filteredAssignments}
-                renderItem={({ item }) => <AssignmentCard item={item} />}
-                keyExtractor={item => item?.id.toString()}
-                scrollEnabled={false}
-                style={styles.assignmentsList}
+              <View style={styles.assignmentDetails}>
+                <ShimmerPlaceholder style={styles.detailItem} />
+                <ShimmerPlaceholder style={styles.detailItem} />
+              </View>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <ScrollView
+          style={styles.container}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing} // Controlled by refreshing state
+              onRefresh={onRefresh} // Callback when user pulls to refresh
+              colors={['#001d3d']} // Customize refresh spinner color
+              tintColor="#001d3d" // Customize spinner color (iOS)
+            />
+          }>
+          <View style={styles.searchSection}>
+            <View style={styles.searchBar}>
+              <MaterialIcons name="search" size={24} color="#666" />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search assignments"
+                placeholderTextColor="#666"
+                value={searchQuery}
+                onChangeText={setSearchQuery} // Updates searchQuery when user types
               />
-            )}
-          </ScrollView>
-        )}
+            </View>
+            <TouchableOpacity
+              style={styles.createButton}
+              onPress={() =>
+                navigation.navigate('Assignment_Creation', {update: false})
+              }>
+              <Text style={styles.createButtonText}>Create</Text>
+            </TouchableOpacity>
+          </View>
+
+          {assignment.length === 0 ? (
+            <View style={styles.noAssignmentsContainer}>
+              <MaterialIcons name="assignment" size={48} color="#ccc" />
+              <Text style={styles.noAssignmentsText}>
+                No assignments in this batch
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={filteredAssignments}
+              renderItem={({item}) => <AssignmentCard item={item} />}
+              keyExtractor={item => item?.id.toString()}
+              scrollEnabled={false}
+              style={styles.assignmentsList}
+            />
+          )}
+        </ScrollView>
+      )}
       <BatchSelectorSheet ref={refRBSheet} onBatchSelect={handleBatchSelect} />
     </View>
   );
@@ -354,7 +352,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     marginBottom: 15,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 15,
@@ -435,7 +433,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginTop: 24,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
@@ -445,7 +443,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-
 });
 
 export default AssignmentsScreen;

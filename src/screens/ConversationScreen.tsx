@@ -141,7 +141,7 @@ const ConversationScreen = ({route, navigation}) => {
         setLoading(false);
       };
 
-      getapi(url, headers, onResponse, onCatch);
+      getapi(url, headers, onResponse, onCatch, navigation);
     } catch (err) {
       console.error('Exception when fetching messages:', err);
       setError('An unexpected error occurred');
@@ -432,7 +432,7 @@ const ConversationScreen = ({route, navigation}) => {
         setNewMessage(messageContent);
       };
 
-      patchApi(url, headers, fliteredData, onResponse, onCatch);
+      patchApi(url, headers, fliteredData, onResponse, onCatch, navigation);
     } catch (error) {
       console.error('Exception when sending message:', error);
       setSendingMessage(false);
@@ -474,7 +474,7 @@ const ConversationScreen = ({route, navigation}) => {
         setLoading(false);
       };
 
-      getapi(url, headers, onResponse, onCatch);
+      getapi(url, headers, onResponse, onCatch, navigation);
     } catch (error) {
       console.error('TeacherDetails Error:', error.message);
       setLoading(false);
@@ -591,7 +591,7 @@ const ConversationScreen = ({route, navigation}) => {
         setNewMessage(messageContent);
       };
 
-      postApi(url, headers, data, onResponse, onCatch);
+      postApi(url, headers, data, onResponse, onCatch, navigation);
     } catch (error) {
       console.error('Exception when sending message:', error);
       setSendingMessage(false);

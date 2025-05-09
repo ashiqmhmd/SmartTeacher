@@ -194,7 +194,7 @@ const StudentCreation = ({navigation, route}) => {
         });
       };
 
-      putapi(url, headers, payload, onResponse, onCatch);
+      putapi(url, headers, payload, onResponse, onCatch, navigation);
     } catch (error) {
       console.error('Error update student:', error);
       Toast.show({
@@ -271,7 +271,7 @@ const StudentCreation = ({navigation, route}) => {
         });
       };
 
-      postApi(url, headers, payload, onResponse, onCatch);
+      postApi(url, headers, payload, onResponse, onCatch, navigation);
     } catch (error) {
       console.error('Error creating student:', error);
       Toast.show({
@@ -323,7 +323,7 @@ const StudentCreation = ({navigation, route}) => {
         });
       };
 
-      patchApi(url, headers, null, onResponse, onCatch);
+      patchApi(url, headers, null, onResponse, onCatch, navigation);
     } catch (error) {
       console.error('Error adding student to batch:', error);
       Toast.show({

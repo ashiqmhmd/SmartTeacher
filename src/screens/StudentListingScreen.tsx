@@ -51,7 +51,7 @@ const StudentListing = ({navigation}) => {
       setFilteredStudents([]);
       setRefreshing(false);
     };
-    getapi(url, headers, onResponse, onCatch);
+    getapi(url, headers, onResponse, onCatch, navigation);
   };
 
   const onRefresh = useCallback(() => {

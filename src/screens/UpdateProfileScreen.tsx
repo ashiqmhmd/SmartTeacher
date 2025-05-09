@@ -35,8 +35,10 @@ const UpdateProfileScreen = ({navigation, route}) => {
           addressState: '',
           pinCode: '',
           profilePicUrl: '',
-          phoneNumber: route?.params?.phoneNumber ? route?.params?.phoneNumber : '',
-          email:'',
+          phoneNumber: route?.params?.phoneNumber
+            ? route?.params?.phoneNumber
+            : '',
+          email: '',
           upiId: '',
           accountNumber: '',
           accountName: '',
@@ -189,7 +191,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
 
     // Check all required fields
     allRequiredFields?.forEach(field => {
-
       if (field === 'age') {
         const ageValue = profileData[field];
         if (!ageValue || isNaN(Number(ageValue))) {
@@ -198,7 +199,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
         }
         return;
       }
-     
 
       if (!profileData[field] || profileData[field]?.trim() === '') {
         newErrors[field] = `${fieldToLabel(field)} is required`;
@@ -239,10 +239,7 @@ const UpdateProfileScreen = ({navigation, route}) => {
     }
 
     // Email validation
-    if (
-      profileData?.email &&
-      !/\S+@\S+\.\S+/.test(profileData.email)
-    ) {
+    if (profileData?.email && !/\S+@\S+\.\S+/.test(profileData.email)) {
       newErrors.email = 'Enter a valid email address';
       isValid = false;
     }
@@ -371,7 +368,7 @@ const UpdateProfileScreen = ({navigation, route}) => {
         console.log('Error updating profile:', err);
       };
 
-      putapi(url, headers, payload, onResponse, onCatch);
+      putapi(url, headers, payload, onResponse, onCatch, navigation);
     } catch (error) {
       setIsLoading(false);
       console.error('Error submitting profile:', error);
@@ -591,14 +588,14 @@ const UpdateProfileScreen = ({navigation, route}) => {
               phoneNumberRef,
               emailRef,
             )}
-             {renderInput(
-              'mail', 
+            {renderInput(
+              'mail',
               'Email',
-              'email', 
+              'email',
               'email',
               emailRef,
               addressLine1Ref,
-              )}
+            )}
           </View>
 
           <View style={styles.section}>

@@ -9,24 +9,24 @@ import {
   FlatList,
   RefreshControl,
 } from 'react-native';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { getapi } from '../utils/api';
+import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { batch_id, selectBatch } from '../utils/authslice';
-import { useDispatch, useSelector } from 'react-redux';
+import {batch_id, selectBatch} from '../utils/authslice';
+import {useDispatch, useSelector} from 'react-redux';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
-import { useFocusEffect } from '@react-navigation/core';
+import {useFocusEffect} from '@react-navigation/core';
 
-const NotesScreen = ({ navigation }) => {
+const NotesScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false); // State for refresh control
- const [isBatchSelected, setIsBatchSelected] = useState(true);
+  const [isBatchSelected, setIsBatchSelected] = useState(true);
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
 
@@ -77,7 +77,7 @@ const NotesScreen = ({ navigation }) => {
       setLoading(false);
       setRefreshing(false); // Stop refreshing on error
     };
-    getapi(url, headers, onResponse, onCatch);
+    getapi(url, headers, onResponse, onCatch, navigation);
   };
 
   useEffect(() => {
@@ -104,13 +104,13 @@ const NotesScreen = ({ navigation }) => {
 
   const filteredNotes = useMemo(() => {
     return notes.filter(item =>
-      item.Title.toLowerCase().includes(searchQuery.toLowerCase())
+      item.Title.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [searchQuery, notes]);
 
-  const NoteCard = ({ item }) => (
+  const NoteCard = ({item}) => (
     <TouchableOpacity
-      onPress={() => navigation.navigate('Note_Detail', { note: item })}
+      onPress={() => navigation.navigate('Note_Detail', {note: item})}
       style={styles.noteCard}>
       <View style={styles.noteTypeIcon}>
         <MaterialIcons name="description" size={24} color="#FF9800" />
@@ -128,20 +128,20 @@ const NotesScreen = ({ navigation }) => {
       </View>
     </TouchableOpacity>
   );
-    const renderNoBatchSelected = () => (
-      <View style={styles.noBatchContainer}>
-        <MaterialIcons name="class" size={64} color="#ccc" />
-        <Text style={styles.noBatchText}>No batch selected</Text>
-        <Text style={styles.noBatchSubtext}>
-          Please select a batch to view notes
-        </Text>
-        <TouchableOpacity
-          style={styles.selectBatchButton}
-          onPress={() => refRBSheet.current.open()}>
-          <Text style={styles.selectBatchButtonText}>Select Batch</Text>
-        </TouchableOpacity>
-      </View>
-    );
+  const renderNoBatchSelected = () => (
+    <View style={styles.noBatchContainer}>
+      <MaterialIcons name="class" size={64} color="#ccc" />
+      <Text style={styles.noBatchText}>No batch selected</Text>
+      <Text style={styles.noBatchSubtext}>
+        Please select a batch to view notes
+      </Text>
+      <TouchableOpacity
+        style={styles.selectBatchButton}
+        onPress={() => refRBSheet.current.open()}>
+        <Text style={styles.selectBatchButtonText}>Select Batch</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <View style={styles.screen}>
@@ -162,23 +162,21 @@ const NotesScreen = ({ navigation }) => {
             borderWidth: 1,
             borderColor: '#e0e0e0',
           }}>
-          <Text style={{ color: '#001d3d', fontWeight: 'bold', fontSize: 16 }}>
-          {selectedBatch_id ? selectedBatchString?.name : 'Select Batch'}
+          <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
+            {selectedBatch_id ? selectedBatchString?.name : 'Select Batch'}
           </Text>
 
           <MaterialIcons
             name="keyboard-arrow-down"
             size={20}
             color="#001d3d"
-            style={{ paddingLeft: 5 }}
+            style={{paddingLeft: 5}}
           />
         </TouchableOpacity>
       </View>
       {!isBatchSelected ? (
         renderNoBatchSelected()
-      ) :
-
-      loading ? (
+      ) : loading ? (
         <View style={styles.container}>
           {/* Search Bar Shimmer */}
           <View style={styles.searchSection}>
@@ -235,7 +233,7 @@ const NotesScreen = ({ navigation }) => {
           ) : (
             <FlatList
               data={filteredNotes}
-              renderItem={({ item }) => <NoteCard item={item} />}
+              renderItem={({item}) => <NoteCard item={item} />}
               keyExtractor={item => item.id.toString()}
               scrollEnabled={false}
               style={styles.notesList}
@@ -317,7 +315,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 15,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 15,
@@ -397,7 +395,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginTop: 24,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,

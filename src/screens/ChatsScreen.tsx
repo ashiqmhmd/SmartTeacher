@@ -85,7 +85,7 @@ const ChatsScreen = ({navigation}) => {
       setRefreshing(false); // Stop refreshing on error
     };
 
-    getapi(url, headers, onResponse, onCatch);
+    getapi(url, headers, onResponse, onCatch, navigation);
   };
 
   useEffect(() => {

@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -19,10 +19,10 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import LinearGradient from 'react-native-linear-gradient';
 import BottomNavigation from '../components/BottomNavBar';
 import RBSheet from 'react-native-raw-bottom-sheet';
-import { useFocusEffect, useRoute } from '@react-navigation/native';
-import { getapi } from '../utils/api';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {getapi} from '../utils/api';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
-import { useDispatch, useSelector } from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {
   batch_id,
   fetch_batchs,
@@ -32,15 +32,15 @@ import {
 } from '../utils/authslice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
-import { getUserId } from '../utils/TokenDecoder';
+import {getUserId} from '../utils/TokenDecoder';
 
-const HomeScreen = ({ navigation }) => {
+const HomeScreen = ({navigation}) => {
   const refRBSheet = useRef();
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState([]);
-  const [profilePicUrl, setProfileImage] = useState('')
+  const [profilePicUrl, setProfileImage] = useState('');
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -86,11 +86,10 @@ const HomeScreen = ({ navigation }) => {
       setFilteredStudents([]);
       setRefreshing(false);
     };
-    getapi(url, headers, onResponse, onCatch);
+    getapi(url, headers, onResponse, onCatch, navigation);
   };
 
   const TeacherDetails = async () => {
-
     const Token = await AsyncStorage.getItem('Token');
     if (!Token) {
       throw new Error('No token found, authentication required');
@@ -110,7 +109,7 @@ const HomeScreen = ({ navigation }) => {
 
     const onResponse = res => {
       if (res) {
-        setProfileImage(res?.profilePicUrl)
+        setProfileImage(res?.profilePicUrl);
       }
       setLoading(false);
     };
@@ -120,9 +119,8 @@ const HomeScreen = ({ navigation }) => {
       setLoading(false);
     };
 
-    getapi(url, headers, onResponse, onCatch);
-  }
-
+    getapi(url, headers, onResponse, onCatch, navigation);
+  };
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -183,7 +181,7 @@ const HomeScreen = ({ navigation }) => {
 
     checkBatchSelection();
     students_fetch();
-    TeacherDetails()
+    TeacherDetails();
     fetch_batchs();
   }, []);
 
@@ -191,7 +189,7 @@ const HomeScreen = ({ navigation }) => {
     useCallback(() => {
       console.log('Screen is focused');
       students_fetch();
-      TeacherDetails()
+      TeacherDetails();
       dispatch(fetch_batchs());
       return () => {
         console.log('Screen is unfocused');
@@ -199,13 +197,13 @@ const HomeScreen = ({ navigation }) => {
     }, []),
   );
 
-  const renderStudentCard = ({ item }) => {
+  const renderStudentCard = ({item}) => {
     return (
       <TouchableOpacity
         style={styles.listCard}
-        onPress={() => navigation.navigate('Student_Detail', { student: item })}>
+        onPress={() => navigation.navigate('Student_Detail', {student: item})}>
         {item.profilePicUrl != null ? (
-          <Image source={{ uri: item.profilePicUrl }} style={styles.profilePic} />
+          <Image source={{uri: item.profilePicUrl}} style={styles.profilePic} />
         ) : (
           <View style={styles.noPicContainer}>
             <Image
@@ -214,7 +212,7 @@ const HomeScreen = ({ navigation }) => {
             />
           </View>
         )}
-        <View style={{ flexDirection: 'column' }}>
+        <View style={{flexDirection: 'column'}}>
           <Text style={styles.studentName}>
             {item.firstName} {item.lastName}
           </Text>
@@ -249,11 +247,10 @@ const HomeScreen = ({ navigation }) => {
             source={
               !profilePicUrl
                 ? require('../resources/user.png')
-                : { uri: profilePicUrl ? profilePicUrl : '' }
+                : {uri: profilePicUrl ? profilePicUrl : ''}
             }
             style={styles.avatarImg}
           />
-
         </TouchableOpacity>
         <Text style={styles.appBarTitle}>Smart Teacher</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Notification')}>
@@ -288,8 +285,8 @@ const HomeScreen = ({ navigation }) => {
           <View style={styles.batchCard}>
             <LinearGradient
               colors={['rgb(255,255,255)', 'rgb(229,235,252)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 1}}
               style={styles.card}>
               <TouchableOpacity
                 onPress={() => refRBSheet.current.open()}
@@ -321,7 +318,7 @@ const HomeScreen = ({ navigation }) => {
               <View style={styles.createBatch}>
                 <TouchableOpacity
                   onPress={() =>
-                    navigation.navigate('Batch_Create', { update: false })
+                    navigation.navigate('Batch_Create', {update: false})
                   }
                   style={styles.createBatchButton}>
                   <Text style={styles.createBatchButtonText}>
@@ -356,7 +353,7 @@ const HomeScreen = ({ navigation }) => {
                   style={styles.addStudentButton}
                   accessibilityLabel="Add new student"
                   onPress={() =>
-                    navigation.navigate('Student_Create', { update: false })
+                    navigation.navigate('Student_Create', {update: false})
                   }>
                   <Text style={styles.addStudentButtonText}>Add Student</Text>
                 </TouchableOpacity>
@@ -455,7 +452,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(255,255,255)',
     borderRadius: 10,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 8,
@@ -487,7 +484,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 15,
@@ -504,11 +501,11 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 12,
-    transform: [{ rotate: '45deg' }, { translateX: -10 }, { translateY: -10 }],
+    transform: [{rotate: '45deg'}, {translateX: -10}, {translateY: -10}],
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 20,
@@ -516,7 +513,7 @@ const styles = StyleSheet.create({
   hexagonIcon: {
     paddingTop: 10,
     paddingRight: 5,
-    transform: [{ rotate: '-45deg' }],
+    transform: [{rotate: '-45deg'}],
   },
   createBatch: {
     position: 'absolute',
@@ -593,7 +590,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
@@ -652,7 +649,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5EBFC',
     marginRight: 16,
   },
-  parentDetail: { width: 80, height: 12, backgroundColor: '#E5EBFC' },
+  parentDetail: {width: 80, height: 12, backgroundColor: '#E5EBFC'},
   noStudentsContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -698,7 +695,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginTop: 24,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
