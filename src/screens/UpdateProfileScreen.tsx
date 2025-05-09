@@ -338,7 +338,11 @@ const UpdateProfileScreen = ({navigation, route}) => {
           text1: 'Profile Update',
           text2: 'Profile has been successfully updated!',
         });
-        navigation.replace('Tabs');
+
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'Tabs'}],
+        });
       };
 
       const onCatch = err => {
