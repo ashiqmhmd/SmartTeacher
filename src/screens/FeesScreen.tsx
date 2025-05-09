@@ -8,7 +8,7 @@ import {
   StatusBar,
   RefreshControl,
 } from 'react-native';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, {
@@ -18,13 +18,13 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import BatchSelectorSheet from '../components/BatchSelectorSheet';
-import { getapi } from '../utils/api';
+import {getapi} from '../utils/api';
 import dateconvert from '../components/moment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useDispatch, useSelector } from 'react-redux';
-import { batch_id, selectBatch } from '../utils/authslice';
+import {useDispatch, useSelector} from 'react-redux';
+import {batch_id, selectBatch} from '../utils/authslice';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
-import { useFocusEffect } from '@react-navigation/core';
+import {useFocusEffect} from '@react-navigation/core';
 
 interface StudentDetails {
   [studentId: string]: string;
@@ -38,7 +38,7 @@ interface Fees {
   teacherAcknowledgement?: boolean;
 }
 
-const FeesScreen = ({ navigation }) => {
+const FeesScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('Current Month');
   const [paymentFilter, setPaymentFilter] = useState('All');
@@ -74,7 +74,6 @@ const FeesScreen = ({ navigation }) => {
     }
 
     // setIsBatchSelected(true);
-
 
     const url = `fee-records/batches/${currentBatchId}`;
     const headers = {
@@ -151,7 +150,7 @@ const FeesScreen = ({ navigation }) => {
 
     const details = studentDetailsResponse
       .filter(Boolean)
-      .reduce((acc, { studentId, name }) => {
+      .reduce((acc, {studentId, name}) => {
         acc[studentId] = name;
         return acc;
       }, {});
@@ -204,11 +203,12 @@ const FeesScreen = ({ navigation }) => {
     dispatch(selectBatch(batch));
     await Fees_fetch();
     refRBSheet.current.close();
-    setIsBatchSelected(true)
+    setIsBatchSelected(true);
   };
 
   const filteredFees = useMemo(() => {
     return fees.filter(record => {
+      console.log(dateconvert(record.dueDate));
       const studentName = studentDetails[record.studentId] || '';
       const matchesSearch =
         searchQuery === '' ||
@@ -225,7 +225,7 @@ const FeesScreen = ({ navigation }) => {
     });
   }, [fees, searchQuery, paymentFilter, selectedMonth, studentDetails]);
 
-  const FeeCard = ({ record }) => (
+  const FeeCard = ({record}) => (
     <TouchableOpacity
       onPress={() =>
         navigation.navigate('Fees_Detail', {
@@ -243,7 +243,7 @@ const FeesScreen = ({ navigation }) => {
           <Text
             style={[
               styles.status,
-              { color: record.status === 'paid' ? '#43A047' : '#E53935' },
+              {color: record.status === 'paid' ? '#43A047' : '#E53935'},
             ]}>
             {record.status}
           </Text>
@@ -266,7 +266,7 @@ const FeesScreen = ({ navigation }) => {
         <Text style={styles.amount}>₹{record.amount.toLocaleString()}</Text>
         <Text style={styles.date}>
           {record.status === 'paid' ? 'Paid on: ' : 'Due by: '}
-          {dateconvert(record.paymentDate || record.dueDate)}
+          {dateconvert(record.dueDate)}
         </Text>
       </View>
     </TouchableOpacity>
@@ -309,7 +309,6 @@ const FeesScreen = ({ navigation }) => {
     </View>
   );
 
-
   return (
     <View style={styles.screen}>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
@@ -329,7 +328,7 @@ const FeesScreen = ({ navigation }) => {
             borderWidth: 1,
             borderColor: '#e0e0e0',
           }}>
-          <Text style={{ color: '#001d3d', fontWeight: 'bold', fontSize: 16 }}>
+          <Text style={{color: '#001d3d', fontWeight: 'bold', fontSize: 16}}>
             {selectedBatchString ? selectedBatchString.name : 'Select a Batch'}
           </Text>
 
@@ -337,7 +336,7 @@ const FeesScreen = ({ navigation }) => {
             name="keyboard-arrow-down"
             size={20}
             color="#001d3d"
-            style={{ paddingLeft: 5 }}
+            style={{paddingLeft: 5}}
           />
         </TouchableOpacity>
       </View>
@@ -386,8 +385,8 @@ const FeesScreen = ({ navigation }) => {
               <View style={styles.feesummeryCard}>
                 <LinearGradient
                   colors={['rgb(255,255,255)', 'rgb(229,235,252)']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                  start={{x: 0, y: 0}}
+                  end={{x: 1, y: 1}}
                   style={styles.card}>
                   <BackgroundGraph />
                   <View style={styles.summaryContent}>
@@ -398,14 +397,14 @@ const FeesScreen = ({ navigation }) => {
                     <View style={styles.divider} />
                     <View style={styles.summaryItem}>
                       <Text style={styles.summaryLabel}>Received</Text>
-                      <Text style={[styles.summaryAmount, { color: '#43A047' }]}>
+                      <Text style={[styles.summaryAmount, {color: '#43A047'}]}>
                         ₹{receivedFees}
                       </Text>
                     </View>
                     <View style={styles.divider} />
                     <View style={styles.summaryItem}>
                       <Text style={styles.summaryLabel}>Balance</Text>
-                      <Text style={[styles.summaryAmount, { color: '#E53935' }]}>
+                      <Text style={[styles.summaryAmount, {color: '#E53935'}]}>
                         ₹{totalFees - receivedFees}
                       </Text>
                     </View>
@@ -525,7 +524,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(255,255,255)',
     borderRadius: 10,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 15,
@@ -618,7 +617,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 15,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
@@ -707,7 +706,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginTop: 24,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
