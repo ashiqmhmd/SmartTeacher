@@ -59,7 +59,12 @@ const AssignmentDetailsScreen = ({route, navigation}) => {
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => navigation.navigate('Assignment_Creation', {assignment,update:true})}
+            onPress={() =>
+              navigation.navigate('Assignment_Creation', {
+                assignment,
+                update: true,
+              })
+            }
             style={styles.editButton}>
             <MaterialIcons name="edit" size={22} color="#fff" />
           </TouchableOpacity>
@@ -132,7 +137,7 @@ const AssignmentDetailsScreen = ({route, navigation}) => {
                       Attachment {index + 1}
                     </Text>
                     <Text style={styles.attachmentUrl}>
-                      {url.substring(url.lastIndexOf('/') + 1)}
+                      {decodeURIComponent(url).split('/').pop()}
                     </Text>
                   </View>
                   {downloading ? (
