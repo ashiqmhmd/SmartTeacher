@@ -23,28 +23,27 @@ const NoteDetailsScreen = ({route, navigation}) => {
   const note = route.params.note;
   const [downloading, setDownloading] = useState(false);
 
- const handleOpenAttachment = async url => {
-     try {
-       Linking.openURL(url);
-       // const supported = await Linking.canOpenURL(url);
-       // console.log(supported);
-       // if (supported) {
-       //   setDownloading(true);
- 
-       //   setTimeout(() => {
-       //     setDownloading(false);
-       //     Linking.openURL(url);
-       //   }, 1500);
-       // } else {
-       //   Alert.alert('Error', `Cannot open URL: ${url}`);
-       //   console.log('Error', `Cannot open URL: ${url}`);
-       // }
-     } catch (error) {
-       console.error('An error occurred', error);
-       Alert.alert('Error', 'Something went wrong while opening the attachment');
-     }
-   };
- 
+  const handleOpenAttachment = async url => {
+    try {
+      Linking.openURL(url);
+      // const supported = await Linking.canOpenURL(url);
+      // console.log(supported);
+      // if (supported) {
+      //   setDownloading(true);
+
+      //   setTimeout(() => {
+      //     setDownloading(false);
+      //     Linking.openURL(url);
+      //   }, 1500);
+      // } else {
+      //   Alert.alert('Error', `Cannot open URL: ${url}`);
+      //   console.log('Error', `Cannot open URL: ${url}`);
+      // }
+    } catch (error) {
+      console.error('An error occurred', error);
+      Alert.alert('Error', 'Something went wrong while opening the attachment');
+    }
+  };
 
   return (
     <View style={styles.screen}>
@@ -58,7 +57,9 @@ const NoteDetailsScreen = ({route, navigation}) => {
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => navigation.navigate('Note_Create', {note,update:true})}
+            onPress={() =>
+              navigation.navigate('Note_Create', {note, update: true})
+            }
             style={styles.editButton}>
             <MaterialIcons name="edit" size={22} color="#fff" />
           </TouchableOpacity>
@@ -109,7 +110,7 @@ const NoteDetailsScreen = ({route, navigation}) => {
                         Resource {index + 1}
                       </Text>
                       <Text style={styles.resourceUrl}>
-                        {url.substring(url.lastIndexOf('/') + 1)}
+                        {decodeURIComponent(url).split('/').pop()}
                       </Text>
                     </View>
                     {downloading ? (
