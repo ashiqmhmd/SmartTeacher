@@ -448,11 +448,12 @@ const ConversationScreen = ({route, navigation}) => {
       setLoading(true);
 
       const Token = await AsyncStorage.getItem('Token');
+      const Tid = await AsyncStorage.getItem('TeacherId');
       if (!Token) {
         throw new Error('No token found, authentication required');
       }
 
-      const url = `teachers/${teacherId}`;
+      const url = `teachers/${Tid}`;
       const headers = {
         Accept: 'application/json',
         'Content-Type': 'application/json',
@@ -463,6 +464,7 @@ const ConversationScreen = ({route, navigation}) => {
         if (res) {
           setTeacherName(res.firstName + ' ' + res.lastName);
           console.log(res);
+          console.log(TeacherName);
         }
         setLoading(false);
       };
@@ -672,9 +674,7 @@ const ConversationScreen = ({route, navigation}) => {
                         color="#001d3d"
                       />
                       <Text style={styles.attachmentText}>
-                        {typeof url === 'string'
-                          ? url.split('/').pop()
-                          : url.name || 'Attachment'}
+                        {decodeURIComponent(url).split('/').pop()}
                       </Text>
                     </>
                   )}
