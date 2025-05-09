@@ -16,7 +16,7 @@ import Toast from 'react-native-toast-message';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
 import {postApi} from '../utils/api';
-import {getUserId} from '../utils/TokenDecoder';
+import {getUserId, getUserName} from '../utils/TokenDecoder';
 import {useDispatch} from 'react-redux';
 import {login} from '../utils/authslice';
 
@@ -89,7 +89,11 @@ const SignupScreen = ({navigation}) => {
   };
 
   const handleNavigation = id => {
-    navigation.navigate('Update_Profile', {userId: id, phoneNumber:phone,  update: false});
+    navigation.navigate('Update_Profile', {
+      userId: id,
+      phoneNumber: phone,
+      update: false,
+    });
   };
 
   const teacherSignup = async () => {
@@ -132,9 +136,13 @@ const SignupScreen = ({navigation}) => {
           visibilityTime: 2000,
         });
         const teacherId = await getUserId(res.token);
+        const Teachername = await getUserName(res.token);
+
         const userData = {
           token: `${res.token}`,
           Teacher_id: teacherId,
+          Teacher_name: Teachername,
+          refreshToken: res.refreshToken,
         };
         dispatch(login(userData));
         setCreateId(teacherId);
