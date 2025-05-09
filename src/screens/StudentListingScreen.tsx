@@ -10,6 +10,7 @@ import {
   TextInput,
   StatusBar,
   SafeAreaView,
+  Pressable,
 } from 'react-native';
 import {useSelector} from 'react-redux';
 import {getapi} from '../utils/api';
@@ -110,15 +111,14 @@ const StudentListing = ({navigation}) => {
       <StatusBar backgroundColor="#001d3d" barStyle="light-content" />
 
       {/* Header */}
-      <View style={styles.headerContainer}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="white" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Students</Text>
-        </View>
+
+      <View style={styles.header}>
+        <Pressable
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="white" />
+        </Pressable>
+        <Text style={styles.headerTitle}>Students</Text>
       </View>
 
       {/* Search bar */}
@@ -181,20 +181,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgb(255,255,255)',
   },
-  headerContainer: {
-    backgroundColor: '#001d3d',
-    paddingBottom: 15,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 10,
-    paddingBottom: 10,
+    paddingBottom: 20,
+    backgroundColor: '#001d3d',
   },
   backButton: {
-    padding: 8,
+    padding: 12,
   },
   headerTitle: {
     fontSize: 20,
@@ -202,7 +199,7 @@ const styles = StyleSheet.create({
     color: 'white',
     flex: 1,
     textAlign: 'center',
-    marginLeft: -40,
+    marginRight: 40,
   },
   headerRight: {
     flexDirection: 'row',
