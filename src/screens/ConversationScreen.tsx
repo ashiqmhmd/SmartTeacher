@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Alert,
   RefreshControl,
+  Linking,
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -728,12 +729,16 @@ const ConversationScreen = ({route, navigation}) => {
     }
   };
 
-  const handleOpenAttachment = url => {
+ const handleOpenAttachment = url => {
     // In a real app, this would open the attachment
     console.log('Opening attachment:', url);
     Alert.alert(
-      'Opening Attachment',
+      'Attachment',
       typeof url === 'string' ? url.split('/').pop() : url.name || 'Attachment',
+      [
+        { text: 'Download', onPress: () =>  Linking.openURL(url)},
+        { text: 'Cancel', style: 'cancel' },
+      ]
     );
   };
 
@@ -781,8 +786,9 @@ const ConversationScreen = ({route, navigation}) => {
           {item.attachmentUrls && item.attachmentUrls.length > 0 && (
             <View style={styles.attachmentsContainer}>
               {item.attachmentUrls.map((url, index) => (
-                <TouchableOpacity
+                 <TouchableOpacity
                   key={index}
+                  disabled={url.match(/\.(jpeg|jpg|gif|png)$/) ? true : false}
                   style={styles.attachment}
                   onPress={() => handleOpenAttachment(url)}>
                   {/* Check if attachment is an image */}
@@ -800,7 +806,9 @@ const ConversationScreen = ({route, navigation}) => {
                         color="#001d3d"
                       />
                       <Text style={styles.attachmentText}>
-                        {decodeURIComponent(url).split('/').pop()}
+                        {typeof url === 'string'
+                          ? url.split('/').pop()
+                          : url.name || 'Attachment'}
                       </Text>
                     </>
                   )}

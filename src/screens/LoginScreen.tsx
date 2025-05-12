@@ -683,12 +683,12 @@ const LoginScreen = ({ navigation }) => {
             </View>
             {renderError(errors.password)}
 
-            {/* <TouchableOpacity */}
-            {/* style={styles.forgotPassword} */}
-            {/* disabled={loading} */}
-            {/* onPress={() => navigation.navigate('ForgotPassword')}> */}
-            {/* <Text style={styles.forgotPasswordText}>Forgot Password?</Text> */}
-            {/* </TouchableOpacity> */}
+            <TouchableOpacity
+            style={styles.forgotPassword}
+            disabled={loading}
+            onPress={() => navigation.navigate('ForgotPassword')}>
+            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            </TouchableOpacity> 
 
             <TouchableOpacity
               onPress={Teacher_Login}

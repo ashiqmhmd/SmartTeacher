@@ -21,6 +21,7 @@ import NoteDetailsScreen from '../screens/NoteDetailsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ConversationScreen from '../screens/ConversationScreen';
 import StudentListing from '../screens/StudentListingScreen';
+import ForgotPassword from '../screens/ForgotPasswor';
 // import ConversationScreen from '../screens/ConversationScreen';
 
 type Props = {};
@@ -63,6 +64,7 @@ const Rootnavigator = () => {
       <Stack.Screen name="Student_List" component={StudentListing} />
       <Stack.Screen name="Batch_Create" component={BatchCreation} />
       <Stack.Screen name="Notification" component={NotificationScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
       <Stack.Screen name="Tabs" component={BottomTabNavigator} />
 
     </Stack.Navigator>
