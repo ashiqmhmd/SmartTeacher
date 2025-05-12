@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -14,93 +14,90 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
-import { base_url } from '../utils/store';
+import Toast from 'react-native-toast-message';
+import {base_url} from '../utils/store';
 
-const ForgotPassword = ({ navigation }) => {
+const ForgotPassword = ({navigation}) => {
   const [username, setUsername] = useState('');
   const [userType, setUserType] = useState('TEACHER');
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
-  const [errors, setErrors] = useState({
-    username: '',
-    general: '',
-  });
 
   const validateForm = () => {
-    let isValid = true;
-    const newErrors = {
-      username: '',
-      general: '',
-    };
-
     if (!username.trim()) {
-      newErrors.username = 'Username is required';
-      isValid = false;
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Username is required',
+        visibilityTime: 3000,
+      });
+      return false;
     }
-
-    setErrors(newErrors);
-    return isValid;
+    return true;
   };
 
-const handleResetPassword = async () => {
-  if (!validateForm()) {
-    return;
-  }
-
-  setLoading(true);
-  setErrors({ ...errors, general: '' });
-
-  try {
-    // const query = `?userName=${encodeURIComponent(username.trim())}&userType=TEACHER`;
-    const url = `${base_url}login/new-password?userName=${username.trim()}&userType=${userType}`;
-
-    const response = await fetch(url, {
-  method: 'GET',
-  headers: {
-    'Accept': 'application/json',
-  },
-});
-
-const contentType = response.headers.get('Content-Type');
-
-const rawText = await response.text(); // Get raw text before parsing
-
-console.log('Raw response:', rawText);
-
-if (!response.ok) {
-  throw new Error(`HTTP error! Status: ${response.status}`);
-}
-
-if (!contentType || !contentType.includes('application/json')) {
-  throw new Error('Unexpected response type. Expected JSON.');
-}
-
-const data = JSON.parse(rawText); // Safe to parse now
-
-    setLoading(false);
-
-    if (response.ok) {
-      setEmailSent(true);
-    } else {
-      setErrors({
-        ...errors,
-        general: data.message || 'Failed to process your request',
-      });
+  const handleResetPassword = async () => {
+    if (!validateForm()) {
+      return;
     }
-  } catch (error) {
-    setLoading(false);
-    setErrors({
-      ...errors,
-      general: 'Network error. Please try again later.',
-    });
-    console.error('Reset password error:', error);
-  }
-};
 
+    setLoading(true);
 
-  const renderError = error => {
-    if (!error) return null;
-    return <Text style={styles.errorText}>{error}</Text>;
+    try {
+      const url = `${base_url}login/new-password/${username.trim()}/${userType}`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+
+      const contentType = response.headers.get('Content-Type');
+      const rawText = await response.text();
+      console.log('Raw response:', rawText);
+
+      console.log(url);
+
+      // if (!response.ok) {
+      //   // throw new Error(`HTTP error! Status: ${response.status}`);
+
+      // }
+
+      // if (!contentType || !contentType.includes('application/json')) {
+      //   throw new Error('Unexpected response type. Expected JSON.');
+      // }
+
+      const data = JSON.parse(rawText);
+      setLoading(false);
+
+      if (response.ok) {
+        setEmailSent(true);
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'Password reset link sent to your email!',
+          visibilityTime: 3000,
+        });
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: data.error || 'Failed to process your request',
+          visibilityTime: 3000,
+        });
+      }
+    } catch (error) {
+      setLoading(false);
+      Toast.show({
+        type: 'error',
+        text1: 'Network Error',
+        text2: 'Please check your connection and try again',
+
+        visibilityTime: 3000,
+      });
+      console.error('Reset password error:', error);
+    }
   };
 
   return (
@@ -123,7 +120,8 @@ const data = JSON.parse(rawText); // Safe to parse now
               <View style={styles.successContainer}>
                 <Text style={styles.title}>Email Sent!</Text>
                 <Text style={styles.successMessage}>
-                  A password reset link has been sent to your email address. Please check your inbox and follow the instructions.
+                  A password reset link has been sent to your email address.
+                  Please check your inbox and follow the instructions.
                 </Text>
                 <TouchableOpacity
                   style={styles.returnButton}
@@ -135,16 +133,11 @@ const data = JSON.parse(rawText); // Safe to parse now
               <>
                 <Text style={styles.title}>Forgot Password</Text>
                 <Text style={styles.subtitle}>
-                 Enter your username and we'll send a password reset link to your email address
+                  Enter your username and we'll send a password reset link to
+                  your email address
                 </Text>
 
-                {renderError(errors.general)}
-
-                <View
-                  style={[
-                    styles.inputContainer,
-                    errors.username && styles.inputError,
-                  ]}>
+                <View style={styles.inputContainer}>
                   <Feather
                     name="user"
                     size={20}
@@ -156,17 +149,11 @@ const data = JSON.parse(rawText); // Safe to parse now
                     placeholder="Username"
                     placeholderTextColor="#888"
                     value={username}
-                    onChangeText={text => {
-                      setUsername(text);
-                      setErrors({ ...errors, username: '', general: '' });
-                    }}
+                    onChangeText={text => setUsername(text)}
                     autoCapitalize="none"
                     editable={!loading}
                   />
                 </View>
-                {renderError(errors.username)}
-
-             
 
                 <TouchableOpacity
                   onPress={handleResetPassword}
@@ -193,6 +180,7 @@ const data = JSON.parse(rawText); // Safe to parse now
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      <Toast />
     </LinearGradient>
   );
 };
@@ -230,7 +218,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 30,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 10 },
+    shadowOffset: {width: 0, height: 10},
     shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 20,
@@ -253,14 +241,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f8f9fa',
     borderRadius: 10,
-    marginBottom: 8,
+    marginBottom: 20,
     paddingHorizontal: 15,
     borderWidth: 1,
     borderColor: '#ddd',
-  },
-  inputError: {
-    borderColor: '#dc3545',
-    borderWidth: 1,
   },
   inputIcon: {
     marginRight: 10,
@@ -270,18 +254,11 @@ const styles = StyleSheet.create({
     height: 50,
     color: '#333',
   },
-  errorText: {
-    color: '#dc3545',
-    fontSize: 12,
-    marginBottom: 10,
-    marginLeft: 5,
-  },
-
   resetButton: {
     backgroundColor: '#001d3d',
     borderRadius: 10,
     padding: 15,
-    marginTop:15,
+    marginTop: 5,
     alignItems: 'center',
     marginBottom: 15,
   },
