@@ -8,7 +8,6 @@ import {
   TextInput,
   Platform,
   ActivityIndicator,
-  Animated,
   KeyboardAvoidingView,
   StatusBar,
   Image,
@@ -16,10 +15,11 @@ import {
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {patchApi, postApi, putapi} from '../utils/api';
+import {getApi, patchApi, postApi, putapi} from '../utils/api';
 import {pickAndUploadImage} from '../components/FileUploadService';
 import Feather from 'react-native-vector-icons/Feather';
 import Toast from 'react-native-toast-message';
+import {base_url} from '../utils/store';
 
 const StudentCreation = ({navigation, route}) => {
   const isEditMode = route.params?.student ? true : false;
@@ -45,6 +45,7 @@ const StudentCreation = ({navigation, route}) => {
           parent2Email: '',
           userName: '',
           password: '',
+          confirmPassword: '',
           email: '',
           profilePicUrl: '',
         },
@@ -59,6 +60,11 @@ const StudentCreation = ({navigation, route}) => {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
+  // Improved username validation states
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [usernameChecked, setUsernameChecked] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState(false);
+
   const validateEmail = email => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
@@ -67,36 +73,167 @@ const StudentCreation = ({navigation, route}) => {
     return /^\d{10}$/.test(phone);
   };
 
-  const validateForm = () => {
-    const newErrors = {};
+  // Revamped username validation function following SignupScreen pattern
+  const checkUsernameAvailability = async username => {
+    if (!username.trim()) {
+      setUsernameChecked(false);
+      return false;
+    }
+
+    setIsCheckingUsername(true);
+    setUsernameChecked(false);
+
+    try {
+      const Token = await AsyncStorage.getItem('Token');
+      const url = `${base_url}/students/userName/${username}`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${Token}`,
+        },
+      });
+
+      if (response.status === 200) {
+        // Status 200 means username exists
+        setErrors(prev => ({
+          ...prev,
+          userName: 'Username is already taken',
+        }));
+        setIsCheckingUsername(false);
+        setUsernameChecked(true);
+        setUsernameAvailable(false);
+        return false;
+      } else if (response.status === 404) {
+        // Error (404) means username doesn't exist and is available
+        setErrors(prev => ({...prev, userName: ''}));
+        setIsCheckingUsername(false);
+        setUsernameChecked(true);
+        setUsernameAvailable(true);
+        return true;
+      } else {
+        // Handle other status codes
+        console.log('Unexpected status code:', response.status);
+        setErrors(prev => ({
+          ...prev,
+          userName: 'Could not verify username availability',
+        }));
+        setIsCheckingUsername(false);
+        setUsernameChecked(false);
+        return false;
+      }
+    } catch (error) {
+      console.error('Error checking username:', error);
+      setErrors(prev => ({
+        ...prev,
+        userName: 'Could not verify username availability',
+      }));
+      setIsCheckingUsername(false);
+      setUsernameChecked(false);
+      return false;
+    }
+  };
+
+  // Handle username change with resetting validation state
+  const handleUsernameChange = text => {
+    setStudent(prev => ({...prev, userName: text}));
+    // Clear previous username error when typing
+    setErrors(prev => ({...prev, userName: ''}));
+    setUsernameChecked(false);
+  };
+
+  // Validate username when user finishes typing
+  const handleUsernameBlur = () => {
+    if (student.userName.trim() && !isEditMode) {
+      checkUsernameAvailability(student.userName);
+    }
+  };
+
+  // Debounce username check - removing previous implementation and replacing with direct blur-based check
+  // This removes the useEffect for debouncing as it was causing issues with state management
+
+  const validateForm = async () => {
+    let isValid = true;
+    const newErrors = {...errors};
 
     // Required fields as per API
-    if (!student.firstName.trim())
+    if (!student.firstName.trim()) {
       newErrors.firstName = 'First name is required';
-    if (!student.lastName.trim()) newErrors.lastName = 'Last name is required';
-    if (!student.userName.trim()) newErrors.userName = 'Username is required';
-    if (student.password.length < 6)
+      isValid = false;
+    }
+
+    if (!student.lastName.trim()) {
+      newErrors.lastName = 'Last name is required';
+      isValid = false;
+    }
+
+    if (!student.userName.trim()) {
+      newErrors.userName = 'Username is required';
+      isValid = false;
+    } else if (!isEditMode) {
+      // Check username availability for new students
+      const isUsernameAvailable = await checkUsernameAvailability(
+        student.userName,
+      );
+      if (!isUsernameAvailable) {
+        isValid = false;
+        // Error message already set in checkUsernameAvailability
+      }
+    }
+
+    if (!student.password) {
+      newErrors.password = 'Password is required';
+      isValid = false;
+    } else if (student.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
-    if (!student.parent1Phone && !validatePhone(student.parent1Phone))
-      newErrors.parent1Phone = 'Valid 10-digit phone required';
+      isValid = false;
+    }
+
+    if (student.password !== student.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+      isValid = false;
+    }
+
     // Optional but validated if provided
-    if (student.age && isNaN(student.age))
+    if (student.age && isNaN(student.age)) {
       newErrors.age = 'Age must be a number';
-    if (student.email && !validateEmail(student.email))
+      isValid = false;
+    }
+
+    if (student.email && !validateEmail(student.email)) {
       newErrors.email = 'Valid email required';
-    if (student.pinCode && !/^\d{6}$/.test(student.pinCode))
+      isValid = false;
+    }
+
+    if (student.pinCode && !/^\d{6}$/.test(student.pinCode)) {
       newErrors.pinCode = 'Valid 6-digit pincode required';
-    if (student.parent1Phone && !validatePhone(student.parent1Phone))
+      isValid = false;
+    }
+
+    if (student.parent1Phone && !validatePhone(student.parent1Phone)) {
       newErrors.parent1Phone = 'Valid 10-digit phone required';
-    if (student.parent1Email && !validateEmail(student.parent1Email))
+      isValid = false;
+    }
+
+    if (student.parent1Email && !validateEmail(student.parent1Email)) {
       newErrors.parent1Email = 'Valid email required';
-    if (student.parent2Phone && !validatePhone(student.parent2Phone))
+      isValid = false;
+    }
+
+    if (student.parent2Phone && !validatePhone(student.parent2Phone)) {
       newErrors.parent2Phone = 'Valid 10-digit phone required';
-    if (student.parent2Email && !validateEmail(student.parent2Email))
+      isValid = false;
+    }
+
+    if (student.parent2Email && !validateEmail(student.parent2Email)) {
       newErrors.parent2Email = 'Valid email required';
+      isValid = false;
+    }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return isValid;
   };
 
   const handleImagePicker = async () => {
@@ -130,7 +267,7 @@ const StudentCreation = ({navigation, route}) => {
   };
 
   const updatestudent = async () => {
-    if (!validateForm()) return;
+    if (!(await validateForm())) return;
 
     setIsSaving(true);
 
@@ -208,7 +345,7 @@ const StudentCreation = ({navigation, route}) => {
   };
 
   const handleSave = async () => {
-    if (!validateForm()) return;
+    if (!(await validateForm())) return;
 
     setIsSaving(true);
 
@@ -339,6 +476,40 @@ const StudentCreation = ({navigation, route}) => {
     return <Text style={styles.errorText1}>{jsonError}</Text>;
   };
 
+  // Helper function to render username indicator like in SignupScreen
+  const renderUsernameIndicator = () => {
+    if (isCheckingUsername) {
+      return (
+        <ActivityIndicator
+          size="small"
+          color="#1D49A7"
+          style={styles.usernameCheckIndicator}
+        />
+      );
+    } else if (usernameChecked && !isEditMode) {
+      if (usernameAvailable) {
+        return (
+          <Feather
+            name="check-circle"
+            size={20}
+            color="#28a745"
+            style={styles.usernameStatusIcon}
+          />
+        );
+      } else {
+        return (
+          <Feather
+            name="x-circle"
+            size={20}
+            color="#dc3545"
+            style={styles.usernameStatusIcon}
+          />
+        );
+      }
+    }
+    return null;
+  };
+
   const renderInput = (
     field,
     label,
@@ -361,16 +532,25 @@ const StudentCreation = ({navigation, route}) => {
               field === 'age' ? student[field]?.toString() : student[field]
             }
             onChangeText={text => {
-              setStudent(prev => ({...prev, [field]: text}));
-              if (errors[field])
-                setErrors(prev => ({...prev, [field]: undefined}));
+              if (field === 'userName') {
+                handleUsernameChange(text);
+              } else {
+                setStudent(prev => ({...prev, [field]: text}));
+                if (errors[field])
+                  setErrors(prev => ({...prev, [field]: undefined}));
+              }
+            }}
+            onBlur={() => {
+              if (field === 'userName') {
+                handleUsernameBlur();
+              }
             }}
             placeholder={placeholder}
             placeholderTextColor="#9CA3AF"
             keyboardType={keyboardType}
-            secureTextEntry={isSecure && !showPassword} // Toggle secureTextEntry based on showPassword
+            secureTextEntry={isSecure && !showPassword}
           />
-          {isSecure && ( // Show the toggle button only for password fields
+          {isSecure && (
             <TouchableOpacity
               style={styles.toggleButton}
               onPress={() => setShowPassword(!showPassword)}>
@@ -381,8 +561,15 @@ const StudentCreation = ({navigation, route}) => {
               />
             </TouchableOpacity>
           )}
+          {field === 'userName' && renderUsernameIndicator()}
         </View>
         {errors[field] && <Text style={styles.errorText}>{errors[field]}</Text>}
+        {field === 'userName' &&
+          usernameChecked &&
+          usernameAvailable &&
+          !isEditMode && (
+            <Text style={styles.availableText}>Username available</Text>
+          )}
       </View>
     );
   };
@@ -395,7 +582,9 @@ const StudentCreation = ({navigation, route}) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <MaterialIcons name="arrow-back" size={24} color="#001d3d" />
         </TouchableOpacity>
-        <Text style={styles.appBarTitle}>Add New Student</Text>
+        <Text style={styles.appBarTitle}>
+          {isEditMode ? 'Edit Student' : 'Add New Student'}
+        </Text>
         <View style={{width: 24}} />
       </View>
 
@@ -547,6 +736,14 @@ const StudentCreation = ({navigation, route}) => {
               true,
               true,
             )}
+            {renderInput(
+              'confirmPassword',
+              'Confirm Password',
+              'Confirm your password',
+              'default',
+              true,
+              true,
+            )}
           </View>
         </ScrollView>
 
@@ -570,7 +767,9 @@ const StudentCreation = ({navigation, route}) => {
             {isSaving ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.saveButtonText}>Add Student</Text>
+              <Text style={styles.saveButtonText}>
+                {isEditMode ? 'Update Student' : 'Add Student'}
+              </Text>
             )}
           </TouchableOpacity>
         </View>
@@ -660,6 +859,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginLeft: 5,
   },
+  availableText: {
+    color: '#059669',
+    fontSize: 12,
+    marginTop: 5,
+    marginLeft: 5,
+  },
   errorText1: {
     color: '#dc3545',
     fontSize: 15,
@@ -670,6 +875,16 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   toggleButton: {
+    position: 'absolute',
+    right: 12,
+    top: 15,
+  },
+  usernameCheckIndicator: {
+    position: 'absolute',
+    right: 12,
+    top: 15,
+  },
+  usernameStatusIcon: {
     position: 'absolute',
     right: 12,
     top: 15,
