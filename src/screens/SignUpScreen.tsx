@@ -15,10 +15,11 @@ import {
 import Toast from 'react-native-toast-message';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
-import {postApi} from '../utils/api';
+import {postApi, getapi} from '../utils/api';
 import {getUserId, getUserName} from '../utils/TokenDecoder';
 import {useDispatch} from 'react-redux';
 import {login} from '../utils/authslice';
+import {base_url} from '../utils/store';
 
 const SignupScreen = ({navigation}) => {
   const [username, setUsername] = useState('');
@@ -30,6 +31,9 @@ const SignupScreen = ({navigation}) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [createId, setCreateId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [usernameChecked, setUsernameChecked] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState(false);
   const [errors, setErrors] = useState({
     username: '',
     password: '',
@@ -49,7 +53,82 @@ const SignupScreen = ({navigation}) => {
     return phoneRegex.test(phone);
   };
 
-  const validateForm = () => {
+  // Check if username is available via API
+  const checkUsernameAvailability = async username => {
+    if (!username.trim()) {
+      setUsernameChecked(false);
+      return false;
+    }
+
+    setIsCheckingUsername(true);
+    setUsernameChecked(false);
+
+    const url = `${base_url}/teachers/userName/${username}`;
+
+    try {
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+
+      if (res.status === 200) {
+        setErrors(prev => ({
+          ...prev,
+          username: 'Username is already taken',
+        }));
+        setIsCheckingUsername(false);
+        setUsernameChecked(true);
+        setUsernameAvailable(false);
+        return false;
+      } else if (res.status === 404) {
+        setErrors(prev => ({
+          ...prev,
+          username: '',
+        }));
+        setIsCheckingUsername(false);
+        setUsernameChecked(true);
+        setUsernameAvailable(true);
+        return true;
+      } else {
+        const rawText = await res.text();
+        console.log('Raw response:', rawText);
+        setErrors(prev => ({
+          ...prev,
+          username: 'Could not verify username availability',
+        }));
+        setIsCheckingUsername(false);
+        setUsernameChecked(false);
+        return false;
+      }
+    } catch (err) {
+      setErrors(prev => ({
+        ...prev,
+        username: 'Could not verify username availability',
+      }));
+      setIsCheckingUsername(false);
+      setUsernameChecked(false);
+      return false;
+    }
+  };
+
+  // Handle username change with debounced validation
+  const handleUsernameChange = text => {
+    setUsername(text);
+    // Clear previous username error when typing
+    setErrors(prev => ({...prev, username: ''}));
+    setUsernameChecked(false);
+  };
+
+  // Validate username when user finishes typing
+  const handleUsernameBlur = () => {
+    if (username.trim()) {
+      checkUsernameAvailability(username);
+    }
+  };
+
+  const validateForm = async () => {
     let isValid = true;
     const newErrors = {
       username: '',
@@ -61,6 +140,13 @@ const SignupScreen = ({navigation}) => {
     if (!username.trim()) {
       newErrors.username = 'Username is required';
       isValid = false;
+    } else {
+      // Check username availability
+      const isUsernameAvailable = await checkUsernameAvailability(username);
+      if (!isUsernameAvailable) {
+        isValid = false;
+        // Error message already set in checkUsernameAvailability
+      }
     }
 
     if (!phone.trim()) {
@@ -97,7 +183,18 @@ const SignupScreen = ({navigation}) => {
   };
 
   const teacherSignup = async () => {
-    if (!validateForm()) {
+    if (isCheckingUsername) {
+      Toast.show({
+        type: 'info',
+        text1: 'Please wait',
+        text2: 'Verifying username availability...',
+        visibilityTime: 2000,
+      });
+      return;
+    }
+
+    const isFormValid = await validateForm();
+    if (!isFormValid) {
       // Show toast for validation errors
       const errorMessage =
         Object.values(errors).find(error => error !== '') ||
@@ -106,7 +203,6 @@ const SignupScreen = ({navigation}) => {
         type: 'error',
         text1: 'Validation Error',
         text2: errorMessage,
-
         visibilityTime: 3000,
       });
       return;
@@ -132,7 +228,6 @@ const SignupScreen = ({navigation}) => {
           type: 'success',
           text1: 'Success',
           text2: 'Account created successfully!',
-
           visibilityTime: 2000,
         });
         const teacherId = await getUserId(res.token);
@@ -174,7 +269,6 @@ const SignupScreen = ({navigation}) => {
         type: 'error',
         text1: 'Signup Failed',
         text2: errorMessage,
-
         visibilityTime: 4000,
       });
     };
@@ -185,6 +279,40 @@ const SignupScreen = ({navigation}) => {
   const renderError = error => {
     if (!error) return null;
     return <Text style={styles.errorText}>{error}</Text>;
+  };
+
+  // Render username availability indicator
+  const renderUsernameIndicator = () => {
+    if (isCheckingUsername) {
+      return (
+        <ActivityIndicator
+          size="small"
+          color="#1D49A7"
+          style={styles.indicator}
+        />
+      );
+    } else if (usernameChecked) {
+      if (usernameAvailable) {
+        return (
+          <Feather
+            name="check-circle"
+            size={20}
+            color="#28a745"
+            style={styles.indicator}
+          />
+        );
+      } else {
+        return (
+          <Feather
+            name="x-circle"
+            size={20}
+            color="#dc3545"
+            style={styles.indicator}
+          />
+        );
+      }
+    }
+    return null;
   };
 
   return (
@@ -241,9 +369,11 @@ const SignupScreen = ({navigation}) => {
                   placeholder="User Name"
                   placeholderTextColor="#888"
                   value={username}
-                  onChangeText={setUsername}
+                  onChangeText={handleUsernameChange}
+                  onBlur={handleUsernameBlur}
                   autoCapitalize="none"
                 />
+                {renderUsernameIndicator()}
               </View>
               {renderError(errors.username)}
 
@@ -304,10 +434,10 @@ const SignupScreen = ({navigation}) => {
 
               <TouchableOpacity
                 onPress={teacherSignup}
-                disabled={isLoading}
+                disabled={isLoading || isCheckingUsername}
                 style={[
                   styles.signupButton,
-                  isLoading && styles.disabledButton,
+                  (isLoading || isCheckingUsername) && styles.disabledButton,
                 ]}>
                 {isLoading ? (
                   <ActivityIndicator size="small" color="#ffffff" />
@@ -409,6 +539,10 @@ const styles = StyleSheet.create({
   },
   showPasswordIcon: {
     padding: 10,
+  },
+  indicator: {
+    marginLeft: 10,
+    paddingRight: 5,
   },
   signupButton: {
     backgroundColor: '#001d3d',
