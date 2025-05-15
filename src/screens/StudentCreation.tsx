@@ -169,6 +169,39 @@ const StudentCreation = ({navigation, route}) => {
       isValid = false;
     }
 
+    // Make email required
+    if (!student.email) {
+      newErrors.email = 'Email is required';
+      isValid = false;
+    } else if (!validateEmail(student.email)) {
+      newErrors.email = 'Valid email required';
+      isValid = false;
+    }
+
+    // Make parent1Name required
+    if (!student.parent1Name) {
+      newErrors.parent1Name = 'Primary parent name is required';
+      isValid = false;
+    }
+
+    // Make parent1Phone required
+    if (!student.parent1Phone) {
+      newErrors.parent1Phone = 'Primary parent phone is required';
+      isValid = false;
+    } else if (!validatePhone(student.parent1Phone)) {
+      newErrors.parent1Phone = 'Valid 10-digit phone required';
+      isValid = false;
+    }
+
+    // Make parent1Email required
+    if (!student.parent1Email) {
+      newErrors.parent1Email = 'Primary parent email is required';
+      isValid = false;
+    } else if (!validateEmail(student.parent1Email)) {
+      newErrors.parent1Email = 'Valid email required';
+      isValid = false;
+    }
+
     if (!student.userName.trim()) {
       newErrors.userName = 'Username is required';
       isValid = false;
@@ -202,23 +235,8 @@ const StudentCreation = ({navigation, route}) => {
       isValid = false;
     }
 
-    if (student.email && !validateEmail(student.email)) {
-      newErrors.email = 'Valid email required';
-      isValid = false;
-    }
-
     if (student.pinCode && !/^\d{6}$/.test(student.pinCode)) {
       newErrors.pinCode = 'Valid 6-digit pincode required';
-      isValid = false;
-    }
-
-    if (student.parent1Phone && !validatePhone(student.parent1Phone)) {
-      newErrors.parent1Phone = 'Valid 10-digit phone required';
-      isValid = false;
-    }
-
-    if (student.parent1Email && !validateEmail(student.parent1Email)) {
-      newErrors.parent1Email = 'Valid email required';
       isValid = false;
     }
 
@@ -279,16 +297,16 @@ const StudentCreation = ({navigation, route}) => {
         age: student.age ? parseInt(student.age) : null,
         userName: student.userName,
         password: student.password,
-        // email: student.email || null,
+        email: student.email, // Email is now required
         addressLine1: student.addressLine1 || null,
         addressCity: student.addressCity || null,
         addressState: student.addressState || null,
         pinCode: student.pinCode ? parseInt(student.pinCode) : null,
         profilePicUrl: profileImageUrl || null,
         gender: student.gender || null,
-        parent1Name: student.parent1Name || null,
-        parent1Phone: student.parent1Phone || null,
-        parent1Email: student.parent1Email || null,
+        parent1Name: student.parent1Name, // Primary parent is now required
+        parent1Phone: student.parent1Phone, // Primary parent phone is now required
+        parent1Email: student.parent1Email, // Primary parent email is now required
         parent2Name: student.parent2Name || null,
         parent2Phone: student.parent2Phone || null,
         parent2Email: student.parent2Email || null,
@@ -357,16 +375,16 @@ const StudentCreation = ({navigation, route}) => {
         age: student.age ? parseInt(student.age) : null,
         userName: student.userName,
         password: student.password,
-        email: student.email || null,
+        email: student.email, // Email is now required
         addressLine1: student.addressLine1 || null,
         addressCity: student.addressCity || null,
         addressState: student.addressState || null,
         pinCode: student.pinCode ? parseInt(student.pinCode) : null,
         profilePicUrl: profileImageUrl || null,
         gender: student.gender || null,
-        parent1Name: student.parent1Name || null,
-        parent1Phone: student.parent1Phone || null,
-        parent1Email: student.parent1Email || null,
+        parent1Name: student.parent1Name, // Primary parent is now required
+        parent1Phone: student.parent1Phone, // Primary parent phone is now required
+        parent1Email: student.parent1Email, // Primary parent email is now required
         parent2Name: student.parent2Name || null,
         parent2Phone: student.parent2Phone || null,
         parent2Email: student.parent2Email || null,
@@ -520,10 +538,18 @@ const StudentCreation = ({navigation, route}) => {
   ) => {
     const [showPassword, setShowPassword] = useState(false);
 
+    // Update required fields based on specifications
+    const isRequired =
+      required ||
+      field === 'email' ||
+      field === 'parent1Name' ||
+      field === 'parent1Phone' ||
+      field === 'parent1Email';
+
     return (
       <View style={styles.inputGroup}>
         <Text style={styles.label}>
-          {label} {required && '*'}
+          {label} {isRequired && '*'}
         </Text>
         <View style={styles.passwordContainer}>
           <TextInput
@@ -642,6 +668,8 @@ const StudentCreation = ({navigation, route}) => {
               'Email',
               'Enter email address',
               'email-address',
+              false,
+              true, // Now required
             )}
 
             <View style={styles.inputGroup}>
@@ -684,18 +712,29 @@ const StudentCreation = ({navigation, route}) => {
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Primary Parent/Guardian</Text>
             </View>
-            {renderInput('parent1Name', 'Name', 'Enter parent name')}
+            {renderInput(
+              'parent1Name',
+              'Name',
+              'Enter parent name',
+              'default',
+              false,
+              true, // Now required
+            )}
             {renderInput(
               'parent1Phone',
               'Phone',
               'Enter 10-digit phone number',
               'phone-pad',
+              false,
+              true, // Now required
             )}
             {renderInput(
               'parent1Email',
               'Email',
               'Enter email address',
               'email-address',
+              false,
+              true, // Now required
             )}
 
             <View style={styles.sectionHeader}>
