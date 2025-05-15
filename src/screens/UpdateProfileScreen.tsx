@@ -74,6 +74,7 @@ const UpdateProfileScreen = ({navigation, route}) => {
   const requiredFields = [
     'firstName',
     'lastName',
+    'email',
     'age',
     'gender',
     'phoneNumber',
