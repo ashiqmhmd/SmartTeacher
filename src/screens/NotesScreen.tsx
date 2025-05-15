@@ -212,7 +212,7 @@ const NotesScreen = ({navigation}) => {
               <MaterialIcons name="search" size={24} color="#666" />
               <TextInput
                 style={styles.searchInput}
-                placeholder="Search assignments"
+                placeholder="Search Notes"
                 placeholderTextColor="#666"
                 value={searchQuery}
                 onChangeText={setSearchQuery} // Updates searchQuery when user types
