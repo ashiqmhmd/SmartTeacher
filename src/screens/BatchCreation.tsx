@@ -113,6 +113,14 @@ const BatchCreation = ({navigation, route}) => {
         teacherId: Teacherid,
       };
 
+      const fliteredData = Object.fromEntries(
+        Object.entries(body).filter(
+          ([_, value]) => value !== '' && value !== null && value !== undefined,
+        ),
+      );
+
+      console.log(fliteredData);
+
       const onResponse = async res => {
         // Show Toast Message
         Toast.show({
@@ -140,7 +148,14 @@ const BatchCreation = ({navigation, route}) => {
         });
       };
 
-      await postApi(url, headers, body, onResponse, onCatch, navigation);
+      await postApi(
+        url,
+        headers,
+        fliteredData,
+        onResponse,
+        onCatch,
+        navigation,
+      );
     } catch (error) {
       console.error('Batch_Creation Error:', error.message);
       Toast.show({
@@ -325,12 +340,13 @@ const BatchCreation = ({navigation, route}) => {
               'decimal-pad',
             )}
 
-            {inputField(
-              'paymentDayOfMonth',
-              'Payment Day of Month',
-              'Enter day (1-31)',
-              'numeric',
-            )}
+            {batch.paymentFrequency === 'Monthly' &&
+              inputField(
+                'paymentDayOfMonth',
+                'Payment Day of Month',
+                'Enter day (1-31)',
+                'numeric',
+              )}
           </View>
         </ScrollView>
 
