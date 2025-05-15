@@ -269,6 +269,12 @@ const NoteCreateScreen = ({navigation, route}) => {
 
     const body = noteData;
 
+      const fliteredData = Object.fromEntries(
+        Object.entries(body).filter(
+          ([_, value]) => value !== '' && value !== null && value !== undefined,
+        ),
+      );
+
     const onResponse = res => {
       setNote(res);
       Toast.show({

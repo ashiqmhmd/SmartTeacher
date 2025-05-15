@@ -366,6 +366,14 @@ const CreateAssignment = ({navigation, route}) => {
         attachmentUrls: uploadedUrls, // Assign the uploaded URLs to the assignment
       };
 
+      const fliteredData = Object.fromEntries(
+        Object.entries(body).filter(
+          ([_, value]) => value !== '' && value !== null && value !== undefined,
+        ),
+      );
+
+      console.log("body",fliteredData)
+
       const onResponse = res => {
         setAssignment(res);
         Toast.show({
@@ -385,7 +393,7 @@ const CreateAssignment = ({navigation, route}) => {
         console.error('Error submitting assignment:', error);
       };
 
-      postApi(url, headers, body, onResponse, onCatch, navigation);
+      postApi(url, headers, fliteredData, onResponse, onCatch, navigation);
       console.log('Assignment Submitted:', body);
     } catch (error) {
       console.error('Error during assignment submission:', error);

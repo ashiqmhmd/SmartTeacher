@@ -536,7 +536,7 @@ const LoginScreen = ({ navigation }) => {
 
       const Teacherid = await getUserId(res.token);
       const Teachername = await getUserName(res.token);
-      console.log("res",res)
+      console.log("res", res)
       if (response.ok && res.token && res.refreshToken) {
         // Store both tokens
         console.log("yess")
@@ -684,11 +684,11 @@ const LoginScreen = ({ navigation }) => {
             {renderError(errors.password)}
 
             <TouchableOpacity
-            style={styles.forgotPassword}
-            disabled={loading}
-            onPress={() => navigation.navigate('ForgotPassword')}>
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-            </TouchableOpacity> 
+              style={styles.forgotPassword}
+              disabled={loading}
+              onPress={() => navigation.navigate('ForgotPassword')}>
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            </TouchableOpacity>
 
             <TouchableOpacity
               onPress={Teacher_Login}
@@ -702,7 +702,13 @@ const LoginScreen = ({ navigation }) => {
             <View style={styles.signupContainer}>
               <Text style={styles.signupText}>Don't have an account? </Text>
               <TouchableOpacity
-                onPress={() => navigation.navigate('SignUp')}
+                onPress={() => {
+                  setLoading(true); // Show loading state while navigating
+                  setTimeout(() => {
+                    navigation.navigate('SignUp');
+                    setLoading(false);
+                  }, 100);
+                }}
                 disabled={loading}>
                 <Text style={styles.signupLinkText}>Sign Up</Text>
               </TouchableOpacity>
