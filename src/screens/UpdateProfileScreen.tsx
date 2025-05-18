@@ -120,7 +120,7 @@ const UpdateProfileScreen = ({navigation, route}) => {
   };
 
   // Gender options
-  const genderOptions = ['male', 'female', 'Other'];
+  const genderOptions = ['male', 'female', 'do not reveal'];
 
   // Handle gender selection
   const handleGenderSelect = value => {
