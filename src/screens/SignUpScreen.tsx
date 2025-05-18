@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -15,13 +15,13 @@ import {
 import Toast from 'react-native-toast-message';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
-import { postApi, getapi } from '../utils/api';
-import { getUserId, getUserName } from '../utils/TokenDecoder';
-import { useDispatch } from 'react-redux';
-import { login } from '../utils/authslice';
-import { base_url } from '../utils/store';
+import {postApi, getapi} from '../utils/api';
+import {getUserId, getUserName} from '../utils/TokenDecoder';
+import {useDispatch} from 'react-redux';
+import {login} from '../utils/authslice';
+import {base_url} from '../utils/store';
 
-const SignupScreen = ({ navigation }) => {
+const SignupScreen = ({navigation}) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -117,7 +117,7 @@ const SignupScreen = ({ navigation }) => {
   const handleUsernameChange = text => {
     setUsername(text);
     // Clear previous username error when typing
-    setErrors(prev => ({ ...prev, username: '' }));
+    setErrors(prev => ({...prev, username: ''}));
     setUsernameChecked(false);
   };
 
@@ -452,7 +452,7 @@ const SignupScreen = ({ navigation }) => {
                   onPress={() => {
                     setIsLoading(true); // Show loading state while navigating
                     setTimeout(() => {
-                      navigation.navigate('Login');
+                      navigation.replace('Login');
                       setIsLoading(false);
                     }, 100);
                   }}
@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 30,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 10 },
+    shadowOffset: {width: 0, height: 10},
     shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 20,
