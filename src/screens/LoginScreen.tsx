@@ -353,12 +353,7 @@
 
 // export default LoginScreen;
 
-
-
-
-
-
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -373,14 +368,14 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
-import { useDispatch } from 'react-redux';
-import { postApi } from '../utils/api';
-import { login } from '../utils/authslice';
-import { getUserId, getUserName, Token_decode } from '../utils/TokenDecoder';
+import {useDispatch} from 'react-redux';
+import {postApi} from '../utils/api';
+import {login} from '../utils/authslice';
+import {getUserId, getUserName, Token_decode} from '../utils/TokenDecoder';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { base_url } from '../utils/store';
+import {base_url} from '../utils/store';
 
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = ({navigation}) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -437,7 +432,7 @@ const LoginScreen = ({ navigation }) => {
   //     const Teachername = await getUserName(res.token);
   //     console.log("errorsss")
   //     // Check for both token types
-  //     if (res.token && res.refreshToken) { 
+  //     if (res.token && res.refreshToken) {
   //       // Store both tokens and user data
   //       await AsyncStorage.setItem('Token', res.token);
   //       await AsyncStorage.setItem('RefreshToken', res.refreshToken);
@@ -503,16 +498,14 @@ const LoginScreen = ({ navigation }) => {
   //   }
   // };
 
-
-
   const Teacher_Login = async () => {
-    console.log("nhj")
+    console.log('nhj');
     if (!validateForm()) {
       return;
     }
 
     setLoading(true);
-    setErrors({ ...errors, general: '' });
+    setErrors({...errors, general: ''});
 
     const url = `${base_url}/login/teacher`; // Replace with actual base URL
     const headers = {
@@ -536,10 +529,10 @@ const LoginScreen = ({ navigation }) => {
 
       const Teacherid = await getUserId(res.token);
       const Teachername = await getUserName(res.token);
-      console.log("res", res)
+      console.log('res', res);
       if (response.ok && res.token && res.refreshToken) {
         // Store both tokens
-        console.log("yess")
+        console.log('yess');
         await AsyncStorage.setItem('Token', res.token);
         await AsyncStorage.setItem('RefreshToken', res.refreshToken);
         await AsyncStorage.setItem('TeacherId', Teacherid);
@@ -555,7 +548,6 @@ const LoginScreen = ({ navigation }) => {
 
         dispatch(login(userData));
         navigation.replace('Tabs');
-
       } else if (response.ok && res.token) {
         // Only access token
         await AsyncStorage.setItem('Token', res.token);
@@ -571,18 +563,17 @@ const LoginScreen = ({ navigation }) => {
 
         dispatch(login(userData));
         navigation.replace('Tabs');
-
       } else if (res.error) {
-        setErrors({ ...errors, general: res.error });
+        setErrors({...errors, general: res.error});
       } else {
-        setErrors({ ...errors, general: 'Invalid response from server' });
+        setErrors({...errors, general: 'Invalid response from server'});
       }
     } catch (error) {
       setLoading(false);
       console.log('Fetch Error:', error);
 
       if (error.response?.status === 401) {
-        setErrors({ ...errors, general: 'Invalid username or password' });
+        setErrors({...errors, general: 'Invalid username or password'});
       } else {
         setErrors({
           ...errors,
@@ -591,7 +582,6 @@ const LoginScreen = ({ navigation }) => {
       }
     }
   };
-
 
   const renderError = error => {
     if (!error) return null;
@@ -639,7 +629,7 @@ const LoginScreen = ({ navigation }) => {
                 value={username}
                 onChangeText={text => {
                   setUsername(text);
-                  setErrors({ ...errors, username: '', general: '' });
+                  setErrors({...errors, username: '', general: ''});
                 }}
                 autoCapitalize="none"
                 editable={!loading}
@@ -666,7 +656,7 @@ const LoginScreen = ({ navigation }) => {
                 value={password}
                 onChangeText={text => {
                   setPassword(text);
-                  setErrors({ ...errors, password: '', general: '' });
+                  setErrors({...errors, password: '', general: ''});
                 }}
                 editable={!loading}
               />
@@ -705,7 +695,7 @@ const LoginScreen = ({ navigation }) => {
                 onPress={() => {
                   setLoading(true); // Show loading state while navigating
                   setTimeout(() => {
-                    navigation.navigate('SignUp');
+                    navigation.replace('SignUp');
                     setLoading(false);
                   }, 100);
                 }}
@@ -753,7 +743,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 30,
     shadowColor: '#1D49A7',
-    shadowOffset: { width: 0, height: 10 },
+    shadowOffset: {width: 0, height: 10},
     shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 20,
@@ -841,4 +831,3 @@ const styles = StyleSheet.create({
 });
 
 export default LoginScreen;
-
