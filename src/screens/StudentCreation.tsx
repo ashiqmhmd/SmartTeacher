@@ -98,6 +98,11 @@ const StudentCreation = ({navigation, route}) => {
 
       if (response.status === 200) {
         // Status 200 means username exists
+        Toast.show({
+          type: 'error',
+          text1: 'Username Error',
+          text2: 'Username is already taken',
+        });
         setErrors(prev => ({
           ...prev,
           userName: 'Username is already taken',
@@ -116,6 +121,11 @@ const StudentCreation = ({navigation, route}) => {
       } else {
         // Handle other status codes
         console.log('Unexpected status code:', response.status);
+        Toast.show({
+          type: 'error',
+          text1: 'Username Error',
+          text2: 'Could not verify username availability',
+        });
         setErrors(prev => ({
           ...prev,
           userName: 'Could not verify username availability',
@@ -126,6 +136,11 @@ const StudentCreation = ({navigation, route}) => {
       }
     } catch (error) {
       console.error('Error checking username:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Username Error',
+        text2: 'Could not verify username availability',
+      });
       setErrors(prev => ({
         ...prev,
         userName: 'Could not verify username availability',
@@ -151,9 +166,6 @@ const StudentCreation = ({navigation, route}) => {
     }
   };
 
-  // Debounce username check - removing previous implementation and replacing with direct blur-based check
-  // This removes the useEffect for debouncing as it was causing issues with state management
-
   const validateForm = async () => {
     let isValid = true;
     const newErrors = {...errors};
@@ -161,49 +173,101 @@ const StudentCreation = ({navigation, route}) => {
     // Required fields as per API
     if (!student.firstName.trim()) {
       newErrors.firstName = 'First name is required';
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'First name is required',
+      });
       isValid = false;
     }
 
     if (!student.lastName.trim()) {
       newErrors.lastName = 'Last name is required';
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Last name is required',
+      });
       isValid = false;
     }
 
     // Make email required
-    if (!student.email) {
-      newErrors.email = 'Email is required';
-      isValid = false;
-    } else if (!validateEmail(student.email)) {
-      newErrors.email = 'Valid email required';
-      isValid = false;
+    if (!isEditMode) {
+      if (!student.email) {
+        newErrors.email = 'Email is required';
+        Toast.show({
+          type: 'error',
+          text1: 'Validation Error',
+          text2: 'Email is required',
+        });
+        isValid = false;
+      } else if (!validateEmail(student.email)) {
+        newErrors.email = 'Valid email required';
+        Toast.show({
+          type: 'error',
+          text1: 'Validation Error',
+          text2: 'Valid email address is required',
+        });
+        isValid = false;
+      }
     }
 
     // Make parent1Name required
     if (!student.parent1Name) {
       newErrors.parent1Name = 'Primary parent name is required';
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Primary parent name is required',
+      });
       isValid = false;
     }
 
     // Make parent1Phone required
     if (!student.parent1Phone) {
       newErrors.parent1Phone = 'Primary parent phone is required';
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Primary parent phone is required',
+      });
       isValid = false;
     } else if (!validatePhone(student.parent1Phone)) {
       newErrors.parent1Phone = 'Valid 10-digit phone required';
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Parent phone must be 10 digits',
+      });
       isValid = false;
     }
 
     // Make parent1Email required
     if (!student.parent1Email) {
       newErrors.parent1Email = 'Primary parent email is required';
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Primary parent email is required',
+      });
       isValid = false;
     } else if (!validateEmail(student.parent1Email)) {
       newErrors.parent1Email = 'Valid email required';
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Valid parent email address is required',
+      });
       isValid = false;
     }
 
     if (!student.userName.trim()) {
       newErrors.userName = 'Username is required';
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Username is required',
+      });
       isValid = false;
     } else if (!isEditMode) {
       // Check username availability for new students
@@ -212,46 +276,161 @@ const StudentCreation = ({navigation, route}) => {
       );
       if (!isUsernameAvailable) {
         isValid = false;
-        // Error message already set in checkUsernameAvailability
+        // Error message already set in checkUsernameAvailability via Toast
       }
     }
 
     if (!student.password) {
       newErrors.password = 'Password is required';
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Password is required',
+      });
       isValid = false;
     } else if (student.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Password must be at least 6 characters',
+      });
       isValid = false;
     }
 
     if (student.password !== student.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Passwords do not match',
+      });
       isValid = false;
     }
 
     // Optional but validated if provided
     if (student.age && isNaN(student.age)) {
       newErrors.age = 'Age must be a number';
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Age must be a number',
+      });
       isValid = false;
     }
 
     if (student.pinCode && !/^\d{6}$/.test(student.pinCode)) {
       newErrors.pinCode = 'Valid 6-digit pincode required';
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Pin code must be 6 digits',
+      });
       isValid = false;
     }
 
     if (student.parent2Phone && !validatePhone(student.parent2Phone)) {
       newErrors.parent2Phone = 'Valid 10-digit phone required';
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Secondary parent phone must be 10 digits',
+      });
       isValid = false;
     }
 
     if (student.parent2Email && !validateEmail(student.parent2Email)) {
       newErrors.parent2Email = 'Valid email required';
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Valid secondary parent email is required',
+      });
       isValid = false;
     }
 
     setErrors(newErrors);
     return isValid;
+  };
+
+  // Real-time validation functions for individual fields
+  const validateField = (field, value) => {
+    switch (field) {
+      case 'email':
+        if (value && !validateEmail(value)) {
+          Toast.show({
+            type: 'error',
+            text1: 'Validation Error',
+            text2: 'Please enter a valid email address',
+          });
+          return false;
+        }
+        return true;
+      case 'parent1Email':
+      case 'parent2Email':
+        if (value && !validateEmail(value)) {
+          Toast.show({
+            type: 'error',
+            text1: 'Validation Error',
+            text2: 'Please enter a valid email address',
+          });
+          return false;
+        }
+        return true;
+      case 'parent1Phone':
+      case 'parent2Phone':
+        if (value && !validatePhone(value)) {
+          Toast.show({
+            type: 'error',
+            text1: 'Validation Error',
+            text2: 'Phone number must be 10 digits',
+          });
+          return false;
+        }
+        return true;
+      case 'age':
+        if (value && isNaN(value)) {
+          Toast.show({
+            type: 'error',
+            text1: 'Validation Error',
+            text2: 'Age must be a number',
+          });
+          return false;
+        }
+        return true;
+      case 'pinCode':
+        if (value && !/^\d{6}$/.test(value)) {
+          Toast.show({
+            type: 'error',
+            text1: 'Validation Error',
+            text2: 'Pin code must be 6 digits',
+          });
+          return false;
+        }
+        return true;
+      case 'password':
+        if (value && value.length < 6) {
+          Toast.show({
+            type: 'error',
+            text1: 'Validation Error',
+            text2: 'Password must be at least 6 characters',
+          });
+          return false;
+        }
+        return true;
+      case 'confirmPassword':
+        if (value && value !== student.password) {
+          Toast.show({
+            type: 'error',
+            text1: 'Validation Error',
+            text2: 'Passwords do not match',
+          });
+          return false;
+        }
+        return true;
+      default:
+        return true;
+    }
   };
 
   const handleImagePicker = async () => {
@@ -266,10 +445,19 @@ const StudentCreation = ({navigation, route}) => {
         setProfileImage(result.uri);
         // Set the uploaded image URL for saving
         setProfileImageUrl(result.url);
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'Profile picture uploaded successfully',
+        });
       } else {
         // Only show alert for errors that are not cancellation
         if (result.message !== 'User cancelled image selection') {
-          Alert.alert('Error', result.message || 'Failed to upload image');
+          Toast.show({
+            type: 'error',
+            text1: 'Image Upload Error',
+            text2: result.message || 'Failed to upload image',
+          });
         }
       }
     } catch (error) {
@@ -297,7 +485,7 @@ const StudentCreation = ({navigation, route}) => {
         age: student.age ? parseInt(student.age) : null,
         userName: student.userName,
         password: student.password,
-        email: student.email, // Email is now required
+        // email: student.email, // Email is now required
         addressLine1: student.addressLine1 || null,
         addressCity: student.addressCity || null,
         addressState: student.addressState || null,
@@ -538,6 +726,9 @@ const StudentCreation = ({navigation, route}) => {
   ) => {
     const [showPassword, setShowPassword] = useState(false);
 
+    // Handle special case for email field in edit mode
+    const isReadOnly = isEditMode && field === 'email';
+
     // Update required fields based on specifications
     const isRequired =
       required ||
@@ -550,6 +741,7 @@ const StudentCreation = ({navigation, route}) => {
       <View style={styles.inputGroup}>
         <Text style={styles.label}>
           {label} {isRequired && '*'}
+          {isReadOnly && ' (cannot be changed)'}
         </Text>
         <View style={styles.passwordContainer}>
           <TextInput
@@ -558,6 +750,8 @@ const StudentCreation = ({navigation, route}) => {
               field === 'age' ? student[field]?.toString() : student[field]
             }
             onChangeText={text => {
+              if (isReadOnly) return; // Don't update if read-only
+
               if (field === 'userName') {
                 handleUsernameChange(text);
               } else {
@@ -567,14 +761,20 @@ const StudentCreation = ({navigation, route}) => {
               }
             }}
             onBlur={() => {
+              if (isReadOnly) return; // Don't validate if read-only
+
               if (field === 'userName') {
                 handleUsernameBlur();
+              } else {
+                // Validate the field on blur
+                validateField(field, student[field]);
               }
             }}
             placeholder={placeholder}
             placeholderTextColor="#9CA3AF"
             keyboardType={keyboardType}
             secureTextEntry={isSecure && !showPassword}
+            editable={!isReadOnly}
           />
           {isSecure && (
             <TouchableOpacity
@@ -675,7 +875,7 @@ const StudentCreation = ({navigation, route}) => {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Gender</Text>
               <View style={styles.genderContainer}>
-                {['male', 'female', 'other'].map(gender => (
+                {['male', 'female', 'do not disclose'].map(gender => (
                   <TouchableOpacity
                     key={gender}
                     style={[
@@ -939,6 +1139,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E7EB',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   genderButtonSelected: {
     backgroundColor: '#001d3d',
