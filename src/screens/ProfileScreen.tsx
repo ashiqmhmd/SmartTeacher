@@ -7,8 +7,10 @@ import {
   TouchableOpacity,
   Platform,
   Alert,
+  Modal,
+  Animated,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {fetch_batchs, logout} from '../utils/authslice';
@@ -17,11 +19,101 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {getapi, deleteapi} from '../utils/api';
 import {getUserId} from '../utils/TokenDecoder';
 import LinearGradient from 'react-native-linear-gradient';
+import Toast from 'react-native-toast-message';
+
+// Custom Confirmation Dialog Component
+const ConfirmationDialog = ({
+  visible,
+  onCancel,
+  onConfirm,
+  title,
+  message,
+  icon,
+  confirmText,
+  confirmColor,
+}) => {
+  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(scaleAnim, {
+          toValue: 0.9,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [visible]);
+
+  if (!visible) return null;
+
+  return (
+    <Modal transparent animationType="none" visible={visible}>
+      <View style={styles.modalOverlay}>
+        <Animated.View
+          style={[
+            styles.modalContent,
+            {
+              opacity: opacityAnim,
+              transform: [{scale: scaleAnim}],
+            },
+          ]}>
+          <View
+            style={[
+              styles.modalIconContainer,
+              {backgroundColor: `${confirmColor}20`},
+            ]}>
+            <MaterialIcons name={icon} size={40} color={confirmColor} />
+          </View>
+          <Text style={styles.modalTitle}>{title}</Text>
+          <Text style={styles.modalMessage}>{message}</Text>
+          <View style={styles.modalActions}>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.cancelButton]}
+              onPress={onCancel}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modalButton, {backgroundColor: confirmColor}]}
+              onPress={onConfirm}>
+              <Text style={styles.deleteButtonText}>{confirmText}</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+  );
+};
 
 const ProfileScreen = ({navigation, item}) => {
   const [imageError, setImageError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [batches, setBatches] = useState([]);
+  const [deletingBatch, setDeletingBatch] = useState(null);
+  const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
+  const [logoutDialogVisible, setLogoutDialogVisible] = useState(false);
+
   const defaultTeacher = {
     id: '',
     firstName: '',
@@ -45,6 +137,14 @@ const ProfileScreen = ({navigation, item}) => {
   const [teacher, setTeacher] = useState(defaultTeacher);
 
   const dispatch = useDispatch();
+
+  const showToast = (message, type = 'success') => {
+    Toast.show({
+      type: type,
+      text1: type === 'success' ? 'Success' : 'Error',
+      text2: message,
+    });
+  };
 
   const TeacherDetails = async () => {
     try {
@@ -117,71 +217,56 @@ const ProfileScreen = ({navigation, item}) => {
     }
   };
 
-  const handleDeleteBatch = batchId => {
-    Alert.alert('Delete Batch', 'Are you sure you want to delete this batch?', [
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            const Token = await AsyncStorage.getItem('Token');
-            const url = `batches/${batchId}`;
-            const headers = {
-              Accept: 'application/json',
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${Token}`,
-            };
-            const onResponse = async res => {
-              setBatches(prevBatches =>
-                prevBatches.filter(batch => batch.id !== batchId),
-              );
+  const handleDeleteBatch = batch => {
+    setDeletingBatch(batch);
+    setConfirmDialogVisible(true);
+  };
 
-              dispatch(fetch_batchs());
-              dispatch({
-                type: 'Clearbatches',
-              });
-              console.log('Batch deleted successfully');
-              Alert.alert('Success', 'Batch deleted successfully');
-              await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating API call
-              setLoading(false);
-            };
+  const confirmDeleteBatch = async () => {
+    try {
+      const Token = await AsyncStorage.getItem('Token');
+      const url = `batches/${deletingBatch.id}`;
+      const headers = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Token}`,
+      };
+      const onResponse = async res => {
+        setBatches(prevBatches =>
+          prevBatches.filter(batch => batch.id !== deletingBatch.id),
+        );
 
-            const onCatch = res => {
-              console.error('Delete Batch Error:', res);
-              Alert.alert('Error', 'Failed to delete batch');
-            };
+        dispatch(fetch_batchs());
+        dispatch({
+          type: 'Clearbatches',
+        });
 
-            deleteapi(url, headers, onResponse, onCatch, navigation);
-          } catch (error) {
-            console.error('Delete Batch Error:', error);
-            Alert.alert('Error', 'Failed to delete batch');
-          }
-        },
-      },
-    ]);
+        setConfirmDialogVisible(false);
+        showToast(`${deletingBatch.name} deleted successfully`, 'success');
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating API call
+        setLoading(false);
+      };
+
+      const onCatch = res => {
+        console.error('Delete Batch Error:', res);
+        setConfirmDialogVisible(false);
+        showToast('Failed to delete batch', 'error');
+      };
+
+      deleteapi(url, headers, onResponse, onCatch, navigation);
+    } catch (error) {
+      console.error('Delete Batch Error:', error);
+      setConfirmDialogVisible(false);
+      showToast('Failed to delete batch', 'error');
+    }
   };
 
   const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
-      {
-        text: 'Logout',
-        onPress: () => {
-          logoutbutton_press();
-        },
-        style: 'destructive',
-      },
-    ]);
+    setLogoutDialogVisible(true);
   };
 
-  const logoutbutton_press = async () => {
+  const confirmLogout = async () => {
+    setLogoutDialogVisible(false);
     navigation.reset({
       index: 0,
       routes: [{name: 'Login'}],
@@ -301,11 +386,6 @@ const ProfileScreen = ({navigation, item}) => {
         <View style={styles.section}>
           <View style={styles.batchHeader}>
             <Text style={styles.sectionTitle}>My Batches</Text>
-            {/* <TouchableOpacity
-              onPress={() => navigation.navigate('Create_Batch')}
-              style={styles.addBatchButton}>
-              <MaterialIcons name="add" size={24} color="#0F1F4B" />
-            </TouchableOpacity> */}
           </View>
           <View style={styles.batchList}>
             {batches.length > 0 ? (
@@ -331,7 +411,7 @@ const ProfileScreen = ({navigation, item}) => {
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.deleteBatchButton}
-                        onPress={() => handleDeleteBatch(batch.id)}>
+                        onPress={() => handleDeleteBatch(batch)}>
                         <MaterialIcons
                           name="delete"
                           size={24}
@@ -359,6 +439,29 @@ const ProfileScreen = ({navigation, item}) => {
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Custom Confirmation Dialogs */}
+      <ConfirmationDialog
+        visible={confirmDialogVisible}
+        onCancel={() => setConfirmDialogVisible(false)}
+        onConfirm={confirmDeleteBatch}
+        icon="delete-forever"
+        title="Delete Batch"
+        message={`Are you sure you want to delete ${deletingBatch?.name}? This action cannot be undone.`}
+        confirmText="Delete"
+        confirmColor="#EF4444"
+      />
+
+      <ConfirmationDialog
+        visible={logoutDialogVisible}
+        onCancel={() => setLogoutDialogVisible(false)}
+        onConfirm={confirmLogout}
+        icon="logout"
+        title="Logout"
+        message="Are you sure you want to logout from your account?"
+        confirmText="Logout"
+        confirmColor="#0F1F4B"
+      />
     </View>
   );
 };
@@ -442,13 +545,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 8,
   },
-  // infoSection: {
-  //   flexDirection: 'row',
-  //   alignItems: 'center',
-  //   paddingVertical: 8,
-  //   borderBottomWidth: 1,
-  //   borderBottomColor: '#E5E7EB',
-  // },
   infoSection: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -547,6 +643,81 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginLeft: 8,
+  },
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: '90%',
+    maxWidth: 400,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#0F1F4B',
+    marginBottom: 8,
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: '#4B5563',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  modalButton: {
+    borderRadius: 12,
+    padding: 12,
+    minWidth: '45%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#F3F4F6',
+  },
+  cancelButtonText: {
+    color: '#4B5563',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  deleteButton: {
+    backgroundColor: '#EF4444',
+  },
+  deleteButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 
