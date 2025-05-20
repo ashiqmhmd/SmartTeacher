@@ -86,6 +86,14 @@ const NoteCreateScreen = ({navigation, route}) => {
     if (size > 2 * 1024 * 1024) {
       newErrors.attachment = 'File size must be less than 2MB';
       setErrors(newErrors);
+
+      // Show toast for attachment size error
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid File',
+        text2: 'File size must be less than 2MB',
+      });
+
       return false;
     }
     return true;
@@ -96,8 +104,37 @@ const NoteCreateScreen = ({navigation, route}) => {
     if (!note.Title.trim()) {
       newErrors.title = 'Title is required';
     }
+    if (!note.content.trim()) {
+      newErrors.content = 'Description is required';
+    }
+
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+
+    // Show toast if there are validation errors
+    if (Object.keys(newErrors).length > 0) {
+      // Create message based on which fields have errors
+      let errorMessage = '';
+      if (newErrors.title && newErrors.content) {
+        errorMessage = 'Title and Description are required';
+      } else if (newErrors.title) {
+        errorMessage = 'Title is required';
+      } else if (newErrors.content) {
+        errorMessage = 'Description is required';
+      } else {
+        errorMessage = 'Please check the form fields';
+      }
+
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: errorMessage,
+        position: 'top',
+        visibilityTime: 3000,
+      });
+      return false;
+    }
+
+    return true;
   };
 
   const handleSave = async () => {
@@ -113,6 +150,14 @@ const NoteCreateScreen = ({navigation, route}) => {
       if (!Batch_id) {
         console.warn('Batch_id is not available!');
         setIsSaving(false);
+
+        // Show toast for missing batch ID
+        Toast.show({
+          type: 'error',
+          text1: 'Missing Information',
+          text2: 'Batch ID is not available',
+        });
+
         return;
       }
 
@@ -133,6 +178,17 @@ const NoteCreateScreen = ({navigation, route}) => {
         );
         // Filter out any undefined results from failed uploads
         newAttachmentUrls = newAttachmentUrls.filter(url => url !== undefined);
+
+        // Show toast if some attachments failed to upload
+        const failedUploads =
+          attachmentsToUpload.length - newAttachmentUrls.length;
+        if (failedUploads > 0) {
+          Toast.show({
+            type: 'info',
+            text1: 'Attachment Issue',
+            text2: `${failedUploads} attachment(s) failed to upload`,
+          });
+        }
       }
 
       // Get current attachment URLs (existing ones that weren't removed)
@@ -167,6 +223,13 @@ const NoteCreateScreen = ({navigation, route}) => {
     } catch (error) {
       console.error('Error during save:', error.message);
       setIsSaving(false);
+
+      // Show toast for general save error
+      Toast.show({
+        type: 'error',
+        text1: 'Save Failed',
+        text2: error.message || 'An unexpected error occurred',
+      });
     }
   };
 
@@ -199,9 +262,25 @@ const NoteCreateScreen = ({navigation, route}) => {
         // Update UI list and upload list
         setAttachmentList(prev => [...prev, ...newFiles]);
         setAttachmentsToUpload(prev => [...prev, ...newFiles]);
+
+        // Show toast for successful attachment addition
+        Toast.show({
+          type: 'success',
+          text1: 'Attachments Added',
+          text2: `${newFiles.length} file(s) ready to upload`,
+          position: 'bottom',
+          visibilityTime: 2000,
+        });
       }
     } catch (error) {
       console.error('Document Picker Error:', error);
+
+      // Show toast for document picker error
+      Toast.show({
+        type: 'error',
+        text1: 'Attachment Error',
+        text2: 'Failed to select documents',
+      });
     }
   };
 
@@ -269,18 +348,20 @@ const NoteCreateScreen = ({navigation, route}) => {
 
     const body = noteData;
 
-      const fliteredData = Object.fromEntries(
-        Object.entries(body).filter(
-          ([_, value]) => value !== '' && value !== null && value !== undefined,
-        ),
-      );
+    const filteredData = Object.fromEntries(
+      Object.entries(body).filter(
+        ([_, value]) => value !== '' && value !== null && value !== undefined,
+      ),
+    );
 
     const onResponse = res => {
       setNote(res);
       Toast.show({
         type: 'success',
         text1: 'New Note',
-        text2: 'Created Succecssfully',
+        text2: 'Created Successfully',
+        position: 'top',
+        visibilityTime: 3000,
       });
       navigation.goBack();
     };
@@ -290,6 +371,8 @@ const NoteCreateScreen = ({navigation, route}) => {
         type: 'error',
         text1: 'Failed',
         text2: 'Note creation failed',
+        position: 'top',
+        visibilityTime: 3000,
       });
       console.log('Error', res);
     };
@@ -319,7 +402,9 @@ const NoteCreateScreen = ({navigation, route}) => {
       Toast.show({
         type: 'success',
         text1: 'Note',
-        text2: 'Updated Succecssfully',
+        text2: 'Updated Successfully',
+        position: 'top',
+        visibilityTime: 3000,
       });
       navigation.goBack();
     };
@@ -329,6 +414,8 @@ const NoteCreateScreen = ({navigation, route}) => {
         type: 'error',
         text1: 'Failed',
         text2: 'Note update failed',
+        position: 'top',
+        visibilityTime: 3000,
       });
       console.log('Error', res);
     };
@@ -349,6 +436,15 @@ const NoteCreateScreen = ({navigation, route}) => {
 
     // Remove from UI list
     setAttachmentList(prev => prev.filter((_, i) => i !== index));
+
+    // Show toast for attachment removal
+    Toast.show({
+      type: 'info',
+      text1: 'Attachment Removed',
+      text2: item.name,
+      position: 'bottom',
+      visibilityTime: 2000,
+    });
   };
 
   const renderAttachmentItem = (item, index) => (
@@ -403,19 +499,29 @@ const NoteCreateScreen = ({navigation, route}) => {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Description</Text>
+              <Text style={styles.label}>Description *</Text>
               <TextInput
-                style={[styles.input, styles.textArea]}
+                style={[
+                  styles.input,
+                  styles.textArea,
+                  errors.content && styles.inputError,
+                ]}
                 value={note.content}
-                onChangeText={text =>
-                  setNote(prev => ({...prev, content: text}))
-                }
+                onChangeText={text => {
+                  setNote(prev => ({...prev, content: text}));
+                  if (errors.content) {
+                    setErrors(prev => ({...prev, content: undefined}));
+                  }
+                }}
                 placeholder="Enter note description"
                 placeholderTextColor="#9CA3AF"
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
               />
+              {errors.content && (
+                <Text style={styles.errorText}>{errors.content}</Text>
+              )}
             </View>
 
             <View style={styles.inputGroup}>
