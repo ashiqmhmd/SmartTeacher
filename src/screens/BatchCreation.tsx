@@ -135,7 +135,7 @@ const BatchCreation = ({navigation, route}) => {
         // Wait 3 seconds before navigating back
         setTimeout(() => {
           handleCreateBatch();
-        }, 3000);
+        }, 2000);
       };
 
       const onCatch = error => {
