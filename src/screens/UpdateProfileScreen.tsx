@@ -201,7 +201,12 @@ const UpdateProfileScreen = ({navigation, route}) => {
         return;
       }
 
-      if (!profileData[field] || profileData[field]?.trim() === '') {
+      // Check if the field exists in profileData and is not empty after trimming
+      const fieldValue = profileData[field];
+      if (
+        !fieldValue ||
+        (typeof fieldValue === 'string' && fieldValue.trim() === '')
+      ) {
         newErrors[field] = `${fieldToLabel(field)} is required`;
         isValid = false;
       }
@@ -219,13 +224,21 @@ const UpdateProfileScreen = ({navigation, route}) => {
     }
 
     // Validate phone number (simple validation)
-    if (profileData?.phoneNumber && profileData.phoneNumber.length < 10) {
+    if (
+      profileData?.phoneNumber &&
+      typeof profileData.phoneNumber === 'string' &&
+      profileData.phoneNumber.length < 10
+    ) {
       newErrors.phoneNumber = 'Enter a valid phone number';
       isValid = false;
     }
 
     // Validate PIN code (simple validation for example)
-    if (profileData?.pinCode && profileData.pinCode.length !== 6) {
+    if (
+      profileData?.pinCode &&
+      typeof profileData.pinCode === 'string' &&
+      profileData.pinCode.length !== 6
+    ) {
       newErrors.pinCode = 'PIN code must be 6 digits';
       isValid = false;
     }
@@ -233,6 +246,7 @@ const UpdateProfileScreen = ({navigation, route}) => {
     // Validate IFSC code format (simple validation)
     if (
       profileData?.ifscCode &&
+      typeof profileData.ifscCode === 'string' &&
       !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(profileData.ifscCode)
     ) {
       newErrors.ifscCode = 'Enter a valid IFSC code';
@@ -240,13 +254,22 @@ const UpdateProfileScreen = ({navigation, route}) => {
     }
 
     // Email validation
-    if (profileData?.email && !/\S+@\S+\.\S+/.test(profileData.email)) {
+    if (
+      profileData?.email &&
+      typeof profileData.email === 'string' &&
+      !/\S+@\S+\.\S+/.test(profileData.email)
+    ) {
       newErrors.email = 'Enter a valid email address';
       isValid = false;
     }
 
     // Password validation if in update mode
-    if (update && profileData.password && profileData.password.length < 6) {
+    if (
+      update &&
+      profileData.password &&
+      typeof profileData.password === 'string' &&
+      profileData.password.length < 6
+    ) {
       newErrors.password = 'Password must be at least 6 characters';
       isValid = false;
     }
