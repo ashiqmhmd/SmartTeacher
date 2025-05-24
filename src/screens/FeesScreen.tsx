@@ -207,9 +207,29 @@ const FeesScreen = ({navigation}) => {
     setIsBatchSelected(true);
   };
 
+  // const filteredFees = useMemo(() => {
+  //   return fees.filter(record => {
+  //     console.log(dateconvert(record.dueDate));
+  //     const studentName = studentDetails[record.studentId] || '';
+  //     const matchesSearch =
+  //       searchQuery === '' ||
+  //       studentName.toLowerCase().includes(searchQuery.toLowerCase());
+
+  //     const matchesPaymentFilter =
+  //       paymentFilter === 'All' ||
+  //       (paymentFilter === 'Paid' && record.status === 'paid') ||
+  //       (paymentFilter === 'Unpaid' && record.status !== 'paid');
+
+  //     const matchesMonth = selectedMonth === 'Current Month' || true;
+
+  //     return matchesSearch && matchesPaymentFilter && matchesMonth;
+  //   });
+  // }, [fees, searchQuery, paymentFilter, selectedMonth, studentDetails]);
+
+  // Replace the filteredFees useMemo hook with this corrected version:
+
   const filteredFees = useMemo(() => {
     return fees.filter(record => {
-      console.log(dateconvert(record.dueDate));
       const studentName = studentDetails[record.studentId] || '';
       const matchesSearch =
         searchQuery === '' ||
@@ -220,7 +240,42 @@ const FeesScreen = ({navigation}) => {
         (paymentFilter === 'Paid' && record.status === 'paid') ||
         (paymentFilter === 'Unpaid' && record.status !== 'paid');
 
-      const matchesMonth = selectedMonth === 'Current Month' || true;
+      // Fixed month filtering logic
+      const matchesMonth = (() => {
+        if (selectedMonth === 'Current Month') {
+          const currentDate = new Date();
+          const currentMonth = currentDate.getMonth(); // 0-11
+          const recordDate = new Date(record.dueDate);
+          const recordMonth = recordDate.getMonth(); // 0-11
+          return (
+            currentMonth === recordMonth &&
+            currentDate.getFullYear() === recordDate.getFullYear()
+          );
+        } else {
+          // For specific months (January through December)
+          const monthNames = [
+            'January',
+            'February',
+            'March',
+            'April',
+            'May',
+            'June',
+            'July',
+            'August',
+            'September',
+            'October',
+            'November',
+            'December',
+          ];
+          const selectedMonthIndex = monthNames.indexOf(selectedMonth);
+
+          if (selectedMonthIndex === -1) return true; // Invalid month, show all
+
+          const recordDate = new Date(record.dueDate);
+          const recordMonth = recordDate.getMonth(); // 0-11
+          return recordMonth === selectedMonthIndex;
+        }
+      })();
 
       return matchesSearch && matchesPaymentFilter && matchesMonth;
     });
