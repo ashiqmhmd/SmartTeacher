@@ -98,7 +98,7 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
     };
     const onResponse = async res => {
       console.log('deleted successfully');
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       navigation.goBack();
 
       setLoading(false);
@@ -135,13 +135,12 @@ const FeePaymentDetailsScreen = ({route, navigation}) => {
       };
 
       const onResponse = async res => {
-        // Show Toast Message
         Toast.show({
           type: 'success',
           text1: 'Fees marking',
           text2: 'Fees has been successfully updated!',
           position: 'top',
-          visibilityTime: 3000, // 3 seconds
+          visibilityTime: 3000,
           autoHide: true,
         });
         await new Promise(resolve => setTimeout(resolve, 1000));

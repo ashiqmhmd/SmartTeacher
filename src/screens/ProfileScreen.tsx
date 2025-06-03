@@ -21,7 +21,6 @@ import {getUserId} from '../utils/TokenDecoder';
 import LinearGradient from 'react-native-linear-gradient';
 import Toast from 'react-native-toast-message';
 
-// Custom Confirmation Dialog Component
 const ConfirmationDialog = ({
   visible,
   onCancel,
@@ -184,7 +183,6 @@ const ProfileScreen = ({navigation, item}) => {
 
       getapi(url, headers, onResponse, onCatch, navigation);
 
-      // Fetch batches for the teacher
       const batchesUrl = `batches/teacher/${Teacherid}`;
       const batchesHeaders = {
         Accept: 'application/json',
@@ -243,7 +241,7 @@ const ProfileScreen = ({navigation, item}) => {
 
         setConfirmDialogVisible(false);
         showToast(`${deletingBatch.name} deleted successfully`, 'success');
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
         setLoading(false);
       };
 
@@ -433,14 +431,12 @@ const ProfileScreen = ({navigation, item}) => {
           </View>
         </View>
 
-        {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <MaterialIcons name="logout" size={24} color="#fff" />
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Custom Confirmation Dialogs */}
       <ConfirmationDialog
         visible={confirmDialogVisible}
         onCancel={() => setConfirmDialogVisible(false)}
@@ -645,7 +641,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 
-  // Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',

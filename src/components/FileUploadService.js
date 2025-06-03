@@ -37,7 +37,6 @@ export const pickImage = async (options = {}) => {
       name: selectedImage.fileName || 'file.jpg',
     };
 
-    // Create FormData object
     const formData = new FormData();
     formData.append('file', fileData);
 
@@ -140,19 +139,16 @@ export const uploadFile = async (formData, uploadType) => {
  * @returns {Promise<Object>} - Returns the uploaded file URL if successful
  */
 export const pickAndUploadImage = async (options = {}, uploadType) => {
-  // First pick the image
   const pickResult = await pickImage(options);
 
   if (!pickResult.success) {
-    return pickResult; // Return early if image picking failed
+    return pickResult;
   }
 
-  // Then upload the image
   const uploadResult = await uploadFile(pickResult.formData, uploadType);
 
-  // Return combined result
   return {
     ...uploadResult,
-    uri: pickResult.uri, // Include the local URI for immediate display
+    uri: pickResult.uri,
   };
 };

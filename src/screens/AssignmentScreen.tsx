@@ -73,25 +73,23 @@ const AssignmentsScreen = ({navigation}) => {
     const onResponse = res => {
       setAssignment(res || []);
       setLoading(false);
-      setRefreshing(false); // Stop refreshing after data is fetched
+      setRefreshing(false);
     };
 
     const onCatch = res => {
       console.log('Error');
       console.log(res);
       setLoading(false);
-      setRefreshing(false); // Stop refreshing on error
+      setRefreshing(false);
     };
     getapi(url, headers, onResponse, onCatch, navigation);
   };
 
   const getStatusColor = submissionDate => {
     if (!submissionDate || isNaN(new Date(submissionDate).getTime())) {
-      return '#e53935'; // Red for invalid or missing dates
+      return '#e53935';
     }
-    return new Date() < new Date(submissionDate)
-      ? true // Green if current date is before submissionDate
-      : false; // Red if current date is after or equal to submissionDate
+    return new Date() < new Date(submissionDate) ? true : false;
   };
 
   useEffect(() => {
@@ -108,10 +106,9 @@ const AssignmentsScreen = ({navigation}) => {
     }, []),
   );
 
-  // Handle pull-to-refresh
   const onRefresh = useCallback(() => {
-    setRefreshing(true); // Start refreshing
-    Assignment_fetch(); // Fetch data
+    setRefreshing(true);
+    Assignment_fetch();
   }, []);
 
   const AssignmentCard = ({item}) => (
@@ -210,12 +207,10 @@ const AssignmentsScreen = ({navigation}) => {
         renderNoBatchSelected()
       ) : loading ? (
         <View style={styles.container}>
-          {/* Search Bar Shimmer */}
           <View style={styles.searchSection}>
             <ShimmerPlaceholder style={styles.searchBar} />
           </View>
 
-          {/* Student List Shimmer */}
           {[1, 2, 3, 4, 5].map((_, index) => (
             <View style={styles.assignmentCard}>
               <View key={index} style={styles.assignmentHeader}>
@@ -233,10 +228,10 @@ const AssignmentsScreen = ({navigation}) => {
           style={styles.container}
           refreshControl={
             <RefreshControl
-              refreshing={refreshing} // Controlled by refreshing state
-              onRefresh={onRefresh} // Callback when user pulls to refresh
-              colors={['#001d3d']} // Customize refresh spinner color
-              tintColor="#001d3d" // Customize spinner color (iOS)
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#001d3d']}
+              tintColor="#001d3d"
             />
           }>
           <View style={styles.searchSection}>
@@ -247,7 +242,7 @@ const AssignmentsScreen = ({navigation}) => {
                 placeholder="Search assignments"
                 placeholderTextColor="#666"
                 value={searchQuery}
-                onChangeText={setSearchQuery} // Updates searchQuery when user types
+                onChangeText={setSearchQuery}
               />
             </View>
             <TouchableOpacity

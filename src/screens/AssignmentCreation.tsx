@@ -56,15 +56,14 @@ const CreateAssignment = ({navigation, route}) => {
     const date = route?.params?.assignment?.submissionDate;
 
     if (date instanceof Date || typeof date === 'string') {
-      const dateObject = new Date(date); // Convert string to Date
+      const dateObject = new Date(date);
       if (!isNaN(dateObject.getTime())) {
-        setSubmitdate(dateObject); // Only set the date if it's valid
+        setSubmitdate(dateObject);
       } else {
         console.error('Invalid date string:', date);
       }
     }
 
-    // Handle existing attachments for edit mode
     if (isEditMode && route?.params?.assignment?.attachmentUrls) {
       const mappedAttachments = route?.params?.assignment?.attachmentUrls.map(
         url => ({
@@ -72,7 +71,7 @@ const CreateAssignment = ({navigation, route}) => {
           name: url.split('/').pop(),
           size: 1.5,
           type: 'application/pdf',
-          isExisting: true, // Flag to identify existing attachments
+          isExisting: true,
         }),
       );
 
@@ -98,8 +97,8 @@ const CreateAssignment = ({navigation, route}) => {
   };
 
   const getDateObject = date => {
-    if (!date) return new Date(); // Fallback to current date if null or undefined
-    return typeof date === 'string' ? new Date(date) : date; // Convert string to Date object
+    if (!date) return new Date();
+    return typeof date === 'string' ? new Date(date) : date;
   };
 
   const attachmentValidation = size => {
@@ -134,7 +133,6 @@ const CreateAssignment = ({navigation, route}) => {
     try {
       setIsSaving(true);
 
-      // Fetch Batch_id from AsyncStorage
       const Batch_id = await AsyncStorage.getItem('batch_id');
       if (!Batch_id) {
         console.warn('Batch_id is not available!');
@@ -142,7 +140,6 @@ const CreateAssignment = ({navigation, route}) => {
         return;
       }
 
-      // Update assignment state with Batch_id
       await new Promise(resolve => {
         setAssignment(prev => ({
           ...prev,
@@ -151,17 +148,15 @@ const CreateAssignment = ({navigation, route}) => {
         resolve();
       });
 
-      // Handle new file uploads if there are any
       let newAttachmentUrls = [];
       if (attachmentsToUpload.length > 0) {
         newAttachmentUrls = await Promise.all(
           attachmentsToUpload.map(attachment => uploadSingleFile(attachment)),
         );
-        // Filter out any undefined results from failed uploads
+
         newAttachmentUrls = newAttachmentUrls.filter(url => url !== undefined);
       }
 
-      // Get current attachment URLs (existing ones that weren't removed)
       let currentAttachmentUrls = [];
       if (isEditMode) {
         currentAttachmentUrls = existingAttachments
@@ -169,7 +164,6 @@ const CreateAssignment = ({navigation, route}) => {
           .map(attachment => attachment.uri);
       }
 
-      // Update assignment with combined attachment URLs
       const updatedAssignment = {
         ...assignment,
         batchId: Batch_id,
@@ -178,14 +172,12 @@ const CreateAssignment = ({navigation, route}) => {
 
       setAssignment(updatedAssignment);
 
-      // Update or create assignment
       if (isEditMode) {
         await Assignment_Update(updatedAssignment);
       } else {
         await Assignment_Submit(updatedAssignment);
       }
 
-      // Show success message
       setIsSaving(false);
 
       setShowSuccessMessage(true);
@@ -198,56 +190,16 @@ const CreateAssignment = ({navigation, route}) => {
     }
   };
 
-  // const handleAttachments = async () => {
-  //   try {
-  //     const result = await pick({
-  //       allowMultiSelection: false,
-  //       type: ['*/*'],
-  //     });
-
-  //     if (result && result.length > 0) {
-  //       console.log('Document selected:', result);
-  //       const selectedFile = result[0];
-  //       let size = selectedFile.size;
-
-  //       // Validate file size
-  //       if (!attachmentValidation(size)) {
-  //         return;
-  //       }
-
-  //       const fileData = {
-  //         uri:
-  //           Platform.OS === 'android'
-  //             ? selectedFile.uri
-  //             : selectedFile.uri.replace('file://', ''),
-  //         type: selectedFile.type || 'application/pdf',
-  //         name: selectedFile.name || 'file.pdf',
-  //         size: selectedFile.size,
-  //         isExisting: false, // Flag to identify new attachments
-  //       };
-
-  //       // Add to attachment list for UI
-  //       setAttachmentList(prev => [...prev, fileData]);
-
-  //       // Add to attachments to upload list
-  //       setAttachmentsToUpload(prev => [...prev, fileData]);
-  //     }
-  //   } catch (error) {
-  //     console.error('Document Picker Error:', error);
-  //   }
-  // };
-
   const handleAttachments = async () => {
     try {
       const result = await pick({
-        allowMultiSelection: true, // Enable multiple file selection
+        allowMultiSelection: true,
         type: ['*/*'],
       });
 
       if (result && result.length > 0) {
         console.log('Documents selected:', result);
 
-        // Validate file sizes and create file objects
         const newFiles = result
           .map(file => ({
             uri:
@@ -259,13 +211,12 @@ const CreateAssignment = ({navigation, route}) => {
             size: file.size,
             isExisting: false,
           }))
-          .filter(file => attachmentValidation(file.size)); // Remove invalid files
+          .filter(file => attachmentValidation(file.size));
 
         if (newFiles.length === 0) {
-          return; // No valid files to upload
+          return;
         }
 
-        // Update UI list and upload list
         setAttachmentList(prev => [...prev, ...newFiles]);
         setAttachmentsToUpload(prev => [...prev, ...newFiles]);
       }
@@ -274,7 +225,6 @@ const CreateAssignment = ({navigation, route}) => {
     }
   };
 
-  // Function to upload multiple files and get their URLs
   const uploadMultipleFiles = async files => {
     const uploadedUrls = [];
 
@@ -351,7 +301,6 @@ const CreateAssignment = ({navigation, route}) => {
         throw new Error('Authentication token is missing.');
       }
 
-      // Upload attachments first and get the URLs
       const uploadedUrls = await uploadMultipleFiles(attachmentsToUpload);
 
       const url = `assignments`;
@@ -363,16 +312,16 @@ const CreateAssignment = ({navigation, route}) => {
 
       const body = {
         ...assignmentData,
-        attachmentUrls: uploadedUrls, // Assign the uploaded URLs to the assignment
+        attachmentUrls: uploadedUrls,
       };
 
       const fliteredData = Object.fromEntries(
         Object.entries(body).filter(
           ([_, value]) => value !== '' && value !== null && value !== undefined,
-        ),
-      );
+        ),
+      );
 
-      console.log("body",fliteredData)
+      console.log('body', fliteredData);
 
       const onResponse = res => {
         setAssignment(res);
@@ -444,17 +393,14 @@ const CreateAssignment = ({navigation, route}) => {
   };
 
   const handleRemoveAttachment = (index, item) => {
-    // If removing an existing attachment, add to the removed list
     if (item.isExisting) {
       setRemovedAttachments(prev => [...prev, item.uri]);
     } else {
-      // If removing a newly added attachment, remove from uploads list
       setAttachmentsToUpload(prev =>
         prev.filter(attachment => attachment.uri !== item.uri),
       );
     }
 
-    // Remove from UI list
     setAttachmentList(prev => prev.filter((_, i) => i !== index));
   };
 

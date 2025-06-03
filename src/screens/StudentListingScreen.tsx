@@ -110,8 +110,6 @@ const StudentListing = ({navigation}) => {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar backgroundColor="#001d3d" barStyle="light-content" />
 
-      {/* Header */}
-
       <View style={styles.header}>
         <Pressable
           style={styles.backButton}
@@ -121,7 +119,6 @@ const StudentListing = ({navigation}) => {
         <Text style={styles.headerTitle}>Students</Text>
       </View>
 
-      {/* Search bar */}
       <View style={styles.searchBarContainer}>
         <View style={styles.searchBar}>
           <Ionicons name="search" size={24} color="#666" />
@@ -140,7 +137,6 @@ const StudentListing = ({navigation}) => {
         </View>
       </View>
 
-      {/* Student list */}
       {filteredStudents.length === 0 ? (
         <View style={styles.noStudentsContainer}>
           <FontAwesome name="user" size={48} color="#ccc" />

@@ -46,7 +46,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
         },
   );
 
-  // Input refs for auto focus
   const lastNameRef = useRef(null);
   const ageRef = useRef(null);
   const phoneNumberRef = useRef(null);
@@ -70,7 +69,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState('');
 
-  // Define required fields
   const requiredFields = [
     'firstName',
     'lastName',
@@ -88,16 +86,12 @@ const UpdateProfileScreen = ({navigation, route}) => {
     'upiId',
   ];
 
-  // Additional required fields if in update mode
   const updateRequiredFields = update ? ['userName', 'email', 'password'] : [];
 
-  // All required fields combined
   const allRequiredFields = [...requiredFields, ...updateRequiredFields];
 
   const handleInputChange = (field, value) => {
-    // Handle age field specifically - convert to number if needed
     if (field === 'age') {
-      // Only allow numeric values
       const numericValue = value.replace(/[^0-9]/g, '');
       setProfileData(prev => ({
         ...prev,
@@ -110,7 +104,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
       }));
     }
 
-    // Clear field-specific error when user types
     if (errors[field]) {
       setErrors(prev => ({
         ...prev,
@@ -119,17 +112,14 @@ const UpdateProfileScreen = ({navigation, route}) => {
     }
   };
 
-  // Gender options
   const genderOptions = ['male', 'female', 'do not reveal'];
 
-  // Handle gender selection
   const handleGenderSelect = value => {
     setProfileData(prev => ({
       ...prev,
       gender: value,
     }));
 
-    // Clear gender error if it exists
     if (errors.gender) {
       setErrors(prev => ({
         ...prev,
@@ -144,16 +134,13 @@ const UpdateProfileScreen = ({navigation, route}) => {
       const result = await pickAndUploadImage({}, 'profile');
 
       if (result.success) {
-        // Update profile image state
         setProfileImage(result.uri);
 
-        // Save the remote URL to profile data
         setProfileData(prev => ({
           ...prev,
           profilePicUrl: result.url,
         }));
 
-        // Clear profilePicUrl error if it exists
         if (errors.profilePicUrl) {
           setErrors(prev => ({
             ...prev,
@@ -190,7 +177,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
     const newErrors = {};
     let isValid = true;
 
-    // Check all required fields
     allRequiredFields?.forEach(field => {
       if (field === 'age') {
         const ageValue = profileData[field];
@@ -201,7 +187,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
         return;
       }
 
-      // Check if the field exists in profileData and is not empty after trimming
       const fieldValue = profileData[field];
       if (
         !fieldValue ||
@@ -212,9 +197,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
       }
     });
 
-    // Remove the validation for profile picture as it's optional
-
-    // Validate numeric fields
     if (profileData.age) {
       const ageNum = parseInt(profileData.age, 10);
       if (isNaN(ageNum) || ageNum < 18 || ageNum > 100) {
@@ -223,7 +205,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
       }
     }
 
-    // Validate phone number (simple validation)
     if (
       profileData?.phoneNumber &&
       typeof profileData.phoneNumber === 'string' &&
@@ -233,7 +214,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
       isValid = false;
     }
 
-    // Validate PIN code (simple validation for example)
     if (
       profileData?.pinCode &&
       typeof profileData.pinCode === 'string' &&
@@ -243,7 +223,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
       isValid = false;
     }
 
-    // Validate IFSC code format (simple validation)
     if (
       profileData?.ifscCode &&
       typeof profileData.ifscCode === 'string' &&
@@ -253,7 +232,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
       isValid = false;
     }
 
-    // Email validation
     if (
       profileData?.email &&
       typeof profileData.email === 'string' &&
@@ -263,7 +241,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
       isValid = false;
     }
 
-    // Password validation if in update mode
     if (
       update &&
       profileData.password &&
@@ -278,7 +255,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
     return isValid;
   };
 
-  // Convert field names to user-friendly labels
   const fieldToLabel = field => {
     const labels = {
       firstName: 'First name',
@@ -304,9 +280,7 @@ const UpdateProfileScreen = ({navigation, route}) => {
 
   const handleSubmit = async () => {
     try {
-      // Validate the form
       if (!validateForm()) {
-        // Scroll to first error
         Toast.show({
           type: 'error',
           text1: 'Form Validation Error',
@@ -326,7 +300,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
         Authorization: `Bearer ${Token}`,
       };
 
-      // Filter out empty or undefined values
       const rawPayload = {
         firstName: profileData.firstName,
         lastName: profileData.lastName,
@@ -347,7 +320,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
         password: profileData.password,
       };
 
-      // Remove keys with empty string or null or undefined values
       const payload = Object.fromEntries(
         Object.entries(rawPayload).filter(
           ([_, value]) => value !== '' && value !== null && value !== undefined,
@@ -372,13 +344,10 @@ const UpdateProfileScreen = ({navigation, route}) => {
       const onCatch = err => {
         setIsLoading(false);
 
-        // Handle API error responses
         if (err.error) {
-          // If the API returns field-specific errors
           if (typeof err.error === 'object') {
             setErrors(err.error);
           } else {
-            // General error
             Toast.show({
               type: 'error',
               text1: 'Update Failed',
@@ -450,7 +419,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
     </View>
   );
 
-  // Radio button component for gender selection
   const RadioButton = ({label, selected, onPress}) => (
     <TouchableOpacity style={styles.radioButtonContainer} onPress={onPress}>
       <View style={styles.radioButton}>
@@ -460,7 +428,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
     </TouchableOpacity>
   );
 
-  // Render gender selection component
   const renderGenderSelection = () => (
     <View>
       <View

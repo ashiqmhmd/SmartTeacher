@@ -48,7 +48,7 @@ const FeesScreen = ({navigation}) => {
   const [receivedFees, setReceivedFees] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [isBatchSelected, setIsBatchSelected] = useState(true); // Track if batch is selected
+  const [isBatchSelected, setIsBatchSelected] = useState(true);
 
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
@@ -60,7 +60,6 @@ const FeesScreen = ({navigation}) => {
     const Batch_id = await AsyncStorage.getItem('batch_id');
     const Token = await AsyncStorage.getItem('Token');
 
-    // Check if batch_id is available
     const currentBatchId = Batch_id ? Batch_id : selectedBatch_id;
 
     if (!currentBatchId) {
@@ -226,8 +225,6 @@ const FeesScreen = ({navigation}) => {
   //   });
   // }, [fees, searchQuery, paymentFilter, selectedMonth, studentDetails]);
 
-  // Replace the filteredFees useMemo hook with this corrected version:
-
   const filteredFees = useMemo(() => {
     return fees.filter(record => {
       const studentName = studentDetails[record.studentId] || '';
@@ -240,19 +237,17 @@ const FeesScreen = ({navigation}) => {
         (paymentFilter === 'Paid' && record.status === 'paid') ||
         (paymentFilter === 'Unpaid' && record.status !== 'paid');
 
-      // Fixed month filtering logic
       const matchesMonth = (() => {
         if (selectedMonth === 'Current Month') {
           const currentDate = new Date();
-          const currentMonth = currentDate.getMonth(); // 0-11
+          const currentMonth = currentDate.getMonth();
           const recordDate = new Date(record.dueDate);
-          const recordMonth = recordDate.getMonth(); // 0-11
+          const recordMonth = recordDate.getMonth();
           return (
             currentMonth === recordMonth &&
             currentDate.getFullYear() === recordDate.getFullYear()
           );
         } else {
-          // For specific months (January through December)
           const monthNames = [
             'January',
             'February',
@@ -269,10 +264,10 @@ const FeesScreen = ({navigation}) => {
           ];
           const selectedMonthIndex = monthNames.indexOf(selectedMonth);
 
-          if (selectedMonthIndex === -1) return true; // Invalid month, show all
+          if (selectedMonthIndex === -1) return true;
 
           const recordDate = new Date(record.dueDate);
-          const recordMonth = recordDate.getMonth(); // 0-11
+          const recordMonth = recordDate.getMonth();
           return recordMonth === selectedMonthIndex;
         }
       })();

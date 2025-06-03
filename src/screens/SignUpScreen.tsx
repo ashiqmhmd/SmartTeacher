@@ -53,7 +53,6 @@ const SignupScreen = ({navigation}) => {
     return phoneRegex.test(phone);
   };
 
-  // Check if username is available via API
   const checkUsernameAvailability = async username => {
     if (!username.trim()) {
       setUsernameChecked(false);
@@ -113,15 +112,13 @@ const SignupScreen = ({navigation}) => {
     }
   };
 
-  // Handle username change with debounced validation
   const handleUsernameChange = text => {
     setUsername(text);
-    // Clear previous username error when typing
+
     setErrors(prev => ({...prev, username: ''}));
     setUsernameChecked(false);
   };
 
-  // Validate username when user finishes typing
   const handleUsernameBlur = () => {
     if (username.trim()) {
       checkUsernameAvailability(username);
@@ -141,11 +138,9 @@ const SignupScreen = ({navigation}) => {
       newErrors.username = 'Username is required';
       isValid = false;
     } else {
-      // Check username availability
       const isUsernameAvailable = await checkUsernameAvailability(username);
       if (!isUsernameAvailable) {
         isValid = false;
-        // Error message already set in checkUsernameAvailability
       }
     }
 
@@ -195,7 +190,6 @@ const SignupScreen = ({navigation}) => {
 
     const isFormValid = await validateForm();
     if (!isFormValid) {
-      // Show toast for validation errors
       const errorMessage =
         Object.values(errors).find(error => error !== '') ||
         'Please check your form inputs';
@@ -281,7 +275,6 @@ const SignupScreen = ({navigation}) => {
     return <Text style={styles.errorText}>{error}</Text>;
   };
 
-  // Render username availability indicator
   const renderUsernameIndicator = () => {
     if (isCheckingUsername) {
       return (
@@ -450,7 +443,7 @@ const SignupScreen = ({navigation}) => {
                 <Text style={styles.loginText}>Already have an account? </Text>
                 <TouchableOpacity
                   onPress={() => {
-                    setIsLoading(true); // Show loading state while navigating
+                    setIsLoading(true);
                     setTimeout(() => {
                       navigation.replace('Login');
                       setIsLoading(false);

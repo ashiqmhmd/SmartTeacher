@@ -57,7 +57,6 @@ const BatchCreation = ({navigation, route}) => {
       newErrors.paymentAmount = 'Valid payment amount is required';
     }
 
-    // Only validate paymentDayOfMonth if frequency is Monthly
     if (
       batch.paymentFrequency === 'Monthly' &&
       (!batch.paymentDayOfMonth ||
@@ -122,17 +121,15 @@ const BatchCreation = ({navigation, route}) => {
       console.log(fliteredData);
 
       const onResponse = async res => {
-        // Show Toast Message
         Toast.show({
           type: 'success',
           text1: 'Batch Created',
           text2: 'Batch has been successfully created!',
           position: 'top',
-          visibilityTime: 3000, // 3 seconds
+          visibilityTime: 3000,
           autoHide: true,
         });
 
-        // Wait 3 seconds before navigating back
         setTimeout(() => {
           handleCreateBatch();
         }, 2000);
@@ -184,17 +181,15 @@ const BatchCreation = ({navigation, route}) => {
       const {teacherId, id, ...filteredBatch} = batch;
 
       const onResponse = async res => {
-        // Show Toast Message
         Toast.show({
           type: 'success',
           text1: 'Batch Update',
           text2: 'Batch has been successfully updated!',
           position: 'top',
-          visibilityTime: 3000, // 3 seconds
+          visibilityTime: 3000,
           autoHide: true,
         });
 
-        // Wait 3 seconds before navigating back
         setTimeout(() => {
           handleCreateBatch();
         }, 3000);
@@ -232,13 +227,9 @@ const BatchCreation = ({navigation, route}) => {
   };
 
   const handleCreateBatch = async () => {
-    // Your batch creation logic
-
-    // Set the flag to true
     dispatch(setBatchCreated(true));
     await dispatch(fetch_batchs());
 
-    // Go back
     navigation.goBack();
   };
 
@@ -372,7 +363,6 @@ const BatchCreation = ({navigation, route}) => {
         </View>
       </KeyboardAvoidingView>
 
-      {/* Dropdown Modal */}
       <Modal
         visible={showFrequencyDropdown}
         transparent={true}

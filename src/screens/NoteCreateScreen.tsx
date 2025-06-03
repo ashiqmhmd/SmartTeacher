@@ -46,7 +46,6 @@ const NoteCreateScreen = ({navigation, route}) => {
   const [removedAttachments, setRemovedAttachments] = useState([]);
 
   useEffect(() => {
-    // Initialize attachmentList from existing note if in edit mode
     if (
       isEditMode &&
       route?.params?.note?.listUrls &&
@@ -57,7 +56,7 @@ const NoteCreateScreen = ({navigation, route}) => {
         name: url.split('/').pop(),
         size: 1.5,
         type: 'application/pdf',
-        isExisting: true, // Flag to identify existing attachments
+        isExisting: true,
       }));
 
       setAttachmentList(mappedAttachments);
@@ -87,7 +86,6 @@ const NoteCreateScreen = ({navigation, route}) => {
       newErrors.attachment = 'File size must be less than 2MB';
       setErrors(newErrors);
 
-      // Show toast for attachment size error
       Toast.show({
         type: 'error',
         text1: 'Invalid File',
@@ -110,9 +108,7 @@ const NoteCreateScreen = ({navigation, route}) => {
 
     setErrors(newErrors);
 
-    // Show toast if there are validation errors
     if (Object.keys(newErrors).length > 0) {
-      // Create message based on which fields have errors
       let errorMessage = '';
       if (newErrors.title && newErrors.content) {
         errorMessage = 'Title and Description are required';
@@ -145,13 +141,11 @@ const NoteCreateScreen = ({navigation, route}) => {
     try {
       setIsSaving(true);
 
-      // Fetch Batch_id from AsyncStorage
       const Batch_id = await AsyncStorage.getItem('batch_id');
       if (!Batch_id) {
         console.warn('Batch_id is not available!');
         setIsSaving(false);
 
-        // Show toast for missing batch ID
         Toast.show({
           type: 'error',
           text1: 'Missing Information',
@@ -161,7 +155,6 @@ const NoteCreateScreen = ({navigation, route}) => {
         return;
       }
 
-      // Update note state with Batch_id
       await new Promise(resolve => {
         setNote(prev => ({
           ...prev,
@@ -170,16 +163,14 @@ const NoteCreateScreen = ({navigation, route}) => {
         resolve();
       });
 
-      // Handle new file uploads if there are any
       let newAttachmentUrls = [];
       if (attachmentsToUpload.length > 0) {
         newAttachmentUrls = await Promise.all(
           attachmentsToUpload.map(attachment => uploadSingleFile(attachment)),
         );
-        // Filter out any undefined results from failed uploads
+
         newAttachmentUrls = newAttachmentUrls.filter(url => url !== undefined);
 
-        // Show toast if some attachments failed to upload
         const failedUploads =
           attachmentsToUpload.length - newAttachmentUrls.length;
         if (failedUploads > 0) {
@@ -191,7 +182,6 @@ const NoteCreateScreen = ({navigation, route}) => {
         }
       }
 
-      // Get current attachment URLs (existing ones that weren't removed)
       let currentAttachmentUrls = [];
       if (isEditMode) {
         currentAttachmentUrls = existingAttachments
@@ -199,7 +189,6 @@ const NoteCreateScreen = ({navigation, route}) => {
           .map(attachment => attachment.uri);
       }
 
-      // Update note with combined attachment URLs
       const updatedNote = {
         ...note,
         batchId: Batch_id,
@@ -208,14 +197,12 @@ const NoteCreateScreen = ({navigation, route}) => {
 
       setNote(updatedNote);
 
-      // Update or create note
       if (isEditMode) {
         await Note_Update(updatedNote);
       } else {
         await Note_Submit(updatedNote);
       }
 
-      // Show success message
       setIsSaving(false);
       setShowSuccessMessage(true);
       animateSuccess();
@@ -224,7 +211,6 @@ const NoteCreateScreen = ({navigation, route}) => {
       console.error('Error during save:', error.message);
       setIsSaving(false);
 
-      // Show toast for general save error
       Toast.show({
         type: 'error',
         text1: 'Save Failed',
@@ -236,12 +222,11 @@ const NoteCreateScreen = ({navigation, route}) => {
   const handleAttachments = async () => {
     try {
       const result = await pick({
-        allowMultiSelection: true, // Enable multiple file selection
+        allowMultiSelection: true,
         type: ['*/*'],
       });
 
       if (result && result.length > 0) {
-        // Validate file sizes and create file objects
         const newFiles = result
           .map(file => ({
             uri:
@@ -253,17 +238,15 @@ const NoteCreateScreen = ({navigation, route}) => {
             size: file.size,
             isExisting: false,
           }))
-          .filter(file => attachmentValidation(file.size)); // Remove invalid files
+          .filter(file => attachmentValidation(file.size));
 
         if (newFiles.length === 0) {
-          return; // No valid files to upload
+          return;
         }
 
-        // Update UI list and upload list
         setAttachmentList(prev => [...prev, ...newFiles]);
         setAttachmentsToUpload(prev => [...prev, ...newFiles]);
 
-        // Show toast for successful attachment addition
         Toast.show({
           type: 'success',
           text1: 'Attachments Added',
@@ -275,7 +258,6 @@ const NoteCreateScreen = ({navigation, route}) => {
     } catch (error) {
       console.error('Document Picker Error:', error);
 
-      // Show toast for document picker error
       Toast.show({
         type: 'error',
         text1: 'Attachment Error',
@@ -424,20 +406,16 @@ const NoteCreateScreen = ({navigation, route}) => {
   };
 
   const handleRemoveAttachment = (index, item) => {
-    // If removing an existing attachment, add to the removed list
     if (item.isExisting) {
       setRemovedAttachments(prev => [...prev, item.uri]);
     } else {
-      // If removing a newly added attachment, remove from uploads list
       setAttachmentsToUpload(prev =>
         prev.filter(attachment => attachment.uri !== item.uri),
       );
     }
 
-    // Remove from UI list
     setAttachmentList(prev => prev.filter((_, i) => i !== index));
 
-    // Show toast for attachment removal
     Toast.show({
       type: 'info',
       text1: 'Attachment Removed',

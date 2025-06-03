@@ -51,7 +51,6 @@ const StudentCreation = ({navigation, route}) => {
         },
   );
 
-  // State for profile image
   const [profileImage, setProfileImage] = useState(null);
   const [profileImageUrl, setProfileImageUrl] = useState(null);
   const [update, setUpdate] = useState(false);
@@ -60,7 +59,6 @@ const StudentCreation = ({navigation, route}) => {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Improved username validation states
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [usernameChecked, setUsernameChecked] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState(false);
@@ -73,7 +71,6 @@ const StudentCreation = ({navigation, route}) => {
     return /^\d{10}$/.test(phone);
   };
 
-  // Revamped username validation function following SignupScreen pattern
   const checkUsernameAvailability = async username => {
     if (!username.trim()) {
       setUsernameChecked(false);
@@ -97,7 +94,6 @@ const StudentCreation = ({navigation, route}) => {
       });
 
       if (response.status === 200) {
-        // Status 200 means username exists
         Toast.show({
           type: 'error',
           text1: 'Username Error',
@@ -112,14 +108,12 @@ const StudentCreation = ({navigation, route}) => {
         setUsernameAvailable(false);
         return false;
       } else if (response.status === 404) {
-        // Error (404) means username doesn't exist and is available
         setErrors(prev => ({...prev, userName: ''}));
         setIsCheckingUsername(false);
         setUsernameChecked(true);
         setUsernameAvailable(true);
         return true;
       } else {
-        // Handle other status codes
         console.log('Unexpected status code:', response.status);
         Toast.show({
           type: 'error',
@@ -151,15 +145,13 @@ const StudentCreation = ({navigation, route}) => {
     }
   };
 
-  // Handle username change with resetting validation state
   const handleUsernameChange = text => {
     setStudent(prev => ({...prev, userName: text}));
-    // Clear previous username error when typing
+
     setErrors(prev => ({...prev, userName: ''}));
     setUsernameChecked(false);
   };
 
-  // Validate username when user finishes typing
   const handleUsernameBlur = () => {
     if (student.userName.trim() && !isEditMode) {
       checkUsernameAvailability(student.userName);
@@ -170,7 +162,6 @@ const StudentCreation = ({navigation, route}) => {
     let isValid = true;
     const newErrors = {...errors};
 
-    // Required fields as per API
     if (!student.firstName.trim()) {
       newErrors.firstName = 'First name is required';
       Toast.show({
@@ -191,7 +182,6 @@ const StudentCreation = ({navigation, route}) => {
       isValid = false;
     }
 
-    // Make email required
     if (!isEditMode) {
       if (!student.email) {
         newErrors.email = 'Email is required';
@@ -212,7 +202,6 @@ const StudentCreation = ({navigation, route}) => {
       }
     }
 
-    // Make parent1Name required
     if (!student.parent1Name) {
       newErrors.parent1Name = 'Primary parent name is required';
       Toast.show({
@@ -223,7 +212,6 @@ const StudentCreation = ({navigation, route}) => {
       isValid = false;
     }
 
-    // Make parent1Phone required
     if (!student.parent1Phone) {
       newErrors.parent1Phone = 'Primary parent phone is required';
       Toast.show({
@@ -242,7 +230,6 @@ const StudentCreation = ({navigation, route}) => {
       isValid = false;
     }
 
-    // Make parent1Email required
     if (!student.parent1Email) {
       newErrors.parent1Email = 'Primary parent email is required';
       Toast.show({
@@ -270,13 +257,11 @@ const StudentCreation = ({navigation, route}) => {
       });
       isValid = false;
     } else if (!isEditMode) {
-      // Check username availability for new students
       const isUsernameAvailable = await checkUsernameAvailability(
         student.userName,
       );
       if (!isUsernameAvailable) {
         isValid = false;
-        // Error message already set in checkUsernameAvailability via Toast
       }
     }
 
@@ -308,7 +293,6 @@ const StudentCreation = ({navigation, route}) => {
       isValid = false;
     }
 
-    // Optional but validated if provided
     if (student.age && isNaN(student.age)) {
       newErrors.age = 'Age must be a number';
       Toast.show({
@@ -353,7 +337,6 @@ const StudentCreation = ({navigation, route}) => {
     return isValid;
   };
 
-  // Real-time validation functions for individual fields
   const validateField = (field, value) => {
     switch (field) {
       case 'email':
@@ -437,13 +420,11 @@ const StudentCreation = ({navigation, route}) => {
     try {
       setIsUploading(true);
 
-      // Use pickAndUploadImage from FileUploadService
       const result = await pickAndUploadImage({}, 'profile');
 
       if (result.success) {
-        // Set the image URI for display
         setProfileImage(result.uri);
-        // Set the uploaded image URL for saving
+
         setProfileImageUrl(result.url);
         Toast.show({
           type: 'success',
@@ -451,7 +432,6 @@ const StudentCreation = ({navigation, route}) => {
           text2: 'Profile picture uploaded successfully',
         });
       } else {
-        // Only show alert for errors that are not cancellation
         if (result.message !== 'User cancelled image selection') {
           Toast.show({
             type: 'error',
@@ -478,23 +458,22 @@ const StudentCreation = ({navigation, route}) => {
     setIsSaving(true);
 
     try {
-      // Prepare API payload
       const rawPayload = {
         firstName: student.firstName,
         lastName: student.lastName,
         age: student.age ? parseInt(student.age) : null,
         userName: student.userName,
         password: student.password,
-        // email: student.email, // Email is now required
+        // email: student.email,
         addressLine1: student.addressLine1 || null,
         addressCity: student.addressCity || null,
         addressState: student.addressState || null,
         pinCode: student.pinCode ? parseInt(student.pinCode) : null,
         profilePicUrl: profileImageUrl || null,
         gender: student.gender || null,
-        parent1Name: student.parent1Name, // Primary parent is now required
-        parent1Phone: student.parent1Phone, // Primary parent phone is now required
-        parent1Email: student.parent1Email, // Primary parent email is now required
+        parent1Name: student.parent1Name,
+        parent1Phone: student.parent1Phone,
+        parent1Email: student.parent1Email,
         parent2Name: student.parent2Name || null,
         parent2Phone: student.parent2Phone || null,
         parent2Email: student.parent2Email || null,
@@ -506,7 +485,6 @@ const StudentCreation = ({navigation, route}) => {
         ),
       );
 
-      // Use the postApi function
       const Token = await AsyncStorage.getItem('Token');
 
       const url = `students/${student.id}`;
@@ -527,7 +505,6 @@ const StudentCreation = ({navigation, route}) => {
       };
 
       const onCatch = err => {
-        // Only store the error message (not the whole object)
         setJsonError(err?.error || 'Something went wrong');
         console.log('Error updating Student:', err?.error);
         Toast.show({
@@ -556,23 +533,22 @@ const StudentCreation = ({navigation, route}) => {
     setIsSaving(true);
 
     try {
-      // Prepare API payload
       const rawPayload = {
         firstName: student.firstName,
         lastName: student.lastName,
         age: student.age ? parseInt(student.age) : null,
         userName: student.userName,
         password: student.password,
-        email: student.email, // Email is now required
+        email: student.email,
         addressLine1: student.addressLine1 || null,
         addressCity: student.addressCity || null,
         addressState: student.addressState || null,
         pinCode: student.pinCode ? parseInt(student.pinCode) : null,
         profilePicUrl: profileImageUrl || null,
         gender: student.gender || null,
-        parent1Name: student.parent1Name, // Primary parent is now required
-        parent1Phone: student.parent1Phone, // Primary parent phone is now required
-        parent1Email: student.parent1Email, // Primary parent email is now required
+        parent1Name: student.parent1Name,
+        parent1Phone: student.parent1Phone,
+        parent1Email: student.parent1Email,
         parent2Name: student.parent2Name || null,
         parent2Phone: student.parent2Phone || null,
         parent2Email: student.parent2Email || null,
@@ -584,7 +560,6 @@ const StudentCreation = ({navigation, route}) => {
         ),
       );
 
-      // Use the postApi function
       const Token = await AsyncStorage.getItem('Token');
 
       const url = 'students';
@@ -603,7 +578,6 @@ const StudentCreation = ({navigation, route}) => {
       };
 
       const onCatch = err => {
-        // Only store the error message (not the whole object)
         setJsonError(err?.error || 'Something went wrong');
         console.log(Token);
         console.log('Error creating profile:', err?.error);
@@ -682,7 +656,6 @@ const StudentCreation = ({navigation, route}) => {
     return <Text style={styles.errorText1}>{jsonError}</Text>;
   };
 
-  // Helper function to render username indicator like in SignupScreen
   const renderUsernameIndicator = () => {
     if (isCheckingUsername) {
       return (
@@ -726,10 +699,8 @@ const StudentCreation = ({navigation, route}) => {
   ) => {
     const [showPassword, setShowPassword] = useState(false);
 
-    // Handle special case for email field in edit mode
     const isReadOnly = isEditMode && field === 'email';
 
-    // Update required fields based on specifications
     const isRequired =
       required ||
       field === 'email' ||
@@ -750,7 +721,7 @@ const StudentCreation = ({navigation, route}) => {
               field === 'age' ? student[field]?.toString() : student[field]
             }
             onChangeText={text => {
-              if (isReadOnly) return; // Don't update if read-only
+              if (isReadOnly) return;
 
               if (field === 'userName') {
                 handleUsernameChange(text);
@@ -761,12 +732,11 @@ const StudentCreation = ({navigation, route}) => {
               }
             }}
             onBlur={() => {
-              if (isReadOnly) return; // Don't validate if read-only
+              if (isReadOnly) return;
 
               if (field === 'userName') {
                 handleUsernameBlur();
               } else {
-                // Validate the field on blur
                 validateField(field, student[field]);
               }
             }}
@@ -869,7 +839,7 @@ const StudentCreation = ({navigation, route}) => {
               'Enter email address',
               'email-address',
               false,
-              true, // Now required
+              true,
             )}
 
             <View style={styles.inputGroup}>
@@ -918,7 +888,7 @@ const StudentCreation = ({navigation, route}) => {
               'Enter parent name',
               'default',
               false,
-              true, // Now required
+              true,
             )}
             {renderInput(
               'parent1Phone',
@@ -926,7 +896,7 @@ const StudentCreation = ({navigation, route}) => {
               'Enter 10-digit phone number',
               'phone-pad',
               false,
-              true, // Now required
+              true,
             )}
             {renderInput(
               'parent1Email',
@@ -934,7 +904,7 @@ const StudentCreation = ({navigation, route}) => {
               'Enter email address',
               'email-address',
               false,
-              true, // Now required
+              true,
             )}
 
             <View style={styles.sectionHeader}>

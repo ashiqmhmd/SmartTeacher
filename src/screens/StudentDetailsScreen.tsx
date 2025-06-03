@@ -8,11 +8,11 @@ import {
   StatusBar,
   Dimensions,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
-import { getapi } from '../utils/api';
+import {getapi} from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const {width} = Dimensions.get('window');
@@ -20,7 +20,6 @@ const {width} = Dimensions.get('window');
 const StudentDetailsScreen = ({route, navigation}) => {
   const student = route.params.student;
 
-  
   const renderContactSection = (title, items) => (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -54,7 +53,9 @@ const StudentDetailsScreen = ({route, navigation}) => {
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => navigation.navigate('Student_Create', {student,update:true})}
+            onPress={() =>
+              navigation.navigate('Student_Create', {student, update: true})
+            }
             style={styles.editButton}>
             <MaterialIcons name="edit" size={22} color="#fff" />
           </TouchableOpacity>
@@ -126,24 +127,24 @@ const StudentDetailsScreen = ({route, navigation}) => {
         </View>
 
         <View style={styles.section}>
-  <Text style={styles.sectionTitle}>Enrolled Batches</Text>
-  <View style={styles.batchList}>
-    {student.batches.map((batchId, index) => (
-      <View key={index} style={styles.batchCard}>
-        <LinearGradient
-          colors={['#f8f9ff', '#ffffff']}
-          style={styles.batchContent}>
-          <View style={styles.batchInfo}>
-            <Text style={styles.batchName}>
-              {batchId?.name || `Batch ${"BatchName"}`} {/* Fallback to "Batch ID" if name is not available */}
-            </Text>
-            <Text style={styles.batchId}>ID: {batchId?.id}</Text>
+          <Text style={styles.sectionTitle}>Enrolled Batches</Text>
+          <View style={styles.batchList}>
+            {student.batches.map((batchId, index) => (
+              <View key={index} style={styles.batchCard}>
+                <LinearGradient
+                  colors={['#f8f9ff', '#ffffff']}
+                  style={styles.batchContent}>
+                  <View style={styles.batchInfo}>
+                    <Text style={styles.batchName}>
+                      {batchId?.name || `Batch ${'BatchName'}`}
+                    </Text>
+                    <Text style={styles.batchId}>ID: {batchId?.id}</Text>
+                  </View>
+                </LinearGradient>
+              </View>
+            ))}
           </View>
-        </LinearGradient>
-      </View>
-    ))}
-  </View>
-</View>
+        </View>
       </ScrollView>
     </View>
   );

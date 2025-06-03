@@ -25,7 +25,7 @@ const NotesScreen = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false); // State for refresh control
+  const [refreshing, setRefreshing] = useState(false);
   const [isBatchSelected, setIsBatchSelected] = useState(true);
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
@@ -68,14 +68,14 @@ const NotesScreen = ({navigation}) => {
       console.log(res);
       setNotes(res || []);
       setLoading(false);
-      setRefreshing(false); // Stop refreshing after data is fetched
+      setRefreshing(false);
     };
 
     const onCatch = res => {
       console.log('Error');
       console.log(res);
       setLoading(false);
-      setRefreshing(false); // Stop refreshing on error
+      setRefreshing(false);
     };
     getapi(url, headers, onResponse, onCatch, navigation);
   };
@@ -96,10 +96,9 @@ const NotesScreen = ({navigation}) => {
     }, []),
   );
 
-  // Handle pull-to-refresh
   const onRefresh = useCallback(() => {
-    setRefreshing(true); // Start refreshing
-    Notes_fetch(); // Fetch data
+    setRefreshing(true);
+    Notes_fetch();
   }, []);
 
   const filteredNotes = useMemo(() => {
@@ -178,12 +177,10 @@ const NotesScreen = ({navigation}) => {
         renderNoBatchSelected()
       ) : loading ? (
         <View style={styles.container}>
-          {/* Search Bar Shimmer */}
           <View style={styles.searchSection}>
             <ShimmerPlaceholder style={styles.searchBar} />
           </View>
 
-          {/* Student List Shimmer */}
           {[1, 2, 3, 4, 5].map((_, index) => (
             <View style={styles.noteCard}>
               <View key={index} style={styles.noteDetailsContainer}>
@@ -201,10 +198,10 @@ const NotesScreen = ({navigation}) => {
           style={styles.container}
           refreshControl={
             <RefreshControl
-              refreshing={refreshing} // Controlled by refreshing state
-              onRefresh={onRefresh} // Callback when user pulls to refresh
-              colors={['#001d3d']} // Customize refresh spinner color
-              tintColor="#001d3d" // Customize spinner color (iOS)
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#001d3d']}
+              tintColor="#001d3d"
             />
           }>
           <View style={styles.searchSection}>
@@ -215,7 +212,7 @@ const NotesScreen = ({navigation}) => {
                 placeholder="Search Notes"
                 placeholderTextColor="#666"
                 value={searchQuery}
-                onChangeText={setSearchQuery} // Updates searchQuery when user types
+                onChangeText={setSearchQuery}
               />
             </View>
             <TouchableOpacity

@@ -44,7 +44,7 @@ const HomeScreen = ({navigation}) => {
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [refreshing, setRefreshing] = useState(false);
-  const [isBatchSelected, setIsBatchSelected] = useState(true); // Track if batch is selected
+  const [isBatchSelected, setIsBatchSelected] = useState(true);
   const dispatch = useDispatch();
 
   const students_fetch = async () => {
@@ -52,7 +52,6 @@ const HomeScreen = ({navigation}) => {
     const Token = await AsyncStorage.getItem('Token');
     const Batch_id = await AsyncStorage.getItem('batch_id');
 
-    // Check if batch_id is available
     const currentBatchId = Batch_id ? Batch_id : selectedBatch_id;
 
     if (!currentBatchId) {
@@ -139,7 +138,6 @@ const HomeScreen = ({navigation}) => {
     refRBSheet.current.close();
   };
 
-  // Search functionality
   const handleSearch = text => {
     setSearchText(text);
     if (text.trim() === '') {
@@ -162,14 +160,12 @@ const HomeScreen = ({navigation}) => {
     }
   };
 
-  // Clear search
   const clearSearch = () => {
     setSearchText('');
     setFilteredStudents(students);
   };
 
   useEffect(() => {
-    // Check if a batch is selected when component mounts
     const checkBatchSelection = async () => {
       const Batch_id = await AsyncStorage.getItem('batch_id');
       if (!Batch_id && !selectedBatch_id) {

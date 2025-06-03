@@ -54,22 +54,17 @@ const ConversationScreen = ({route, navigation}) => {
     }
   };
 
-  // Add polling mechanism to check for new messages
   useEffect(() => {
     let messagePolling;
 
-    // Start polling when conversation is loaded
     if (conversationId) {
-      // Poll every 5 seconds to check for new messages
       messagePolling = setInterval(() => {
-        // Only refresh if we're not currently loading or sending
         if (!loading && !sendingMessage) {
           refreshMessages();
         }
       }, 5000);
     }
 
-    // Clean up interval when component unmounts
     return () => {
       if (messagePolling) clearInterval(messagePolling);
     };
@@ -104,7 +99,6 @@ const ConversationScreen = ({route, navigation}) => {
     }
   }, [conversationId]);
 
-  // Add effect to scroll to bottom when messages change
   useEffect(() => {
     if (flatListRef.current && messages.length > 0) {
       setTimeout(() => {
@@ -120,7 +114,6 @@ const ConversationScreen = ({route, navigation}) => {
     }
   }, [messages]);
 
-  // Silent refresh function that doesn't show loading indicators
   const refreshMessages = async () => {
     try {
       const Token = await AsyncStorage.getItem('Token');
@@ -162,7 +155,6 @@ const ConversationScreen = ({route, navigation}) => {
             (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
           );
 
-          // Compare with current messages to see if there are new ones
           const currentMessagesIds = new Set(messages.map(msg => msg.id));
           const hasNewMessages = allMessages.some(
             msg => !currentMessagesIds.has(msg.id),
@@ -172,7 +164,6 @@ const ConversationScreen = ({route, navigation}) => {
             console.log('New messages received!');
             setMessages(allMessages);
 
-            // Scroll to bottom when new messages arrive
             setTimeout(() => {
               if (flatListRef.current) {
                 flatListRef.current.scrollToEnd({animated: true});
@@ -184,7 +175,6 @@ const ConversationScreen = ({route, navigation}) => {
 
       const onCatch = err => {
         console.error('Error refreshing messages:', err);
-        // Silent fail for background refresh
       };
 
       getapi(url, headers, onResponse, onCatch, navigation);
@@ -193,7 +183,6 @@ const ConversationScreen = ({route, navigation}) => {
     }
   };
 
-  // Pull-to-refresh handler
   const onRefresh = async () => {
     setRefreshing(true);
     await refreshMessages();
@@ -215,7 +204,6 @@ const ConversationScreen = ({route, navigation}) => {
 
       const onResponse = res => {
         if (res) {
-          // Store the full conversation data for later use
           setConversationData(res);
 
           const originalMessage = {
@@ -229,7 +217,6 @@ const ConversationScreen = ({route, navigation}) => {
             isOriginal: true,
           };
 
-          // Map replies to match the same structure as the original message
           const replies = res.replies.map(reply => ({
             id: reply.id || `reply-${Math.random()}`,
             sender: reply.sender,
@@ -241,10 +228,8 @@ const ConversationScreen = ({route, navigation}) => {
             isOriginal: false,
           }));
 
-          // Combine original message and replies into a single array
           const allMessages = [originalMessage, ...replies];
 
-          // Sort messages by timestamp
           allMessages.sort(
             (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
           );
@@ -317,14 +302,13 @@ const ConversationScreen = ({route, navigation}) => {
   const handleAttachment = async () => {
     try {
       const result = await pick({
-        type: ['*/*'], // Allow all file types
-        allowMultiSelection: true, // Enable multiple file selection
+        type: ['*/*'],
+        allowMultiSelection: true,
       });
 
       if (result && result.length > 0) {
         console.log('Documents selected:', result);
 
-        // Transform selected files into a consistent file data structure
         const fileDataArray = result.map(selectedFile => ({
           uri:
             Platform.OS === 'android'
@@ -335,13 +319,11 @@ const ConversationScreen = ({route, navigation}) => {
           size: selectedFile.size,
         }));
 
-        // Update selected attachments by adding new files
         setSelectedAttachments(prevAttachments => [
           ...prevAttachments,
           ...fileDataArray,
         ]);
 
-        // Set formData to indicate attachments are ready
         setFormData({});
       }
     } catch (err) {
@@ -363,9 +345,8 @@ const ConversationScreen = ({route, navigation}) => {
       console.log('Uploading attachment...');
 
       const Token = await AsyncStorage.getItem('Token');
-      const fileData = selectedAttachments[0]; // Get the file data from selected attachments
+      const fileData = selectedAttachments[0];
 
-      // Create FormData - this is the key fix
       const formDataToUpload = new FormData();
       formDataToUpload.append('file', fileData);
 
@@ -460,7 +441,6 @@ const ConversationScreen = ({route, navigation}) => {
         return responseData.url;
       });
 
-      // Wait for all uploads to complete
       const attachmentUrls = await Promise.all(uploadPromises);
       return attachmentUrls;
     } catch (error) {
@@ -478,10 +458,8 @@ const ConversationScreen = ({route, navigation}) => {
     setNewMessage('');
 
     try {
-      // Upload attachments
       const attachmentUrls = await uploadAttachments();
 
-      // Create a temporary message object for immediate UI update
       const newMessageObj = {
         sender: teacherId,
         senderName:
@@ -494,14 +472,11 @@ const ConversationScreen = ({route, navigation}) => {
         attachmentUrls: attachmentUrls,
       };
 
-      // Add to messages list for instant feedback
       setMessages(prevMessages => [...prevMessages, newMessageObj]);
 
-      // Clear attachments and form data
       setSelectedAttachments([]);
       setFormData(null);
 
-      // Scroll to bottom
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({animated: true});
       }, 100);
@@ -538,8 +513,6 @@ const ConversationScreen = ({route, navigation}) => {
         console.log('Message sent successfully:', res);
         setSendingMessage(false);
 
-        // Refresh the conversation to get the actual server data
-        // This ensures message IDs are correct and we have any server-side changes
         setTimeout(() => {
           refreshMessages();
         }, 500);
@@ -549,10 +522,8 @@ const ConversationScreen = ({route, navigation}) => {
         console.error('Error sending message:', err);
         setSendingMessage(false);
 
-        // Show error to user
         Alert.alert('Error', 'Failed to send message. Please try again.');
 
-        // Optional: You could remove the temporary message and restore the text input
         setMessages(prevMessages =>
           prevMessages.filter(msg => msg !== newMessageObj),
         );
@@ -611,7 +582,6 @@ const ConversationScreen = ({route, navigation}) => {
   const Create_message = async () => {
     console.log(TeacherName);
 
-    // Similar modifications as sendMessage method
     if (newMessage.trim() === '' && selectedAttachments.length === 0) return;
 
     setSendingMessage(true);
@@ -619,12 +589,10 @@ const ConversationScreen = ({route, navigation}) => {
     setNewMessage('');
 
     try {
-      // Upload attachments
       const attachmentUrls = await uploadAttachments();
 
       const Batch_id = await AsyncStorage.getItem('batch_id');
 
-      // Create a temporary message object for immediate UI update
       const newMessageObj = {
         subject: 'just chat',
         sender: teacherId,
@@ -639,14 +607,11 @@ const ConversationScreen = ({route, navigation}) => {
         batchId: Batch_id,
       };
 
-      // Add to messages list for instant feedback
       setMessages(prevMessages => [...prevMessages, newMessageObj]);
 
-      // Clear attachments and form data
       setSelectedAttachments([]);
       setFormData(null);
 
-      // Scroll to bottom
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({animated: true});
       }, 100);
@@ -677,10 +642,8 @@ const ConversationScreen = ({route, navigation}) => {
         console.log('Message Created successfully:', res);
         setSendingMessage(false);
 
-        // Show success notification
         setShowSuccess(true);
 
-        // Update the conversation with the actual message ID from the server response
         if (res && res.id) {
           setMessages(prevMessages =>
             prevMessages.map(msg =>
@@ -688,7 +651,6 @@ const ConversationScreen = ({route, navigation}) => {
             ),
           );
 
-          // Navigate to the conversation view with the new conversation ID
           setTimeout(() => {
             navigation.replace('Chat', {
               conversationId: res.id,
@@ -698,7 +660,6 @@ const ConversationScreen = ({route, navigation}) => {
           }, 1500);
         }
 
-        // Hide success notification after 3 seconds
         setTimeout(() => {
           setShowSuccess(false);
         }, 3000);
@@ -708,10 +669,8 @@ const ConversationScreen = ({route, navigation}) => {
         console.error('Error sending message:', err);
         setSendingMessage(false);
 
-        // Show error to user
         Alert.alert('Error', 'Failed to send message. Please try again.');
 
-        // Optional: You could remove the temporary message and restore the text input
         setMessages(prevMessages =>
           prevMessages.filter(msg => msg !== newMessageObj),
         );
@@ -729,26 +688,23 @@ const ConversationScreen = ({route, navigation}) => {
     }
   };
 
- const handleOpenAttachment = url => {
-    // In a real app, this would open the attachment
+  const handleOpenAttachment = url => {
     console.log('Opening attachment:', url);
     Alert.alert(
       'Attachment',
       typeof url === 'string' ? url.split('/').pop() : url.name || 'Attachment',
       [
-        { text: 'Download', onPress: () =>  Linking.openURL(url)},
-        { text: 'Cancel', style: 'cancel' },
-      ]
+        {text: 'Download', onPress: () => Linking.openURL(url)},
+        {text: 'Cancel', style: 'cancel'},
+      ],
     );
   };
 
-  // Modify handleRemoveAttachment to work with multiple attachments
   const handleRemoveAttachment = index => {
     const newAttachments = [...selectedAttachments];
     newAttachments.splice(index, 1);
     setSelectedAttachments(newAttachments);
 
-    // If no attachments left, clear formData
     if (newAttachments.length === 0) {
       setFormData(null);
     }
@@ -782,16 +738,14 @@ const ConversationScreen = ({route, navigation}) => {
           ]}>
           <Text style={styles.messageContent}>{item.content}</Text>
 
-          {/* Display attachments */}
           {item.attachmentUrls && item.attachmentUrls.length > 0 && (
             <View style={styles.attachmentsContainer}>
               {item.attachmentUrls.map((url, index) => (
-                 <TouchableOpacity
+                <TouchableOpacity
                   key={index}
                   disabled={url.match(/\.(jpeg|jpg|gif|png)$/) ? true : false}
                   style={styles.attachment}
                   onPress={() => handleOpenAttachment(url)}>
-                  {/* Check if attachment is an image */}
                   {url.match(/\.(jpeg|jpg|gif|png)$/) ? (
                     <Image
                       source={{uri: url}}
@@ -817,7 +771,6 @@ const ConversationScreen = ({route, navigation}) => {
             </View>
           )}
 
-          {/* Display timestamp */}
           <Text style={styles.messageTime}>{formatTime(item.timestamp)}</Text>
         </View>
       </View>

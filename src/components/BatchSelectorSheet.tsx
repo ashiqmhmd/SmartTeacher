@@ -70,13 +70,11 @@ const BatchSelectorSheet = React.forwardRef(
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedBatch, setSelectedBatch] = useState(null);
 
-    // Function to refresh batches - expose this via ref for external components
     const refreshBatches = useCallback(() => {
       console.log('enetring from home screen');
       return dispatch(fetch_batchs())
         .then(response => {
           if (response.payload && response.payload.length > 0) {
-            // If no batch is selected yet, select the first one
             if (!selectedBatch && !reduxSelectedBatch) {
               handleBatchSelect(response.payload[0]);
             }
@@ -88,7 +86,6 @@ const BatchSelectorSheet = React.forwardRef(
         });
     }, [dispatch, selectedBatch, reduxSelectedBatch]);
 
-    // Expose the refresh function through ref
     useEffect(() => {
       if (ref && typeof ref === 'object') {
         ref.current = {
@@ -97,22 +94,19 @@ const BatchSelectorSheet = React.forwardRef(
         };
       }
     }, [ref, refreshBatches]);
-    // Handle batch selection
+
     const handleBatchSelect = useCallback(
       async batch => {
         if (!batch) return;
 
         setSelectedBatch(batch);
 
-        // Update AsyncStorage
         await AsyncStorage.setItem('batch_id', batch.id.toString());
         await AsyncStorage.setItem('batch', JSON.stringify(batch));
 
-        // Update Redux
         dispatch(batch_id(batch.id));
         dispatch(selectBatch(batch));
 
-        // Call the parent component's callback if provided
         if (onBatchSelect) {
           onBatchSelect(batch);
         }
@@ -122,16 +116,14 @@ const BatchSelectorSheet = React.forwardRef(
 
     const handleNavigateToBatchCreate = () => {
       if (navigation) {
-        // Close the bottom sheet first
         if (ref && ref.current) {
           ref.current.close();
         }
-        // Navigate to batch create screen
+
         navigation.navigate('Batch_Create', {update: false});
       }
     };
 
-    // Initialize with data from Redux if available
     useEffect(() => {
       if (reduxSelectedBatch && typeof reduxSelectedBatch === 'object') {
         setSelectedBatch(reduxSelectedBatch);
@@ -145,12 +137,10 @@ const BatchSelectorSheet = React.forwardRef(
       }
     }, [reduxSelectedBatch]);
 
-    // Initial data load
     useEffect(() => {
       refreshBatches();
     }, []);
 
-    // Filter batches based on search query
     const filteredBatches = batchs.filter(batch => {
       const searchLower = searchQuery.toLowerCase();
       return (

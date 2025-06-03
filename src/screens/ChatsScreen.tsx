@@ -8,7 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  RefreshControl, // Add RefreshControl
+  RefreshControl,
 } from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -27,7 +27,7 @@ const ChatsScreen = ({navigation}) => {
   const [conversations, setConversations] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [userId, setUserId] = useState('');
-  const [refreshing, setRefreshing] = useState(false); // State for refresh control
+  const [refreshing, setRefreshing] = useState(false);
   const [isBatchSelected, setIsBatchSelected] = useState(true);
   const selectedBatch_id = useSelector(state => state.auth?.batch_id);
   const selectedBatchString = useSelector(state => state.auth?.selectBatch);
@@ -42,7 +42,7 @@ const ChatsScreen = ({navigation}) => {
     dispatch(batch_id(batch.id));
     dispatch(selectBatch(batch));
     await fetchConversations();
-    // Close the bottom sheet
+
     refRBSheet.current.close();
   };
 
@@ -76,13 +76,13 @@ const ChatsScreen = ({navigation}) => {
       console.log('batch: ', Batch_id);
       setConversations(res);
       setLoading(false);
-      setRefreshing(false); // Stop refreshing after data is fetched
+      setRefreshing(false);
     };
 
     const onCatch = err => {
       console.log('Error fetching conversations:', err);
       setLoading(false);
-      setRefreshing(false); // Stop refreshing on error
+      setRefreshing(false);
     };
 
     getapi(url, headers, onResponse, onCatch, navigation);
@@ -102,29 +102,25 @@ const ChatsScreen = ({navigation}) => {
     }, []),
   );
 
-  // Handle pull-to-refresh
   const onRefresh = useCallback(() => {
-    setRefreshing(true); // Start refreshing
-    fetchConversations(); // Fetch data
+    setRefreshing(true);
+    fetchConversations();
   }, []);
 
   const formatDate = dateString => {
     const date = new Date(dateString);
     const now = new Date();
 
-    // Check if the date is today
     if (date.toDateString() === now.toDateString()) {
       return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
     }
 
-    // Check if the date is yesterday
     const yesterday = new Date(now);
     yesterday.setDate(now.getDate() - 1);
     if (date.toDateString() === yesterday.toDateString()) {
       return 'Yesterday';
     }
 
-    // If it's earlier, show the date
     return date.toLocaleDateString([], {month: 'short', day: 'numeric'});
   };
 
@@ -304,10 +300,10 @@ const ChatsScreen = ({navigation}) => {
               contentContainerStyle={styles.list}
               refreshControl={
                 <RefreshControl
-                  refreshing={refreshing} // Controlled by refreshing state
-                  onRefresh={onRefresh} // Callback when user pulls to refresh
-                  colors={['#001d3d']} // Customize refresh spinner color
-                  tintColor="#001d3d" // Customize spinner color (iOS)
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={['#001d3d']}
+                  tintColor="#001d3d"
                 />
               }
             />

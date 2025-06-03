@@ -46,13 +46,10 @@ const NotificationScreen = ({navigation}) => {
     Notification_marking(notification.id);
     setNotifications(updatedNotifications);
 
-    // Handle the deeplink based on notification type
     if (notification.deeplink && notification.type) {
-      // Extract the ID from the URL
       const urlParts = notification.deeplink.split('/');
       const objectId = urlParts[urlParts.length - 1];
 
-      // Navigate based on notification type
       switch (notification.type) {
         case 'MESSAGE':
           navigation.navigate('Chat', {
@@ -82,7 +79,6 @@ const NotificationScreen = ({navigation}) => {
           });
           break;
         default:
-          // If type is unknown, try to parse the path from the URL
           const path = urlParts[urlParts.length - 2];
           if (path === 'messages') {
             navigation.navigate('Chat', {
@@ -90,7 +86,7 @@ const NotificationScreen = ({navigation}) => {
               deeplink: true,
             });
           }
-          // Add other path checks as needed
+
           break;
       }
     }
