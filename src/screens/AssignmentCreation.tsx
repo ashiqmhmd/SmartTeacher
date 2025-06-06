@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -14,27 +14,27 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {pick} from '@react-native-documents/picker';
+import { pick } from '@react-native-documents/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {base_url} from '../utils/store';
-import {postApi, putapi} from '../utils/api';
-import {currentdate} from '../components/moment';
+import { base_url } from '../utils/store';
+import { postApi, putapi } from '../utils/api';
+import { currentdate } from '../components/moment';
 import moment from 'moment';
 import Toast from 'react-native-toast-message';
 
-const CreateAssignment = ({navigation, route}) => {
+const CreateAssignment = ({ navigation, route }) => {
   const isEditMode = route.params?.assignment ? true : false;
   const [assignment, setAssignment] = useState(
     isEditMode
       ? route.params.assignment
       : {
-          publishDate: currentdate(),
-          title: '',
-          submissionDate: new Date(),
-          attachmentUrls: [],
-          batchId: '',
-          details: '',
-        },
+        publishDate: currentdate(),
+        title: '',
+        submissionDate: new Date(),
+        attachmentUrls: [],
+        batchId: '',
+        details: '',
+      },
   );
 
   const [submissionDate, setSubmitdate] = useState(new Date());
@@ -375,7 +375,7 @@ const CreateAssignment = ({navigation, route}) => {
         text1: 'Assignment',
         text2: 'Updated Succecssfully',
       });
-      navigation.goBack();
+      navigation.navigate("Assignment");
     };
 
     const onCatch = res => {
@@ -428,7 +428,7 @@ const CreateAssignment = ({navigation, route}) => {
         <Text style={styles.appBarTitle}>
           {isEditMode ? 'Edit Assignment' : 'Create Assignment'}
         </Text>
-        <View style={{width: 24}} />
+        <View style={{ width: 24 }} />
       </View>
 
       <KeyboardAvoidingView
@@ -442,9 +442,9 @@ const CreateAssignment = ({navigation, route}) => {
                 style={[styles.input, errors.title && styles.inputError]}
                 value={assignment.title}
                 onChangeText={text => {
-                  setAssignment(prev => ({...prev, title: text}));
+                  setAssignment(prev => ({ ...prev, title: text }));
                   if (errors.title)
-                    setErrors(prev => ({...prev, title: undefined}));
+                    setErrors(prev => ({ ...prev, title: undefined }));
                 }}
                 placeholder="Enter assignment title"
                 placeholderTextColor="#9CA3AF"
@@ -479,7 +479,7 @@ const CreateAssignment = ({navigation, route}) => {
                 style={[styles.input, styles.textArea]}
                 value={assignment.details}
                 onChangeText={text =>
-                  setAssignment(prev => ({...prev, details: text}))
+                  setAssignment(prev => ({ ...prev, details: text }))
                 }
                 placeholder="Enter assignment description"
                 placeholderTextColor="#9CA3AF"
@@ -535,18 +535,23 @@ const CreateAssignment = ({navigation, route}) => {
             display="default"
             onChange={(event, selectedDate) => {
               setShowDatePicker(false);
-              const formattedDate = moment(selectedDate ? selectedDate : '')
+              const formattedDate = moment(selectedDate)
+                .set({ hour: 23, minute: 59, second: 59, millisecond: 999 }) // local end of day
+                .toDate(); // JS Date object (local)
+
+              const finalDateUtc = moment(formattedDate)
                 .utc()
-                .set({hour: 23, minute: 59, second: 59, millisecond: 999})
                 .format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
 
               if (selectedDate) {
                 setAssignment(prev => ({
                   ...prev,
-                  submissionDate: formattedDate,
+                  submissionDate: finalDateUtc,
                 }));
                 setSubmitdate(selectedDate);
-                console.log(selectedDate.toLocaleDateString());
+                console.log(selectedDate.toLocaleDateString())
+                console.log("ash", finalDateUtc);
+                console.log(...assignment)
               }
             }}
           />
@@ -674,7 +679,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: -2},
+    shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 5,
@@ -697,7 +702,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#001d3d',
     shadowColor: '#001d3d',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,

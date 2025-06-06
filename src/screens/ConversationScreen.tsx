@@ -743,7 +743,7 @@ const ConversationScreen = ({route, navigation}) => {
               {item.attachmentUrls.map((url, index) => (
                 <TouchableOpacity
                   key={index}
-                  disabled={url.match(/\.(jpeg|jpg|gif|png)$/) ? true : false}
+                  // disabled={url.match(/\.(jpeg|jpg|gif|png)$/) ? true : false}
                   style={styles.attachment}
                   onPress={() => handleOpenAttachment(url)}>
                   {url.match(/\.(jpeg|jpg|gif|png)$/) ? (
