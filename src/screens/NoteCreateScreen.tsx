@@ -480,7 +480,7 @@ const NoteCreateScreen = ({navigation, route}) => {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Description *</Text>
+              <Text style={styles.label}>Description </Text>
               <TextInput
                 style={[
                   styles.input,
