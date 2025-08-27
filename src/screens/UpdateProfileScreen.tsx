@@ -76,14 +76,6 @@ const UpdateProfileScreen = ({navigation, route}) => {
     'age',
     'gender',
     'phoneNumber',
-    'addressLine1',
-    'addressCity',
-    'addressState',
-    'pinCode',
-    'accountNumber',
-    'accountName',
-    'ifscCode',
-    'upiId',
   ];
 
   const updateRequiredFields = update ? ['userName', 'email', 'password'] : [];
